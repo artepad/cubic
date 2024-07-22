@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Potenza - Formulario de Aplicación de Trabajo con Subida de CV y Función de Rama">
+	<meta name="author" content="Ansonika">
+	<title>Gestión de Contratos de Eventos | Schaaf Producciones</title>
+
+
+	<!-- Favicons-->
+	<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+	<link rel="apple-touch-icon" type="image/x-icon" href="img/apple-touch-icon-57x57-precomposed.png">
+	<link rel="apple-touch-icon" type="image/x-icon" sizes="72x72" href="img/apple-touch-icon-72x72-precomposed.png">
+	<link rel="apple-touch-icon" type="image/x-icon" sizes="114x114"
+		href="img/apple-touch-icon-114x114-precomposed.png">
+	<link rel="apple-touch-icon" type="image/x-icon" sizes="144x144"
+		href="img/apple-touch-icon-144x144-precomposed.png">
+
+	<!-- GOOGLE WEB FONT -->
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans:400,500,600" rel="stylesheet">
+
+	<!-- BASE CSS -->
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/menu.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+	<link href="css/vendors.css" rel="stylesheet">
+
+	<!-- YOUR CUSTOM CSS -->
+	<link href="css/custom.css" rel="stylesheet">
+
+	<!-- MODERNIZR MENU -->
+	<script src="js/modernizr.js"></script>
+
+</head>
+
+<body>
+
+
+	<div class="container-fluid">
+		<div class="row row-height">
+			<div class="col-xl-4 col-lg-4 content-left">
+				<div class="content-left-wrapper">
+					<a href="index.html" id="logo"><img src="img/logo-blanco.png" alt="" width="100" height="55"></a>
+					<div id="social">
+						<ul>
+							<li><a href="https://www.facebook.com/olga.x.schaaf"><i class="bi bi-facebook"></i></a></li>
+							<li><a href="https://www.instagram.com/schaafproducciones2022/"><i
+										class="bi bi-instagram"></i></a></li>
+						</ul>
+					</div>
+					<!-- /social -->
+					<div>
+						<figure><img src="img/contrato.png" alt="Infografía" class="img-fluid" width="270" height="270">
+						</figure>
+						<h2>Generación de Contratos</h2>
+						<p>Proporciona tus datos personales y de tu empresa para generar contratos personalizados.
+							Aseguramos la protección y uso adecuado de tu información para ofrecerte el mejor servicio
+							en la organización de eventos.</p>
+						<a href="https://schaafproducciones.cl/" class="btn_1 rounded yellow">Conoce más sobre
+							nosotros</a>
+						<a href="#start" class="btn_1 rounded mobile_btn yellow">¡Comienza Ahora!</a>
+					</div>
+					<div class="copy">© 2024 Schaaf Producciones</div>
+				</div>
+				<!-- /content-left-wrapper -->
+			</div>
+			<!-- /content-left -->
+			<div class="col-xl-8 col-lg-8 content-right" id="start">
+				<div id="wizard_container">
+					<div id="top-wizard">
+						<span id="location"></span>
+						<div id="progressbar"></div>
+					</div>
+					<!-- /top-wizard -->
+					<form id="wrapped" method="post" action="procesar_formulario.php" enctype="multipart/form-data">
+						<input id="website" name="website" type="text" value="">
+						<!-- Leave for security protection, read docs for details -->
+						<div id="middle-wizard">
+							<!-- /Información personal ============================== -->
+							<div class="step">
+								<h2 class="section_title">Datos para el Contrato</h2>
+								<h3 class="main_question">Información Personal</h3>
+								<div class="form-group add_top_30">
+									<label for="nombres">Nombres</label>
+									<input type="text" name="nombres" id="nombres" class="form-control required"
+										placeholder="Ingrese sus nombres" maxlength="20"
+										pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
+										title="Solo se permiten letras y espacios, máximo 20 caracteres"
+										oninput="validarNombre(this)" onkeydown="return bloquearNumeros(event)">
+									<span id="nombreError" class="error-message"></span>
+								</div>
+								<div class="form-group add_top_30">
+									<label for="apellidos">Apellidos</label>
+									<input type="text" name="apellidos" id="apellidos" class="form-control required"
+										placeholder="Ingrese sus apellidos" maxlength="20"
+										pattern="[A-Za-zñÑáéíóúÁÉÍÓÚ\s]+"
+										title="Solo se permiten letras y espacios, máximo 20 caracteres"
+										oninput="validarApellido(this)" onkeydown="return bloquearNumeros(event)">
+									<span id="apellidoError" class="error-message"></span>
+								</div>
+								<div class="form-group add_top_30">
+									<label for="rut">RUT</label>
+									<input type="text" name="rut" id="rut" class="form-control required">
+								</div>
+								<div class="form-group">
+									<label for="email">Correo</label>
+									<input type="email" name="email" id="email" class="form-control required">
+								</div>
+								<div class="form-group">
+									<label for="phone">Celular</label>
+									<input type="text" name="celular" id="phone" class="form-control required">
+								</div>
+								<label>Género</label>
+								<div class="form-group radio_input">
+									<label class="container_radio me-3">Hombre
+										<input type="radio" name="genero" value="masculino" class="required">
+										<span class="checkmark"></span>
+									</label>
+									<label class="container_radio">Mujer
+										<input type="radio" name="genero" value="femenino" class="required">
+										<span class="checkmark"></span>
+									</label>
+								</div>
+							</div>
+							<!-- /step-->
+
+							<!-- /Información de la empresa ============================== -->
+							<div class="step">
+								<h2 class="section_title">Información de la Empresa</h2>
+								<h3 class="main_question">Datos de la Empresa</h3>
+								<div class="form-group add_top_30">
+									<label for="company_name">Nombre de la Empresa</label>
+									<input type="text" name="company_name" id="company_name"
+										class="form-control required">
+								</div>
+								<div class="form-group add_top_30">
+									<label for="company_rut">RUT de la Empresa</label>
+									<input type="text" name="company_rut" id="company_rut"
+										class="form-control required">
+								</div>
+								<div class="form-group add_top_30">
+									<label for="company_address">Dirección de la Empresa</label>
+									<input type="text" name="company_address" id="company_address"
+										class="form-control required">
+								</div>
+							</div>
+							<!-- /step -->
+
+							<!-- /Información del Evento ============================== -->
+							<div class="step">
+								<h3 class="section_title">Información del Evento</h3>
+								<h5 class="main_question">Detalles del Evento</h5>
+
+								<div class="form-group add_top_30">
+									<label for="nombre_evento">Nombre del Evento</label>
+									<input type="text" name="nombre_evento" id="nombre_evento"
+										class="form-control required" placeholder="Ingrese el nombre del evento">
+								</div>
+
+								<div class="form-group add_top_30">
+									<label for="lugar_evento">Lugar del Evento</label>
+									<input type="text" name="lugar_evento" id="lugar_evento"
+										class="form-control required" placeholder="Ingrese el lugar del evento">
+								</div>
+
+								<div class="form-group add_top_30">
+									<label for="fecha_evento">Fecha del Evento</label>
+									<input type="date" name="fecha_evento" id="fecha_evento"
+										class="form-control required">
+								</div>
+
+								<div class="form-group add_top_30">
+									<label for="hora_evento">Hora del Evento</label>
+									<input type="time" name="hora_evento" id="hora_evento"
+										class="form-control required">
+								</div>
+							</div>
+							<!-- /step -->
+
+							<div class="submit step" id="end">
+								<div class="summary">
+									<div class="wrapper">
+										<h3>¡Casi hemos terminado, <span id="name_field"></span>!</h3>
+										<p>Por favor, revisa tu información y acepta nuestros términos y condiciones.
+											Luego haz clic en "Enviar" para completar el proceso. Te contactaremos
+											pronto en el correo: <strong id="email_field"></strong></p>
+									</div>
+									<div class="text-center">
+										<div class="form-group terms">
+											<label class="container_check">Por favor acepta nuestros <a href="#"
+													data-bs-toggle="modal" data-bs-target="#terms-txt">Términos y
+													Condiciones</a> antes de Enviar
+												<input type="checkbox" name="terms" value="Yes" class="required">
+												<span class="checkmark"></span>
+											</label>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- /step last-->
+
+						</div>
+						<!-- /middle-wizard -->
+						<div id="bottom-wizard">
+							<button type="button" name="backward" class="backward">Anterior</button>
+							<button type="button" name="forward" class="forward">Siguiente</button>
+							<button type="submit" name="process" class="submit">Enviar</button>
+						</div>
+						<!-- /bottom-wizard -->
+					</form>
+				</div>
+				<!-- /Wizard container -->
+			</div>
+			<!-- /content-right-->
+		</div>
+		<!-- /row-->
+	</div>
+	<!-- /container-fluid -->
+
+	<div class="cd-overlay-nav">
+		<span></span>
+	</div>
+	<!-- /cd-overlay-nav -->
+
+	<div class="cd-overlay-content">
+		<span></span>
+	</div>
+	<!-- /cd-overlay-content -->
+
+	<!-- Modal terms -->
+	<div class="modal fade" id="terms-txt" tabindex="-1" role="dialog" aria-labelledby="termsLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="termsLabel">Términos y Condiciones</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<p>Al proporcionar su información personal y de empresa, usted acepta que Schaaf Producciones la
+						utilice con el fin de generar contratos personalizados y mejorar nuestros servicios. Nos
+						comprometemos a proteger su información y utilizarla de manera responsable.</p>
+					<p>Usted es responsable de la veracidad de los datos proporcionados. Schaaf Producciones no se hace
+						responsable por cualquier error o falsedad en la información entregada.</p>
+					<p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Se notificará a los
+						usuarios de cualquier cambio significativo.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn_1" data-bs-dismiss="modal">Cerrar</button>
+				</div>
+			</div>
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+
+	<!-- /.modal-dialog -->
+	</div>
+	<!-- /.modal -->
+
+	<!-- COMMON SCRIPTS -->
+	<script src="js/jquery-3.7.1.min.js"></script>
+	<script src="js/common_scripts.min.js"></script>
+	<script src="js/velocity.min.js"></script>
+	<script src="js/common_functions.js"></script>
+
+
+	<!-- Wizard script-->
+	<script src="js/func_1.js"></script>
+
+	<script>
+		function validarNombre(input) {
+			validarCampo(input, 'nombreError');
+		}
+
+		function validarApellido(input) {
+			validarCampo(input, 'apellidoError');
+		}
+
+		function validarCampo(input, errorId) {
+			const valor = input.value;
+			const errorSpan = document.getElementById(errorId);
+			const regex = /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]{1,20}$/;
+
+			if (!regex.test(valor)) {
+				errorSpan.textContent = "Este campo debe contener solo letras y espacios, máximo 30 caracteres.";
+				input.setCustomValidity("Entrada inválida");
+			} else {
+				errorSpan.textContent = "";
+				input.setCustomValidity("");
+			}
+		}
+
+		function bloquearNumeros(e) {
+			var key = e.key;
+			var keyCharCode = key.charCodeAt(0);
+
+			// Permitir teclas de control como backspace, delete, flechas, etc.
+			if (e.ctrlKey || e.altKey || e.metaKey || keyCharCode < 32) {
+				return true;
+			}
+
+			// Bloquear cualquier entrada que no sea una letra o espacio
+			return /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]$/.test(key);
+		}
+	</script>
+
+</body>
+
+</html>
