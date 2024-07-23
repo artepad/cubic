@@ -135,6 +135,7 @@
 									<label for="company_name">Nombre de la Empresa</label>
 									<input type="text" name="company_name" id="company_name"
 										class="form-control required">
+									<span id="company-name-counter">0/50</span>
 								</div>
 								<div class="form-group add_top_30">
 									<label for="company_rut">RUT de la Empresa</label>
@@ -145,6 +146,7 @@
 									<label for="company_address">Dirección de la Empresa</label>
 									<input type="text" name="company_address" id="company_address"
 										class="form-control required">
+									<span id="company-address-counter">0/150</span>
 								</div>
 							</div>
 							<!-- /step -->
@@ -158,12 +160,14 @@
 									<label for="nombre_evento">Nombre del Evento</label>
 									<input type="text" name="nombre_evento" id="nombre_evento"
 										class="form-control required" placeholder="Ingrese el nombre del evento">
+									<span id="nombre-evento-counter">0/100</span>
 								</div>
 
 								<div class="form-group add_top_30">
 									<label for="lugar_evento">Lugar del Evento</label>
 									<input type="text" name="lugar_evento" id="lugar_evento"
 										class="form-control required" placeholder="Ingrese el lugar del evento">
+									<span id="lugar-evento-counter">0/100</span>
 								</div>
 
 								<div class="form-group add_top_30">
@@ -272,13 +276,13 @@
 	<script src="js/func_1.js"></script>
 
 	<script>
-		$(document).ready(function() {
+		$(document).ready(function () {
 			// Funciones de validación para campos de texto (nombre y apellido)
 			function validarCampo(input, errorId) {
 				const valor = input.value;
 				const errorSpan = document.getElementById(errorId);
 				const regex = /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]{1,20}$/;
-		
+
 				if (!regex.test(valor)) {
 					errorSpan.textContent = "Este campo debe contener solo letras y espacios, máximo 20 caracteres.";
 					input.setCustomValidity("Entrada inválida");
@@ -287,46 +291,46 @@
 					input.setCustomValidity("");
 				}
 			}
-		
+
 			// Validación específica para el nombre
 			function validarNombre(input) {
 				validarCampo(input, 'nombreError');
 			}
-		
+
 			// Validación específica para el apellido
 			function validarApellido(input) {
 				validarCampo(input, 'apellidoError');
 			}
-		
+
 			// Función para bloquear la entrada de números en campos de texto
 			function bloquearNumeros(e) {
 				var key = e.key;
 				var keyCharCode = key.charCodeAt(0);
-		
+
 				// Permitir teclas de control como backspace, delete, flechas, etc.
 				if (e.ctrlKey || e.altKey || e.metaKey || keyCharCode < 32) {
 					return true;
 				}
-		
+
 				// Bloquear cualquier entrada que no sea una letra o espacio
 				return /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]$/.test(key);
 			}
-		
+
 			// Validación y formateo del RUT
-			$('#rut').on('input', function(e) {
+			$('#rut').on('input', function (e) {
 				let rut = e.target.value.replace(/\./g, '').replace('-', '');
 				if (rut.length > 9) {
 					rut = rut.slice(0, 9);
 				}
-		
+
 				// Formato del RUT
 				rut = rut.replace(/^(\d{1,2})(\d{3})(\d{3})(\w{1})$/, '$1.$2.$3-$4');
 				rut = rut.replace(/^(\d{1,2})(\d{3})(\d{1,3})$/, '$1.$2.$3');
 				rut = rut.replace(/^(\d{1,2})(\d{1,3})$/, '$1.$2');
-		
+
 				$(this).val(rut);
 			});
-		
+
 			function validarRut(rut) {
 				if (!/^[0-9]{7,8}-[0-9kK]{1}$/.test(rut)) return false;
 				let tmp = rut.split('-');
@@ -335,22 +339,22 @@
 				if (digv == 'k') digv = 'k';
 				return (dv(rutNum) == digv);
 			}
-		
+
 			function dv(T) {
 				let M = 0, S = 1;
 				for (; T; T = Math.floor(T / 10))
 					S = (S + T % 10 * (9 - M++ % 6)) % 11;
 				return S ? S - 1 : 'k';
 			}
-		
+
 			// Validación y formateo del número de teléfono
-			$('#celular').on('input', function(e) {
+			$('#celular').on('input', function (e) {
 				let numero = e.target.value.replace(/\D/g, '');
-		
+
 				if (numero.length > 11) {
 					numero = numero.slice(0, 11);
 				}
-		
+
 				// Formato del número de teléfono
 				let formattedNumber = '';
 				if (numero.length > 0) {
@@ -365,39 +369,39 @@
 						}
 					}
 				}
-		
+
 				$(this).val(formattedNumber);
 			});
-		
+
 			// Validación del correo electrónico
-			$('#email').on('input', function() {
+			$('#email').on('input', function () {
 				let maxLength = 50;
 				let currentLength = $(this).val().length;
-				
+
 				if (currentLength > maxLength) {
 					$(this).val($(this).val().slice(0, maxLength));
 				}
-				
+
 				// Mostrar contador de caracteres
 				$('#email-counter').text($(this).val().length + '/' + maxLength);
 			});
-		
+
 			// Validación general del formulario al enviar
-			$('form').on('submit', function(e) {
+			$('form').on('submit', function (e) {
 				// Validación del RUT
 				let rut = $('#rut').val().replace(/\./g, '');
 				if (!validarRut(rut)) {
 					e.preventDefault();
 					alert('El RUT ingresado no es válido');
 				}
-		
+
 				// Validación del número de teléfono
 				let celular = $('#celular').val().replace(/\D/g, '');
 				if (celular.length !== 11) {
 					e.preventDefault();
 					alert('El número de teléfono debe tener 11 dígitos (incluyendo el código de país)');
 				}
-		
+
 				// Validación del correo electrónico
 				let email = $('#email').val();
 				if (email.length > 50) {
@@ -405,13 +409,164 @@
 					alert('El correo electrónico no puede tener más de 50 caracteres.');
 				}
 			});
-		
+
 			// Asignar eventos a los campos de nombre y apellido
-			$('#nombres').on('input', function() { validarNombre(this); });
-			$('#apellidos').on('input', function() { validarApellido(this); });
+			$('#nombres').on('input', function () { validarNombre(this); });
+			$('#apellidos').on('input', function () { validarApellido(this); });
 			$('#nombres, #apellidos').on('keypress', bloquearNumeros);
 		});
-		</script>
+	</script>
+
+	<script>
+		$(document).ready(function () {
+			// Validación de los datos de empresa
+
+			// Validación del nombre de la empresa
+			$('#company_name').on('input', function () {
+				let maxLength = 50;
+				let value = $(this).val();
+
+				// Eliminar caracteres que no sean letras o números
+				value = value.replace(/[^a-zA-Z0-9\s]/g, '');
+
+				if (value.length > maxLength) {
+					value = value.slice(0, maxLength);
+				}
+
+				$(this).val(value);
+				$('#company-name-counter').text(value.length + '/' + maxLength);
+			});
+
+			// Validación del RUT de la empresa (similar a la validación del RUT personal)
+			$('#company_rut').on('input', function (e) {
+				let rut = e.target.value.replace(/\./g, '').replace('-', '');
+				if (rut.length > 9) {
+					rut = rut.slice(0, 9);
+				}
+
+				// Formato del RUT
+				rut = rut.replace(/^(\d{1,2})(\d{3})(\d{3})(\w{1})$/, '$1.$2.$3-$4');
+				rut = rut.replace(/^(\d{1,2})(\d{3})(\d{1,3})$/, '$1.$2.$3');
+				rut = rut.replace(/^(\d{1,2})(\d{1,3})$/, '$1.$2');
+
+				$(this).val(rut);
+			});
+
+			// Validación de la dirección de la empresa
+			$('#company_address').on('input', function () {
+				let maxLength = 150;
+				let value = $(this).val();
+
+				// Eliminar caracteres que no sean letras o números
+				value = value.replace(/[^a-zA-Z0-9\s]/g, '');
+
+				if (value.length > maxLength) {
+					value = value.slice(0, maxLength);
+				}
+
+				$(this).val(value);
+				$('#company-address-counter').text(value.length + '/' + maxLength);
+			});
+
+			// Añadir validaciones al envío del formulario
+			$('form').on('submit', function (e) {
+				// Validaciones existentes...
+
+				// Validación del RUT de la empresa
+				let companyRut = $('#company_rut').val().replace(/\./g, '');
+				if (!validarRut(companyRut)) {
+					e.preventDefault();
+					alert('El RUT de la empresa ingresado no es válido');
+				}
+
+				// Validación de longitud del nombre de la empresa
+				if ($('#company_name').val().length > 40) {
+					e.preventDefault();
+					alert('El nombre de la empresa no puede tener más de 40 caracteres.');
+				}
+
+				// Validación de longitud de la dirección de la empresa
+				if ($('#company_address').val().length > 150) {
+					e.preventDefault();
+					alert('La dirección de la empresa no puede tener más de 150 caracteres.');
+				}
+			});
+		});
+	</script>
+
+	<script>
+		$(document).ready(function () {
+			// Validación de la Información del Evento
+
+			// Validación del nombre del evento
+			$('#nombre_evento').on('input', function () {
+				let maxLength = 100;
+				let value = $(this).val();
+
+				// Eliminar caracteres que no sean letras o números
+				value = value.replace(/[^a-zA-Z0-9\s]/g, '');
+
+				if (value.length > maxLength) {
+					value = value.slice(0, maxLength);
+				}
+
+				$(this).val(value);
+				$('#nombre-evento-counter').text(value.length + '/' + maxLength);
+			});
+
+			// Validación del lugar del evento
+			$('#lugar_evento').on('input', function () {
+				let maxLength = 100;
+				let value = $(this).val();
+
+				// Eliminar caracteres que no sean letras o números
+				value = value.replace(/[^a-zA-Z0-9\s]/g, '');
+
+				if (value.length > maxLength) {
+					value = value.slice(0, maxLength);
+				}
+
+				$(this).val(value);
+				$('#lugar-evento-counter').text(value.length + '/' + maxLength);
+			});
+
+			// Validación de la fecha del evento
+			$('#fecha_evento').on('change', function () {
+				let fecha = $(this).val();
+				let año = fecha.split('-')[0];
+				if (año.length > 4) {
+					año = año.slice(0, 4);
+					let resto = fecha.slice(5);
+					$(this).val(año + '-' + resto);
+				}
+			});
+
+			// Añadir validaciones al envío del formulario
+			$('form').on('submit', function (e) {
+				// Validaciones existentes...
+
+				// Validación de longitud del nombre del evento
+				if ($('#nombre_evento').val().length > 100) {
+					e.preventDefault();
+					alert('El nombre del evento no puede tener más de 100 caracteres.');
+				}
+
+				// Validación de longitud del lugar del evento
+				if ($('#lugar_evento').val().length > 100) {
+					e.preventDefault();
+					alert('El lugar del evento no puede tener más de 100 caracteres.');
+				}
+
+				// Validación de la fecha del evento (asegurarse de que sea una fecha válida)
+				let fechaEvento = new Date($('#fecha_evento').val());
+				if (isNaN(fechaEvento.getTime())) {
+					e.preventDefault();
+					alert('Por favor, ingrese una fecha válida para el evento.');
+				}
+			});
+			
+		});
+	</script>
 
 </body>
 
