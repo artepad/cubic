@@ -31,9 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     try {
         // Insertar cliente
-        $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular) VALUES (?, ?, ?, ?, ?)";
+        $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt_cliente = $conn->prepare($sql_cliente);
-        $stmt_cliente->bind_param("sssss", $_POST['nombres'], $_POST['apellidos'], $_POST['rut'], $_POST['email'], $_POST['celular']);
+        $stmt_cliente->bind_param("ssssss", $_POST['nombres'], $_POST['apellidos'], $_POST['rut'], $_POST['email'], $_POST['celular'], $_POST['genero']);
         $stmt_cliente->execute();
         $cliente_id = $conn->insert_id;
 
@@ -181,6 +181,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <div class="form-group">
                                     <label for="celular">Celular</label>
                                     <input type="text" class="form-control" id="celular" name="celular" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="genero">Género</label>
+                                    <select class="form-control" id="genero" name="genero" required>
+                                        <option value="">Seleccione un género</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Femenino">Femenino</option>
+                                    </select>
                                 </div>
 
                                 <h4>Información de la Empresa (Opcional)</h4>
