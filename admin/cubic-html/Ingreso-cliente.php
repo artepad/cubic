@@ -164,23 +164,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h4>Información del Cliente</h4>
                                 <div class="form-group">
                                     <label for="nombres">Nombres</label>
-                                    <input type="text" class="form-control" id="nombres" name="nombres" required>
+                                    <input type="text" class="form-control" id="nombres" name="nombres" maxlength="20" required>
+                                    <small id="nombresHelp" class="form-text text-muted">Máximo 20 caracteres, solo letras.</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="apellidos">Apellidos</label>
-                                    <input type="text" class="form-control" id="apellidos" name="apellidos" required>
+                                    <input type="text" class="form-control" id="apellidos" name="apellidos" maxlength="20" required>
+                                    <small id="apellidosHelp" class="form-text text-muted">Máximo 20 caracteres, solo letras.</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="rut">RUT</label>
-                                    <input type="text" class="form-control" id="rut" name="rut" required>
+                                    <input type="text" class="form-control" id="rut" name="rut" maxlength="12" required>
+                                    <small id="rutHelp" class="form-text text-muted">Formato: 12.345.678-9</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Correo Electrónico</label>
-                                    <input type="email" class="form-control" id="email" name="email" required>
+                                    <input type="email" class="form-control" id="email" name="email" maxlength="60" required>
+                                    <small id="emailHelp" class="form-text text-muted">Máximo 60 caracteres</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="celular">Celular</label>
-                                    <input type="text" class="form-control" id="celular" name="celular" required>
+                                    <input type="tel" class="form-control" id="celular" name="celular" maxlength="16" required>
+                                    <small id="celularHelp" class="form-text text-muted">Formato: +56 9 XXXX XXXX</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="genero">Género</label>
@@ -194,19 +199,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h4>Información de la Empresa (Opcional)</h4>
                                 <div class="form-group">
                                     <label for="nombre_empresa">Nombre de la Empresa</label>
-                                    <input type="text" class="form-control" id="nombre_empresa" name="nombre_empresa">
+                                    <input type="text" class="form-control" id="nombre_empresa" name="nombre_empresa" maxlength="100">
+                                    <small id="nombreEmpresaHelp" class="form-text text-muted">Máximo 100 caracteres</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="rut_empresa">RUT de la Empresa</label>
-                                    <input type="text" class="form-control" id="rut_empresa" name="rut_empresa">
+                                    <input type="text" class="form-control" id="rut_empresa" name="rut_empresa" maxlength="12">
+                                    <small id="rutEmpresaHelp" class="form-text text-muted">Formato: 12.345.678-9</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="direccion_empresa">Dirección de la Empresa</label>
-                                    <input type="text" class="form-control" id="direccion_empresa" name="direccion_empresa">
+                                    <input type="text" class="form-control" id="direccion_empresa" name="direccion_empresa" maxlength="250">
+                                    <small id="direccionEmpresaHelp" class="form-text text-muted">Máximo 250 caracteres</small>
                                 </div>
 
                                 <button type="submit" class="btn btn-success waves-effect waves-light m-r-10">Guardar</button>
-                                <button type="reset" class="btn btn-inverse waves-effect waves-light">Cancelar</button>
+                                <button type="button" id="limpiarFormulario" class="btn btn-secondary waves-effect waves-light">Limpiar</button>
                             </form>
                         </div>
                     </div>
@@ -242,6 +250,170 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="js/db2.js"></script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="../plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+    <script src="../plugins/components/jquery/dist/jquery.min.js"></script>
+
+    <script>
+      $(document).ready(function() {
+    function validateNameField(input) {
+        var value = input.val();
+        var cleaned_value = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '').substring(0, 20);
+        input.val(cleaned_value);
+        input.toggleClass("is-valid", cleaned_value.length > 0).toggleClass("is-invalid", cleaned_value.length === 0);
+    }
+
+    $('#nombres, #apellidos').on('input', function() {
+        validateNameField($(this));
+    });
+
+    function formatRUT(rut) {
+        rut = rut.replace(/\./g, '').replace(/-/g, '');
+        var dv = rut.slice(-1);
+        var rutBody = rut.slice(0, -1);
+        var formattedRUT = '';
+        for (var i = rutBody.length - 1; i >= 0; i--) {
+            formattedRUT = rutBody.charAt(i) + formattedRUT;
+            if ((rutBody.length - i) % 3 === 0 && i !== 0) {
+                formattedRUT = '.' + formattedRUT;
+            }
+        }
+        return formattedRUT + '-' + dv;
+    }
+
+    $('#rut').on('input', function() {
+        var input = $(this);
+        var rut = input.val().replace(/[^\d\-kK]/g, '');
+        if (rut.length > 0) {
+            rut = formatRUT(rut);
+            input.val(rut);
+        }
+        input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
+    });
+
+    $('#email').on('input', function() {
+        var input = $(this);
+        var email = input.val();
+        
+        // Limitar a 50 caracteres
+        if (email.length > 60) {
+            email = email.substring(0, 60);
+            input.val(email);
+        }
+        
+        // Validar formato de email
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        var isValidEmail = emailRegex.test(email);
+        
+        input.toggleClass("is-valid", isValidEmail).toggleClass("is-invalid", !isValidEmail);
+
+     });
+
+    function formatPhoneNumber(phone) {
+        // Eliminar todos los caracteres no numéricos
+        phone = phone.replace(/\D/g, '');
+        
+        // Asegurarse de que el número comience con 56 9
+        if (!phone.startsWith('569')) {
+            phone = '569' + phone;
+        }
+        
+        // Limitar a 11 dígitos (56 9 XXXX XXXX)
+        phone = phone.substring(0, 11);
+        
+        // Aplicar el formato
+        if (phone.length > 0) {
+            phone = '+' + phone.substring(0, 2) + ' ' + phone.substring(2, 3) + ' ' + 
+                    phone.substring(3, 7) + ' ' + phone.substring(7);
+        }
+        
+        return phone.trim();
+    }
+
+    $('#celular').on('input', function() {
+        var input = $(this);
+        var phoneNumber = input.val();
+        
+        // Formatear el número
+        phoneNumber = formatPhoneNumber(phoneNumber);
+        input.val(phoneNumber);
+        
+        // Validar
+        var isValidPhone = phoneNumber.length === 16; // +56 9 XXXX XXXX
+        input.toggleClass("is-valid", isValidPhone).toggleClass("is-invalid", !isValidPhone);
+    });
+    $('#nombre_empresa').on('input', function() {
+        var input = $(this);
+        var companyName = input.val();
+        
+        // Limitar a 100 caracteres
+        if (companyName.length > 100) {
+            companyName = companyName.substring(0, 100);
+            input.val(companyName);
+        }
+        
+        // Validar
+        var isValid = companyName.length > 0;
+        input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
+    });
+    function formatRUT(rut) {
+        rut = rut.replace(/\./g, '').replace(/-/g, '');
+        var dv = rut.slice(-1);
+        var rutBody = rut.slice(0, -1);
+        var formattedRUT = '';
+        for (var i = rutBody.length - 1; i >= 0; i--) {
+            formattedRUT = rutBody.charAt(i) + formattedRUT;
+            if ((rutBody.length - i) % 3 === 0 && i !== 0) {
+                formattedRUT = '.' + formattedRUT;
+            }
+        }
+        return formattedRUT + '-' + dv;
+    }
+
+    function validateRUT(input) {
+        var rut = input.val().replace(/[^\d\-kK]/g, '');
+        if (rut.length > 0) {
+            rut = formatRUT(rut);
+            input.val(rut);
+        }
+        input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
+    }
+
+    $('#rut, #rut_empresa').on('input', function() {
+        validateRUT($(this));
+    });
+    $('#direccion_empresa').on('input', function() {
+        var input = $(this);
+        var direccion = input.val();
+        
+        // Limitar a 250 caracteres
+        if (direccion.length > 250) {
+            direccion = direccion.substring(0, 250);
+            input.val(direccion);
+        }
+        
+        // Validar
+        var isValid = direccion.length > 0;
+        input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
+    });
+    // Función para limpiar el formulario
+    function limpiarFormulario() {
+        // Obtener todos los inputs del formulario
+        var inputs = $('form input');
+        
+        // Limpiar cada input
+        inputs.each(function() {
+            $(this).val('').removeClass('is-valid is-invalid');
+        });
+        
+        // Restablecer el select de género si existe
+        $('#genero').val('').removeClass('is-valid is-invalid');
+    }
+
+    // Evento click para el botón Limpiar
+    $('#limpiarFormulario').on('click', function() {
+        limpiarFormulario();
+    });
+});
+    </script>
 </body>
 
 </html>
