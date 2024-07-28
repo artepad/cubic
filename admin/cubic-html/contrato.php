@@ -183,7 +183,7 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                         action="generar_contrato.php">
                                         <!-- Añade este campo oculto justo después del campo cliente_id -->
                                         <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
-                                        <input type="hidden" name="evento_id" id="evento_id" value="">
+                                        <input type="hidden" name="evento_id" id="evento_id" value="0">
                                         <div class="form-body">
                                             <h3 class="box-title">Cliente</h3>
                                             <hr class="m-t-0 m-b-40">

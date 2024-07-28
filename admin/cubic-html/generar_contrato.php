@@ -85,12 +85,47 @@ $evento_id = $_POST['evento_id'];
 error_log("Cliente ID: $cliente_id");
 error_log("Evento ID: $evento_id");
 
+// Verificar si se está creando un nuevo evento o usando uno existente
+if ($_POST['evento_id'] == '0') {
+    // Insertar nuevo evento
+    $sql_insert_evento = "INSERT INTO eventos (cliente_id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $stmt_insert = $conn->prepare($sql_insert_evento);
+    $stmt_insert->bind_param("issssds", $cliente_id, $_POST['nombre_evento'], $_POST['fecha_evento'], $_POST['hora_evento'], $_POST['lugar'], $_POST['valor'], $_POST['tipo_evento']);
+    
+    if (!$stmt_insert->execute()) {
+        error_log("Error al insertar nuevo evento: " . $stmt_insert->error);
+        die("Error al crear el nuevo evento.");
+    }
+    
+    $evento_id = $conn->insert_id;
+} else {
+    $evento_id = $_POST['evento_id'];
+}
+
+// Consulta para obtener los datos del cliente y del evento
 $sql = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa, 
                ev.nombre_evento, ev.fecha_evento, ev.hora_evento, ev.lugar, ev.valor, ev.tipo_evento
         FROM clientes c
         LEFT JOIN empresas e ON c.id = e.cliente_id
         LEFT JOIN eventos ev ON c.id = ev.cliente_id
         WHERE c.id = ? AND ev.id = ?";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ii", $cliente_id, $evento_id);
+
+if (!$stmt->execute()) {
+    error_log("Error en la ejecución de la consulta: " . $stmt->error);
+    die("Error al obtener los datos del cliente y evento.");
+}
+
+$result = $stmt->get_result();
+
+if ($result->num_rows == 0) {
+    error_log("No se encontraron datos del cliente o del evento. cliente_id: $cliente_id, evento_id: $evento_id");
+    die("No se encontraron datos del cliente o del evento.");
+}
+
+$row = $result->fetch_assoc();
 
 error_log("SQL Query: $sql");
 error_log("Parámetros: $cliente_id, $evento_id");
