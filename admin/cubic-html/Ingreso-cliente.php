@@ -26,32 +26,46 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
 
 // Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Iniciar transacción
-    $conn->begin_transaction();
+    // Verificar si el RUT ya existe
+    $check_rut_sql = "SELECT id FROM clientes WHERE rut = ?";
+    $check_stmt = $conn->prepare($check_rut_sql);
+    $check_stmt->bind_param("s", $_POST['rut']);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
 
-    try {
-        // Insertar cliente
-        $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt_cliente = $conn->prepare($sql_cliente);
-        $stmt_cliente->bind_param("ssssss", $_POST['nombres'], $_POST['apellidos'], $_POST['rut'], $_POST['email'], $_POST['celular'], $_POST['genero']);
-        $stmt_cliente->execute();
-        $cliente_id = $conn->insert_id;
+    if ($check_result->num_rows > 0) {
+        $mensaje = "Error: Ya existe un cliente con ese RUT.";
+        $mensaje_tipo = "danger";
+    } else {
+        // Iniciar transacción
+        $conn->begin_transaction();
 
-        // Insertar empresa si se proporcionaron datos
-        if (!empty($_POST['nombre_empresa'])) {
-            $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
-            $stmt_empresa = $conn->prepare($sql_empresa);
-            $stmt_empresa->bind_param("sssi", $_POST['nombre_empresa'], $_POST['rut_empresa'], $_POST['direccion_empresa'], $cliente_id);
-            $stmt_empresa->execute();
+        try {
+            // Insertar cliente
+            $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt_cliente = $conn->prepare($sql_cliente);
+            $stmt_cliente->bind_param("ssssss", $_POST['nombres'], $_POST['apellidos'], $_POST['rut'], $_POST['email'], $_POST['celular'], $_POST['genero']);
+            $stmt_cliente->execute();
+            $cliente_id = $conn->insert_id;
+
+            // Insertar empresa si se proporcionaron datos
+            if (!empty($_POST['nombre_empresa'])) {
+                $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
+                $stmt_empresa = $conn->prepare($sql_empresa);
+                $stmt_empresa->bind_param("sssi", $_POST['nombre_empresa'], $_POST['rut_empresa'], $_POST['direccion_empresa'], $cliente_id);
+                $stmt_empresa->execute();
+            }
+
+            // Confirmar transacción
+            $conn->commit();
+            $mensaje = "Cliente agregado con éxito.";
+            $mensaje_tipo = "success";
+        } catch (Exception $e) {
+            // Revertir transacción en caso de error
+            $conn->rollback();
+            $mensaje = "Error al agregar el cliente: " . $e->getMessage();
+            $mensaje_tipo = "danger";
         }
-
-        // Confirmar transacción
-        $conn->commit();
-        $mensaje = "Cliente agregado con éxito.";
-    } catch (Exception $e) {
-        // Revertir transacción en caso de error
-        $conn->rollback();
-        $mensaje = "Error al agregar el cliente: " . $e->getMessage();
     }
 }
 ?>
@@ -137,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <li> <a href="ingreso-cliente.php">Ingresar Nuevo</a> </li>
                             </ul>
                         </li>
-                     </ul>
+                    </ul>
                 </nav>
                 <div class="p-30">
                     <span class="hide-menu">
@@ -152,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="container-fluid">
                 <?php
                 if (isset($mensaje)) {
-                    echo "<div class='alert alert-info'>$mensaje</div>";
+                    echo "<div class='alert alert-{$mensaje_tipo}'>{$mensaje}</div>";
                 }
                 ?>
                 <div class="row">
@@ -253,166 +267,167 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="../plugins/components/jquery/dist/jquery.min.js"></script>
 
     <script>
-      $(document).ready(function() {
-    function validateNameField(input) {
-        var value = input.val();
-        var cleaned_value = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '').substring(0, 20);
-        input.val(cleaned_value);
-        input.toggleClass("is-valid", cleaned_value.length > 0).toggleClass("is-invalid", cleaned_value.length === 0);
-    }
-
-    $('#nombres, #apellidos').on('input', function() {
-        validateNameField($(this));
-    });
-
-    function formatRUT(rut) {
-        rut = rut.replace(/\./g, '').replace(/-/g, '');
-        var dv = rut.slice(-1);
-        var rutBody = rut.slice(0, -1);
-        var formattedRUT = '';
-        for (var i = rutBody.length - 1; i >= 0; i--) {
-            formattedRUT = rutBody.charAt(i) + formattedRUT;
-            if ((rutBody.length - i) % 3 === 0 && i !== 0) {
-                formattedRUT = '.' + formattedRUT;
+        $(document).ready(function() {
+            function validateNameField(input) {
+                var value = input.val();
+                var cleaned_value = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '').substring(0, 20);
+                input.val(cleaned_value);
+                input.toggleClass("is-valid", cleaned_value.length > 0).toggleClass("is-invalid", cleaned_value.length === 0);
             }
-        }
-        return formattedRUT + '-' + dv;
-    }
 
-    $('#rut').on('input', function() {
-        var input = $(this);
-        var rut = input.val().replace(/[^\d\-kK]/g, '');
-        if (rut.length > 0) {
-            rut = formatRUT(rut);
-            input.val(rut);
-        }
-        input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
-    });
+            $('#nombres, #apellidos').on('input', function() {
+                validateNameField($(this));
+            });
 
-    $('#email').on('input', function() {
-        var input = $(this);
-        var email = input.val();
-        
-        // Limitar a 50 caracteres
-        if (email.length > 60) {
-            email = email.substring(0, 60);
-            input.val(email);
-        }
-        
-        // Validar formato de email
-        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        var isValidEmail = emailRegex.test(email);
-        
-        input.toggleClass("is-valid", isValidEmail).toggleClass("is-invalid", !isValidEmail);
-
-     });
-
-    function formatPhoneNumber(phone) {
-        // Eliminar todos los caracteres no numéricos
-        phone = phone.replace(/\D/g, '');
-        
-        // Asegurarse de que el número comience con 56 9
-        if (!phone.startsWith('569')) {
-            phone = '569' + phone;
-        }
-        
-        // Limitar a 11 dígitos (56 9 XXXX XXXX)
-        phone = phone.substring(0, 11);
-        
-        // Aplicar el formato
-        if (phone.length > 0) {
-            phone = '+' + phone.substring(0, 2) + ' ' + phone.substring(2, 3) + ' ' + 
-                    phone.substring(3, 7) + ' ' + phone.substring(7);
-        }
-        
-        return phone.trim();
-    }
-
-    $('#celular').on('input', function() {
-        var input = $(this);
-        var phoneNumber = input.val();
-        
-        // Formatear el número
-        phoneNumber = formatPhoneNumber(phoneNumber);
-        input.val(phoneNumber);
-        
-        // Validar
-        var isValidPhone = phoneNumber.length === 16; // +56 9 XXXX XXXX
-        input.toggleClass("is-valid", isValidPhone).toggleClass("is-invalid", !isValidPhone);
-    });
-    $('#nombre_empresa').on('input', function() {
-        var input = $(this);
-        var companyName = input.val();
-        
-        // Limitar a 100 caracteres
-        if (companyName.length > 100) {
-            companyName = companyName.substring(0, 100);
-            input.val(companyName);
-        }
-        
-        // Validar
-        var isValid = companyName.length > 0;
-        input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
-    });
-    function formatRUT(rut) {
-        rut = rut.replace(/\./g, '').replace(/-/g, '');
-        var dv = rut.slice(-1);
-        var rutBody = rut.slice(0, -1);
-        var formattedRUT = '';
-        for (var i = rutBody.length - 1; i >= 0; i--) {
-            formattedRUT = rutBody.charAt(i) + formattedRUT;
-            if ((rutBody.length - i) % 3 === 0 && i !== 0) {
-                formattedRUT = '.' + formattedRUT;
+            function formatRUT(rut) {
+                rut = rut.replace(/\./g, '').replace(/-/g, '');
+                var dv = rut.slice(-1);
+                var rutBody = rut.slice(0, -1);
+                var formattedRUT = '';
+                for (var i = rutBody.length - 1; i >= 0; i--) {
+                    formattedRUT = rutBody.charAt(i) + formattedRUT;
+                    if ((rutBody.length - i) % 3 === 0 && i !== 0) {
+                        formattedRUT = '.' + formattedRUT;
+                    }
+                }
+                return formattedRUT + '-' + dv;
             }
-        }
-        return formattedRUT + '-' + dv;
-    }
 
-    function validateRUT(input) {
-        var rut = input.val().replace(/[^\d\-kK]/g, '');
-        if (rut.length > 0) {
-            rut = formatRUT(rut);
-            input.val(rut);
-        }
-        input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
-    }
+            $('#rut').on('input', function() {
+                var input = $(this);
+                var rut = input.val().replace(/[^\d\-kK]/g, '');
+                if (rut.length > 0) {
+                    rut = formatRUT(rut);
+                    input.val(rut);
+                }
+                input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
+            });
 
-    $('#rut, #rut_empresa').on('input', function() {
-        validateRUT($(this));
-    });
-    $('#direccion_empresa').on('input', function() {
-        var input = $(this);
-        var direccion = input.val();
-        
-        // Limitar a 250 caracteres
-        if (direccion.length > 250) {
-            direccion = direccion.substring(0, 250);
-            input.val(direccion);
-        }
-        
-        // Validar
-        var isValid = direccion.length > 0;
-        input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
-    });
-    // Función para limpiar el formulario
-    function limpiarFormulario() {
-        // Obtener todos los inputs del formulario
-        var inputs = $('form input');
-        
-        // Limpiar cada input
-        inputs.each(function() {
-            $(this).val('').removeClass('is-valid is-invalid');
+            $('#email').on('input', function() {
+                var input = $(this);
+                var email = input.val();
+
+                // Limitar a 50 caracteres
+                if (email.length > 60) {
+                    email = email.substring(0, 60);
+                    input.val(email);
+                }
+
+                // Validar formato de email
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                var isValidEmail = emailRegex.test(email);
+
+                input.toggleClass("is-valid", isValidEmail).toggleClass("is-invalid", !isValidEmail);
+
+            });
+
+            function formatPhoneNumber(phone) {
+                // Eliminar todos los caracteres no numéricos
+                phone = phone.replace(/\D/g, '');
+
+                // Asegurarse de que el número comience con 56 9
+                if (!phone.startsWith('569')) {
+                    phone = '569' + phone;
+                }
+
+                // Limitar a 11 dígitos (56 9 XXXX XXXX)
+                phone = phone.substring(0, 11);
+
+                // Aplicar el formato
+                if (phone.length > 0) {
+                    phone = '+' + phone.substring(0, 2) + ' ' + phone.substring(2, 3) + ' ' +
+                        phone.substring(3, 7) + ' ' + phone.substring(7);
+                }
+
+                return phone.trim();
+            }
+
+            $('#celular').on('input', function() {
+                var input = $(this);
+                var phoneNumber = input.val();
+
+                // Formatear el número
+                phoneNumber = formatPhoneNumber(phoneNumber);
+                input.val(phoneNumber);
+
+                // Validar
+                var isValidPhone = phoneNumber.length === 16; // +56 9 XXXX XXXX
+                input.toggleClass("is-valid", isValidPhone).toggleClass("is-invalid", !isValidPhone);
+            });
+            $('#nombre_empresa').on('input', function() {
+                var input = $(this);
+                var companyName = input.val();
+
+                // Limitar a 100 caracteres
+                if (companyName.length > 100) {
+                    companyName = companyName.substring(0, 100);
+                    input.val(companyName);
+                }
+
+                // Validar
+                var isValid = companyName.length > 0;
+                input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
+            });
+
+            function formatRUT(rut) {
+                rut = rut.replace(/\./g, '').replace(/-/g, '');
+                var dv = rut.slice(-1);
+                var rutBody = rut.slice(0, -1);
+                var formattedRUT = '';
+                for (var i = rutBody.length - 1; i >= 0; i--) {
+                    formattedRUT = rutBody.charAt(i) + formattedRUT;
+                    if ((rutBody.length - i) % 3 === 0 && i !== 0) {
+                        formattedRUT = '.' + formattedRUT;
+                    }
+                }
+                return formattedRUT + '-' + dv;
+            }
+
+            function validateRUT(input) {
+                var rut = input.val().replace(/[^\d\-kK]/g, '');
+                if (rut.length > 0) {
+                    rut = formatRUT(rut);
+                    input.val(rut);
+                }
+                input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
+            }
+
+            $('#rut, #rut_empresa').on('input', function() {
+                validateRUT($(this));
+            });
+            $('#direccion_empresa').on('input', function() {
+                var input = $(this);
+                var direccion = input.val();
+
+                // Limitar a 250 caracteres
+                if (direccion.length > 250) {
+                    direccion = direccion.substring(0, 250);
+                    input.val(direccion);
+                }
+
+                // Validar
+                var isValid = direccion.length > 0;
+                input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
+            });
+            // Función para limpiar el formulario
+            function limpiarFormulario() {
+                // Obtener todos los inputs del formulario
+                var inputs = $('form input');
+
+                // Limpiar cada input
+                inputs.each(function() {
+                    $(this).val('').removeClass('is-valid is-invalid');
+                });
+
+                // Restablecer el select de género si existe
+                $('#genero').val('').removeClass('is-valid is-invalid');
+            }
+
+            // Evento click para el botón Limpiar
+            $('#limpiarFormulario').on('click', function() {
+                limpiarFormulario();
+            });
         });
-        
-        // Restablecer el select de género si existe
-        $('#genero').val('').removeClass('is-valid is-invalid');
-    }
-
-    // Evento click para el botón Limpiar
-    $('#limpiarFormulario').on('click', function() {
-        limpiarFormulario();
-    });
-});
     </script>
 </body>
 

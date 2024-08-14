@@ -1,68 +1,68 @@
 <?php
-session_start();
+    session_start();
 
-// Verificar si el usuario está logueado
-if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    header("location: login.php");
-    exit;
-}
+    // Verificar si el usuario está logueado
+    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+        header("location: login.php");
+        exit;
+    }
 
-// Conectar a la base de datos
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "schaaf_producciones";
+    // Conectar a la base de datos
+    $servername = "localhost";
+    $username = "root";
+    $password = "";
+    $dbname = "schaaf_producciones";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+    $conn = new mysqli($servername, $username, $password, $dbname);
 
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
-}
+    if ($conn->connect_error) {
+        die("Conexión fallida: " . $conn->connect_error);
+    }
 
-// Obtener el ID del cliente de la URL
-$cliente_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    // Obtener el ID del cliente de la URL
+    $cliente_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-if ($cliente_id > 0) {
-    // Consulta para obtener los datos del cliente y su empresa
-    $sql_cliente = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
-                    FROM clientes c 
-                    LEFT JOIN empresas e ON c.id = e.cliente_id 
-                    WHERE c.id = ?";
-    
-    $stmt = $conn->prepare($sql_cliente);
-    $stmt->bind_param("i", $cliente_id);
-    $stmt->execute();
-    $result_cliente = $stmt->get_result();
-    
-    if ($result_cliente->num_rows > 0) {
-        $cliente = $result_cliente->fetch_assoc();
-        
-        // Consulta para obtener todos los eventos del cliente, ordenados por fecha descendente
-        $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento
-                        FROM eventos 
-                        WHERE cliente_id = ? 
-                        ORDER BY fecha_evento DESC";
-        
-        $stmt_eventos = $conn->prepare($sql_eventos);
-        $stmt_eventos->bind_param("i", $cliente_id);
-        $stmt_eventos->execute();
-        $result_eventos = $stmt_eventos->get_result();
-        
-        $eventos = [];
-        while ($row = $result_eventos->fetch_assoc()) {
-            $eventos[] = $row;
+    if ($cliente_id > 0) {
+        // Consulta para obtener los datos del cliente y su empresa
+        $sql_cliente = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
+                        FROM clientes c 
+                        LEFT JOIN empresas e ON c.id = e.cliente_id 
+                        WHERE c.id = ?";
+
+        $stmt = $conn->prepare($sql_cliente);
+        $stmt->bind_param("i", $cliente_id);
+        $stmt->execute();
+        $result_cliente = $stmt->get_result();
+
+        if ($result_cliente->num_rows > 0) {
+            $cliente = $result_cliente->fetch_assoc();
+
+            // Consulta para obtener todos los eventos del cliente, ordenados por fecha descendente
+            $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento
+                            FROM eventos 
+                            WHERE cliente_id = ? 
+                            ORDER BY fecha_evento DESC";
+
+            $stmt_eventos = $conn->prepare($sql_eventos);
+            $stmt_eventos->bind_param("i", $cliente_id);
+            $stmt_eventos->execute();
+            $result_eventos = $stmt_eventos->get_result();
+
+            $eventos = [];
+            while ($row = $result_eventos->fetch_assoc()) {
+                $eventos[] = $row;
+            }
+        } else {
+            die("Cliente no encontrado");
         }
     } else {
-        die("Cliente no encontrado");
+        die("ID de cliente no válido");
     }
-} else {
-    die("ID de cliente no válido");
-}
 
-// Consulta para obtener el número total de clientes (para el menú lateral)
-$sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
-$result_total_clientes = $conn->query($sql_total_clientes);
-$total_clientes = $result_total_clientes->fetch_assoc()['total'];
+    // Consulta para obtener el número total de clientes (para el menú lateral)
+    $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
+    $result_total_clientes = $conn->query($sql_total_clientes);
+    $total_clientes = $result_total_clientes->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
@@ -146,12 +146,12 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                             <a class="active waves-effect" href="javascript:void(0);" aria-expanded="false"><i
                                     class="icon-screen-desktop fa-fw"></i> <span class="hide-menu"> Clientes <span
                                         class="label label-rounded label-info pull-right">
-                                        <?php 
-                                            if (isset($total_clientes)) {
-                                                echo htmlspecialchars($total_clientes);
-                                            } else {
-                                                echo '0'; // O cualquier otro valor predeterminado
-                                            }
+                                        <?php
+                                        if (isset($total_clientes)) {
+                                            echo htmlspecialchars($total_clientes);
+                                        } else {
+                                            echo '0'; // O cualquier otro valor predeterminado
+                                        }
                                         ?>
                                     </span></span></a>
                             <ul aria-expanded="false" class="collapse">
@@ -271,37 +271,37 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                             <h3 class="box-title">Detalles del Evento</h3>
                                             <hr class="m-t-0 m-b-40">
                                             <?php if (!empty($eventos)): ?>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Eventos Pasados:</label>
-                                                        <div class="col-md-9">
-                                                            <select class="form-control" id="eventos_pasados">
-                                                                <option value="">Seleccione un evento pasado</option>
-                                                                <?php foreach ($eventos as $evento): ?>
-                                                                <option value="<?php echo $evento['id']; ?>"
-                                                                    data-nombre="<?php echo htmlspecialchars($evento['nombre_evento']); ?>"
-                                                                    data-fecha="<?php echo $evento['fecha_evento']; ?>"
-                                                                    data-hora="<?php echo $evento['hora_evento']; ?>"
-                                                                    data-lugar="<?php echo htmlspecialchars($evento['lugar']); ?>"
-                                                                    data-valor="<?php echo $evento['valor']; ?>"
-                                                                    data-tipo="<?php echo htmlspecialchars($evento['tipo_evento']); ?>">
-                                                                    <?php echo htmlspecialchars($evento['nombre_evento']) . ' - ' . $evento['fecha_evento']; ?>
-                                                                </option>
-                                                                <?php endforeach; ?>
-                                                            </select>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label col-md-3">Eventos Pasados:</label>
+                                                            <div class="col-md-9">
+                                                                <select class="form-control" id="eventos_pasados">
+                                                                    <option value="">Seleccione un evento pasado</option>
+                                                                    <?php foreach ($eventos as $evento): ?>
+                                                                        <option value="<?php echo $evento['id']; ?>"
+                                                                            data-nombre="<?php echo htmlspecialchars($evento['nombre_evento']); ?>"
+                                                                            data-fecha="<?php echo $evento['fecha_evento']; ?>"
+                                                                            data-hora="<?php echo $evento['hora_evento']; ?>"
+                                                                            data-lugar="<?php echo htmlspecialchars($evento['lugar']); ?>"
+                                                                            data-valor="<?php echo $evento['valor']; ?>"
+                                                                            data-tipo="<?php echo htmlspecialchars($evento['tipo_evento']); ?>">
+                                                                            <?php echo htmlspecialchars($evento['nombre_evento']) . ' - ' . $evento['fecha_evento']; ?>
+                                                                        </option>
+                                                                    <?php endforeach; ?>
+                                                                </select>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
                                             <?php endif; ?>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Nombre Evento</label>
                                                         <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="nombre_evento"
-                                                                name="nombre_evento" required>
+                                                            <input type="text" class="form-control" id="nombre_evento" name="nombre_evento" required maxlength="60">
+                                                            <span id="nombre_evento_error" class="text-danger"></span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -345,8 +345,9 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Valor</label>
                                                         <div class="col-md-9">
-                                                            <input type="number" class="form-control" id="valor"
-                                                                name="valor" required>
+                                                            <input type="text" class="form-control" id="valor_formatted" name="valor_formatted" required>
+                                                            <input type="hidden" id="valor" name="valor">
+                                                            <span id="valor_error" class="text-danger"></span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -377,12 +378,49 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Hotel</label>
+                                                        <div class="col-md-9">
+                                                            <select class="form-control" id="hotel" name="hotel" required>
+                                                                <option value="Si">Sí</option>
+                                                                <option value="No">No</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Traslados</label>
+                                                        <div class="col-md-9">
+                                                            <select class="form-control" id="traslados" name="traslados" required>
+                                                                <option value="Si">Sí</option>
+                                                                <option value="No">No</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Viáticos</label>
+                                                        <div class="col-md-9">
+                                                            <select class="form-control" id="viaticos" name="viaticos" required>
+                                                                <option value="Si">Sí</option>
+                                                                <option value="No">No</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="form-actions">
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="row">
                                                             <div class="col-md-offset-3 col-md-9">
-                                                            <button type="submit" class="btn btn-success" onclick="if(document.getElementById('evento_id').value === '') document.getElementById('evento_id').value = '0';">Crear Contrato</button>
+                                                                <button type="submit" class="btn btn-success" onclick="if(document.getElementById('evento_id').value === '') document.getElementById('evento_id').value = '0';">Crear Contrato</button>
                                                                 <button type="button"
                                                                     class="btn btn-default">Cancelar</button>
                                                             </div>
@@ -391,30 +429,7 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                                     <div class="col-md-6"></div>
                                                 </div>
                                             </div>
-                                            <script>
-                                                document.addEventListener('DOMContentLoaded', function () {
-                                                    var selectEventos = document.getElementById('eventos_pasados');
-                                                    if (selectEventos) {
-                                                        selectEventos.addEventListener('change', function () {
-                                                            var selectedOption = this.options[this.selectedIndex];
-                                                            if (selectedOption.value !== "") {
-                                                                document.getElementById('evento_id').value = selectedOption.value; // Añade esta línea
-                                                                document.getElementById('nombre_evento').value = selectedOption.dataset.nombre;
-                                                                document.getElementById('lugar').value = selectedOption.dataset.lugar;
-                                                                document.getElementById('fecha_evento').value = selectedOption.dataset.fecha;
-                                                                document.getElementById('hora_evento').value = selectedOption.dataset.hora;
-                                                                document.getElementById('valor').value = selectedOption.dataset.valor;
-                                                                document.getElementById('tipo_evento').value = selectedOption.dataset.tipo;
-                                                            } else {
-                                                                // Limpiar los campos si se selecciona la opción por defecto
-                                                                ['evento_id', 'nombre_evento', 'lugar', 'fecha_evento', 'hora_evento', 'valor', 'tipo_evento'].forEach(function (id) {
-                                                                    document.getElementById(id).value = '';
-                                                                });
-                                                            }
-                                                        });
-                                                    }
-                                                });
-                                            </script>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -468,10 +483,10 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
         });
         $('.clockpicker').clockpicker({
             donetext: 'Done',
-        }).find('input').change(function () {
+        }).find('input').change(function() {
             console.log(this.value);
         });
-        $('#check-minutes').click(function (e) {
+        $('#check-minutes').click(function(e) {
             // Have to stop propagation here
             e.stopPropagation();
             input.clockpicker('show').clockpicker('toggleView', 'minutes');
@@ -529,6 +544,118 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
     </script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="../plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var selectEventos = document.getElementById('eventos_pasados');
+            if (selectEventos) {
+                selectEventos.addEventListener('change', function() {
+                    var selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.value !== "") {
+                        document.getElementById('evento_id').value = selectedOption.value; // Añade esta línea
+                        document.getElementById('nombre_evento').value = selectedOption.dataset.nombre;
+                        document.getElementById('lugar').value = selectedOption.dataset.lugar;
+                        document.getElementById('fecha_evento').value = selectedOption.dataset.fecha;
+                        document.getElementById('hora_evento').value = selectedOption.dataset.hora;
+                        document.getElementById('valor').value = selectedOption.dataset.valor;
+                        document.getElementById('tipo_evento').value = selectedOption.dataset.tipo;
+                    } else {
+                        // Limpiar los campos si se selecciona la opción por defecto
+                        ['evento_id', 'nombre_evento', 'lugar', 'fecha_evento', 'hora_evento', 'valor', 'tipo_evento'].forEach(function(id) {
+                            document.getElementById(id).value = '';
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var form = document.getElementById('contratoForm');
+            var nombreEventoInput = document.getElementById('nombre_evento');
+            var nombreEventoError = document.getElementById('nombre_evento_error');
+
+            form.addEventListener('submit', function(event) {
+                if (nombreEventoInput.value.length > 60) {
+                    event.preventDefault();
+                    nombreEventoError.textContent = 'El nombre del evento no puede exceder los 60 caracteres.';
+                } else {
+                    nombreEventoError.textContent = '';
+                }
+            });
+
+            nombreEventoInput.addEventListener('input', function() {
+                if (this.value.length > 60) {
+                    nombreEventoError.textContent = 'El nombre del evento no puede exceder los 60 caracteres.';
+                } else {
+                    nombreEventoError.textContent = '';
+                }
+            });
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function formatNumber(n) {
+                return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
+
+            function formatCurrency(input, blur) {
+                var input_val = input.val();
+                if (input_val === "") {
+                    return;
+                }
+                var original_len = input_val.length;
+                var caret_pos = input.prop("selectionStart");
+                if (input_val.indexOf("$") === 0) {
+                    input_val = input_val.substring(1);
+                }
+                input_val = formatNumber(input_val);
+                input_val = "$" + input_val;
+                input.val(input_val);
+                var updated_len = input_val.length;
+                caret_pos = updated_len - original_len + caret_pos;
+                input[0].setSelectionRange(caret_pos, caret_pos);
+            }
+
+            $("#valor_formatted").on({
+                keyup: function() {
+                    formatCurrency($(this));
+                },
+                blur: function() {
+                    formatCurrency($(this), "blur");
+                    validateValor();
+                }
+            });
+
+            function validateValor() {
+                var valorFormatted = $("#valor_formatted").val();
+                var valorNumerico = parseInt(valorFormatted.replace(/[$.]/g, ''));
+                var errorElement = $("#valor_error");
+
+                if (isNaN(valorNumerico) || valorNumerico < 1000000) {
+                    errorElement.text("El valor mínimo es $1.000.000");
+                    return false;
+                } else if (valorNumerico > 100000000) {
+                    errorElement.text("El valor máximo es $100.000.000");
+                    return false;
+                } else {
+                    errorElement.text("");
+                    return true;
+                }
+            }
+
+            $("#contratoForm").submit(function(e) {
+                var valorFormatted = $("#valor_formatted").val();
+                var valorNumerico = valorFormatted.replace(/[$.]/g, '');
+                $("#valor").val(valorNumerico);
+
+                if (!validateValor()) {
+                    e.preventDefault(); // Previene el envío del formulario si la validación falla
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -25,6 +25,7 @@ CREATE TABLE empresas (
     FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 
+-- Crear tabla eventos
 CREATE TABLE eventos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT,
@@ -37,6 +38,9 @@ CREATE TABLE eventos (
     descripcion TEXT,
     estado VARCHAR(20) DEFAULT 'Pendiente',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    hotel ENUM('Si', 'No') DEFAULT 'No',
+    traslados ENUM('Si', 'No') DEFAULT 'No',
+    viaticos ENUM('Si', 'No') DEFAULT 'No',
     FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 
