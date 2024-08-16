@@ -64,7 +64,16 @@ function numberToWords($number)
 
     $result = implode(" ", $words);
 
-    return $result;
+    return mb_strtoupper($result, 'UTF-8');
+}
+
+function convertirFecha($fecha) {
+    $meses = array("ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE");
+    $fecha = new DateTime($fecha);
+    $dia = $fecha->format('j');
+    $mes = $meses[$fecha->format('n') - 1];
+    $anio = $fecha->format('Y');
+    return mb_strtoupper("$dia DE $mes DEL $anio", 'UTF-8');
 }
 
 function mb_strtoupper_custom($string)
@@ -218,7 +227,8 @@ $nombre_empresa = mb_strtoupper_custom($row['nombre_empresa']);
 $rut_empresa = mb_strtoupper_custom($row['rut_empresa']);
 $direccion_empresa = mb_strtoupper_custom($row['direccion_empresa']);
 $lugar_evento = mb_strtoupper_custom($row['lugar']);
-$fecha_evento = mb_strtoupper_custom($row['fecha_evento']);
+$fecha_evento = convertirFecha($row['fecha_evento']);
+$hora_evento = date('H:i', strtotime($row['hora_evento']));
 $nombre_evento = mb_strtoupper_custom($row['nombre_evento']);
 $nombre_agrupacion = "AGRUPACIÓN MARILYN";
 $nombre_productora = "SCHAAFPRODUCCIONES SPA";
@@ -251,7 +261,11 @@ $textRun->addText("$direccion_empresa", $boldFontStyle);
 $textRun->addText(", se conviene en celebrar el presente contrato de actuación de artistas, contenido en las cláusulas siguientes:");
 
 //$section->addTextBreak();$valor_evento = isset($_POST['valor']) ? intval($_POST['valor']) : 0;
-$section->addText("REPRESENTATIVIDAD", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+$section->addText(
+    "REPRESENTATIVIDAD",
+    ['name' => 'Lato Light', 'size' => 10, 'bold' => true],
+    ['alignment' => 'center', 'spaceAfter' => 100, 'spaceBefore' => 100]
+);
 $textRun = $section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
 $textRun->addText("La productora declara que se encuentra facultada para firmar contratos que comprometan actuaciones en vivo de los artistas ");
 $textRun->addText($nombre_agrupacion, $boldFontStyle);
@@ -268,12 +282,15 @@ $textRun->addText($nombre_agrupacion, $boldFontStyle);
 $textRun->addText(" el mencionado, en adelante y a los efectos del presente Contrato denominado, el artista, efectuará una (1) presentación de aproximadamente 60 minutos, a realizarse en el marco de presentación pública, el día ");
 $textRun->addText("$fecha_evento", $boldFontStyle);
 $textRun->addText(" a las ");
-$textRun->addText("$row[hora_evento]", $boldFontStyle);
+$textRun->addText("$hora_evento", $boldFontStyle);
 $textRun->addText(" en ");
 $textRun->addText("$lugar_evento", $boldFontStyle);
 $textRun->addText(" para el evento ");
 $textRun->addText("$nombre_evento", $boldFontStyle);
 
+$section->addTextBreak();
+$section->addText("Cláusula 2: REMUNERACIÓN", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+$textRun = $section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
 // Cláusula 2: REMUNERACIÓN
 $valor_en_palabras = numberToWords($valor_evento);
 $valor_formateado = number_format($valor_evento, 0, ',', '.');
@@ -283,7 +300,7 @@ $textRun->addText("$nombres $apellidos", $boldFontStyle);
 $textRun->addText(" Pagará a ");
 $textRun->addText($nombre_productora, $boldFontStyle);
 $textRun->addText(" la cantidad de ");
-$textRun->addText("$" . $valor_formateado . " (" . $valor_en_palabras . " pesos)", $boldFontStyle);
+$textRun->addText("$" . $valor_formateado . " (" . $valor_en_palabras . " PESOS)", $boldFontStyle);
 $textRun->addText(" 2.2 La cantidad mencionada en el punto 2.1 será pagada por ");
 $textRun->addText("$nombres $apellidos", $boldFontStyle);
 $textRun->addText(" en la siguiente forma:");
@@ -293,14 +310,15 @@ $mitad_valor_palabras = numberToWords($mitad_valor);
 $mitad_valor_formateado = number_format($mitad_valor, 0, ',', '.');
 
 $textRun->addText(" La cantidad de ");
-$textRun->addText("$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " pesos)", $boldFontStyle);
+$textRun->addText("$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " PESOS)", $boldFontStyle);
 $textRun->addText(", correspondiente en parte a un 50% que será pagado a la firma del presente contrato en dinero en efectivo y solo moneda nacional o transferencia Bancaria.");
 $textRun->addText(" La cantidad de ");
-$textRun->addText("$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " pesos)", $boldFontStyle);
+$textRun->addText("$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " PESOS)", $boldFontStyle);
 $textRun->addText(", correspondiente al 50% restante, por concepto de término de honorarios, deberá ser cancelado antes de subir al escenario el día ");
 $textRun->addText("$fecha_evento", $boldFontStyle);
-$textRun->addText(", dinero en efectivo o transferencia Bancaria. Cuenta corriente N° 71 76 03 59 Banco Santander, RUT:76.748.346-5.");
-$textRun->addText("2.3 El no pago oportuno de las obligaciones, será causal suficiente para que ");
+$textRun->addText(", dinero en efectivo o transferencia Bancaria.");
+$textRun->addText(" BANCO SANTANDER, CUENTA CORRIENTE N° 71760359, RUT:76.748.346-5, NOMBRE: SCHAAFPRODUCCIONES SPA, CORREO: SCHAAFPRODUCCIONES@GMAIL.COM", $boldFontStyle);
+$textRun->addText(" 2.3 El no pago oportuno de las obligaciones, será causal suficiente para que ");
 $textRun->addText($nombre_productora, $boldFontStyle);
 $textRun->addText(" cancele la presentación del artista, considerándose esta circunstancia como una cancelación no justificada por parte del contratante y por lo tanto estará sujeto a la jurisdicción de tribunales en la ciudad de Santiago con la abogada ");
 $textRun->addText("PAULA MOLINA MALLEA.", $boldFontStyle);
