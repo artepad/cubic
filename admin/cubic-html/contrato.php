@@ -1,68 +1,68 @@
 <?php
-    session_start();
+session_start();
 
-    // Verificar si el usuario está logueado
-    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-        header("location: login.php");
-        exit;
-    }
+// Verificar si el usuario está logueado
+if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    header("location: login.php");
+    exit;
+}
 
-    // Conectar a la base de datos
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "schaaf_producciones";
+// Conectar a la base de datos
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "schaaf_producciones";
 
-    $conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-    if ($conn->connect_error) {
-        die("Conexión fallida: " . $conn->connect_error);
-    }
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
+}
 
-    // Obtener el ID del cliente de la URL
-    $cliente_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+// Obtener el ID del cliente de la URL
+$cliente_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-    if ($cliente_id > 0) {
-        // Consulta para obtener los datos del cliente y su empresa
-        $sql_cliente = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
+if ($cliente_id > 0) {
+    // Consulta para obtener los datos del cliente y su empresa
+    $sql_cliente = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
                         FROM clientes c 
                         LEFT JOIN empresas e ON c.id = e.cliente_id 
                         WHERE c.id = ?";
 
-        $stmt = $conn->prepare($sql_cliente);
-        $stmt->bind_param("i", $cliente_id);
-        $stmt->execute();
-        $result_cliente = $stmt->get_result();
+    $stmt = $conn->prepare($sql_cliente);
+    $stmt->bind_param("i", $cliente_id);
+    $stmt->execute();
+    $result_cliente = $stmt->get_result();
 
-        if ($result_cliente->num_rows > 0) {
-            $cliente = $result_cliente->fetch_assoc();
+    if ($result_cliente->num_rows > 0) {
+        $cliente = $result_cliente->fetch_assoc();
 
-            // Consulta para obtener todos los eventos del cliente, ordenados por fecha descendente
-            $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento
+        // Consulta para obtener todos los eventos del cliente, ordenados por fecha descendente
+        $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento
                             FROM eventos 
                             WHERE cliente_id = ? 
                             ORDER BY fecha_evento DESC";
 
-            $stmt_eventos = $conn->prepare($sql_eventos);
-            $stmt_eventos->bind_param("i", $cliente_id);
-            $stmt_eventos->execute();
-            $result_eventos = $stmt_eventos->get_result();
+        $stmt_eventos = $conn->prepare($sql_eventos);
+        $stmt_eventos->bind_param("i", $cliente_id);
+        $stmt_eventos->execute();
+        $result_eventos = $stmt_eventos->get_result();
 
-            $eventos = [];
-            while ($row = $result_eventos->fetch_assoc()) {
-                $eventos[] = $row;
-            }
-        } else {
-            die("Cliente no encontrado");
+        $eventos = [];
+        while ($row = $result_eventos->fetch_assoc()) {
+            $eventos[] = $row;
         }
     } else {
-        die("ID de cliente no válido");
+        die("Cliente no encontrado");
     }
+} else {
+    die("ID de cliente no válido");
+}
 
-    // Consulta para obtener el número total de clientes (para el menú lateral)
-    $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
-    $result_total_clientes = $conn->query($sql_total_clientes);
-    $total_clientes = $result_total_clientes->fetch_assoc()['total'];
+// Consulta para obtener el número total de clientes (para el menú lateral)
+$sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
+$result_total_clientes = $conn->query($sql_total_clientes);
+$total_clientes = $result_total_clientes->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
@@ -309,8 +309,7 @@
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Dirección</label>
                                                         <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="lugar"
-                                                                name="lugar" required>
+                                                            <input type="text" class="form-control" id="lugar" name="lugar" required maxlength="150">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -329,13 +328,7 @@
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Hora</label>
                                                         <div class="col-md-9">
-                                                            <div class="input-group clockpicker">
-                                                                <input type="text" class="form-control" id="hora_evento"
-                                                                    name="hora_evento" required>
-                                                                <span class="input-group-addon">
-                                                                    <span class="glyphicon glyphicon-time"></span>
-                                                                </span>
-                                                            </div>
+                                                            <input type="time" class="form-control" id="hora_evento" name="hora_evento" required step="1800">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -355,25 +348,7 @@
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Tipo de Evento</label>
                                                         <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="tipo_evento"
-                                                                name="tipo_evento" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">IVA</label>
-                                                        <div class="col-md-9">
-                                                            <div class="radio-list">
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="iva" value="1"> Sí
-                                                                </label>
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="iva" value="0" checked> No
-                                                                </label>
-                                                            </div>
+                                                            <input type="text" class="form-control" id="tipo_evento" name="tipo_evento" required maxlength="100">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -383,10 +358,14 @@
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Hotel</label>
                                                         <div class="col-md-9">
-                                                            <select class="form-control" id="hotel" name="hotel" required>
-                                                                <option value="Si">Sí</option>
-                                                                <option value="No">No</option>
-                                                            </select>
+                                                            <div class="radio-list">
+                                                                <label class="radio-inline">
+                                                                    <input type="radio" name="hotel" value="Si"> Sí
+                                                                </label>
+                                                                <label class="radio-inline">
+                                                                    <input type="radio" name="hotel" value="No" checked> No
+                                                                </label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -394,10 +373,14 @@
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Traslados</label>
                                                         <div class="col-md-9">
-                                                            <select class="form-control" id="traslados" name="traslados" required>
-                                                                <option value="Si">Sí</option>
-                                                                <option value="No">No</option>
-                                                            </select>
+                                                            <div class="radio-list">
+                                                                <label class="radio-inline">
+                                                                    <input type="radio" name="traslados" value="Si"> Sí
+                                                                </label>
+                                                                <label class="radio-inline">
+                                                                    <input type="radio" name="traslados" value="No" checked> No
+                                                                </label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -407,10 +390,14 @@
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Viáticos</label>
                                                         <div class="col-md-9">
-                                                            <select class="form-control" id="viaticos" name="viaticos" required>
-                                                                <option value="Si">Sí</option>
-                                                                <option value="No">No</option>
-                                                            </select>
+                                                            <div class="radio-list">
+                                                                <label class="radio-inline">
+                                                                    <input type="radio" name="viaticos" value="Si"> Sí
+                                                                </label>
+                                                                <label class="radio-inline">
+                                                                    <input type="radio" name="viaticos" value="No" checked> No
+                                                                </label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -544,6 +531,15 @@
     </script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="../plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+
+    <script>
+        document.getElementById('hora_evento').addEventListener('change', function(e) {
+            var time = this.value;
+            var [hours, minutes] = time.split(':');
+            minutes = parseInt(minutes) < 30 ? '00' : '30';
+            this.value = `${hours}:${minutes}`;
+        });
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

@@ -3,6 +3,7 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+header('Content-Type: text/html; charset=UTF-8');
 
 // Libreria Word
 require_once 'vendor/autoload.php';
@@ -12,7 +13,8 @@ use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Element\Shape;
 
 // Función para convertir números a palabras
-function numberToWords($number) {
+function numberToWords($number)
+{
     $units = ["", "un", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
     $tens = ["", "diez", "veinte", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"];
     $teens = ["diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve"];
@@ -61,6 +63,19 @@ function numberToWords($number) {
     return implode(" ", $words);
 }
 
+function mb_strtoupper_custom($string)
+{
+    $string = str_replace(
+        array('á', 'é', 'í', 'ó', 'ú', 'ñ'),
+        array('Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'),
+        mb_strtoupper($string, 'UTF-8')
+    );
+    return $string;
+}
+function cleanString($string) {
+    return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $string);
+}
+
 // Conectar a la base de datos
 $servername = "localhost";
 $username = "root";
@@ -69,7 +84,7 @@ $dbname = "schaaf_producciones";
 
 // Crear conexión
 $conn = new mysqli($servername, $username, $password, $dbname);
-
+$conn->set_charset("utf8mb4");
 // Verificar conexión
 if ($conn->connect_error) {
     error_log("Conexión fallida: " . $conn->connect_error);
@@ -82,6 +97,10 @@ if ($conn->connect_error) {
 $cliente_id = $_POST['cliente_id'];
 $evento_id = $_POST['evento_id'];
 
+$hotel = $_POST['hotel'];
+$traslados = $_POST['traslados'];
+$viaticos = $_POST['viaticos'];
+
 error_log("Cliente ID: $cliente_id");
 error_log("Evento ID: $evento_id");
 
@@ -91,12 +110,12 @@ if ($_POST['evento_id'] == '0') {
     $sql_insert_evento = "INSERT INTO eventos (cliente_id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt_insert = $conn->prepare($sql_insert_evento);
     $stmt_insert->bind_param("issssds", $cliente_id, $_POST['nombre_evento'], $_POST['fecha_evento'], $_POST['hora_evento'], $_POST['lugar'], $_POST['valor'], $_POST['tipo_evento']);
-    
+
     if (!$stmt_insert->execute()) {
         error_log("Error al insertar nuevo evento: " . $stmt_insert->error);
         die("Error al crear el nuevo evento.");
     }
-    
+
     $evento_id = $conn->insert_id;
 } else {
     $evento_id = $_POST['evento_id'];
@@ -154,9 +173,8 @@ if ($result->num_rows > 0) {
     $phpWord = new PhpWord();
     $phpWord->setDefaultFontName('Lato Light');
     $phpWord->setDefaultFontSize(10);
-
     $phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language('ES_ES'));
-
+    
     // Establecer los márgenes
     $sectionStyle = [
         'marginLeft' => 800,
@@ -188,18 +206,22 @@ if ($result->num_rows > 0) {
     $section->addText("CONTRATO DE ACTUACION DE ARTISTAS", $titleFontStyle, $titleParagraphStyle);
 
     // Convertir campos a mayúsculas
-    $nombres = strtoupper($row['nombres']);
-    $apellidos = strtoupper($row['apellidos']);
-    $rut = strtoupper($row['rut']);
-    $correo = strtoupper($row['correo']);
-    $celular = strtoupper($row['celular']);
-    $genero = strtoupper($row['genero']);
-    $nombre_empresa = strtoupper($row['nombre_empresa']);
-    $rut_empresa = strtoupper($row['rut_empresa']);
-    $direccion_empresa = strtoupper($row['direccion_empresa']);
-    $lugar_evento = strtoupper($row['lugar']);
-    $fecha_evento = strtoupper($row['fecha_evento']);
-    $nombre_evento = strtoupper($row['nombre_evento']);
+    $nombres = mb_strtoupper_custom($row['nombres']);
+    $apellidos = mb_strtoupper_custom($row['apellidos']);
+    $nombres = htmlspecialchars($nombres, ENT_QUOTES, 'UTF-8');
+    $apellidos = htmlspecialchars($apellidos, ENT_QUOTES, 'UTF-8');
+    $nombres = cleanString($nombres);
+    $apellidos = cleanString($apellidos);
+    $rut = mb_strtoupper_custom($row['rut']);
+    $correo = mb_strtoupper_custom($row['correo']);
+    $celular = mb_strtoupper_custom($row['celular']);
+    $genero = mb_strtoupper_custom($row['genero']);
+    $nombre_empresa = mb_strtoupper_custom($row['nombre_empresa']);
+    $rut_empresa = mb_strtoupper_custom($row['rut_empresa']);
+    $direccion_empresa = mb_strtoupper_custom($row['direccion_empresa']);
+    $lugar_evento = mb_strtoupper_custom($row['lugar']);
+    $fecha_evento = mb_strtoupper_custom($row['fecha_evento']);
+    $nombre_evento = mb_strtoupper_custom($row['nombre_evento']);
     $valor_evento = $row['valor'];
 
     // Definir estilo para texto en negrita
@@ -213,7 +235,7 @@ if ($result->num_rows > 0) {
     $textRun->addText("OLGA XIMENA SCHAAF GODOY", $boldFontStyle);
     $textRun->addText(", Rut: ", null);
     $textRun->addText("11.704.321-5", ['bold' => true]);
-    $textRun->addText(", con domicilio: El Castaño N°02001, Alto del Maitén, Provincia de Melipilla, Región Metropolitana, en adelante denominada ", null);
+    $textRun->addText(", con domicilio: El Castaño N°01976, Alto del Maitén, Provincia de Melipilla, Región Metropolitana, en adelante denominada ", null);
     $textRun->addText("SCHAAFPRODUCCIONES SpA", ['bold' => true, 'allCaps' => true]);
     $textRun->addText(", Rut: ", null);
     $textRun->addText("76.748.346-5", ['bold' => true]);
@@ -266,17 +288,45 @@ if ($result->num_rows > 0) {
     $textRun->addText(", dinero en efectivo o transferencia Bancaria. Cuenta corriente N° 71 76 03 59 Banco Santander, RUT:76.748.346-5.");
     $textRun->addText("2.3 El no pago oportuno de las obligaciones, será causal suficiente para que SCHAAFPRODUCCIONES SPA cancele la presentación del artista, considerándose esta circunstancia como una cancelación no justificada por parte del contratante y por lo tanto estará sujeto a la jurisdicción de tribunales en la ciudad de Santiago con la abogada Paula Molina Mallea.");
 
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> MODIFICAR >>>>>>>>>>>>>>>>>>
     $section->addTextBreak();
-    $section->addText("Cláusula 3: ALOJAMIENTO, COMIDAS Y GASTOS", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+    $section->addText("Cláusula 3: ALOJAMIENTO, TRASLADOS Y VIÁTICOS", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+
+    // Determinar qué servicios están a cargo de la productora
+    $servicios_productora = [];
+    $servicios_cliente = [];
+
+    if ($hotel == 'Si') $servicios_productora[] = 'alojamiento';
+    else $servicios_cliente[] = 'alojamiento';
+
+    if ($traslados == 'Si') $servicios_productora[] = 'traslados (ida y vuelta)';
+    else $servicios_cliente[] = 'traslados (ida y vuelta)';
+
+    if ($viaticos == 'Si') $servicios_productora[] = 'viáticos';
+    else $servicios_cliente[] = 'viáticos';
+
+    // Generar el texto de la Cláusula 3
     $textRun = $section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-    $textRun->addText("La responsabilidad de viáticos, traslado (ida y vuelta) estará a cargo de SCHAFF PRODUCCIONES SPA. El pago de los servicios: Sonido, catering. Se hará cargo ");
-    
-    // Determinar si es "el señor" o "la señora" basado en el género
-    $generoTexto = (strtoupper($genero) == 'FEMENINO') ? "la señora" : "el señor";
-    
-    $textRun->addText("$generoTexto ");
-    $textRun->addText("$nombres $apellidos", $boldFontStyle);
-    $textRun->addText(" el día de la presentación mencionada en cláusula 1.");
+
+    if (count($servicios_productora) == 3) {
+        $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de SCHAFF PRODUCCIONES SPA. El pago de los servicios de sonido y catering se hará cargo ");
+        $textRun->addText("$nombres $apellidos", $boldFontStyle);
+        $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+    } elseif (count($servicios_cliente) == 3) {
+        $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
+        $textRun->addText("$nombres $apellidos", $boldFontStyle);
+        $textRun->addText(". El pago de los servicios de sonido y catering también será responsabilidad de ");
+        $textRun->addText("$nombres $apellidos", $boldFontStyle);
+        $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+    } else {
+        $servicios_productora_str = implode(', ', $servicios_productora);
+        $servicios_cliente_str = implode(', ', $servicios_cliente);
+        $textRun->addText("La responsabilidad de $servicios_productora_str estará a cargo de SCHAFF PRODUCCIONES SPA. La responsabilidad de $servicios_cliente_str y el pago de los servicios de sonido y catering estará a cargo de ");
+        $textRun->addText("$nombres $apellidos", $boldFontStyle);
+        $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+    }
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> FIN MODIFICAR >>>>>>>>>>>>>>>
+
 
     $section->addTextBreak();
     $section->addText("Cláusula 4: SUSPENSIÓN 1", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
@@ -288,7 +338,7 @@ if ($result->num_rows > 0) {
     $textRun->addText("4.2 Si ");
     $textRun->addText("$nombres $apellidos", $boldFontStyle);
     $textRun->addText(" cancelara unilateralmente la presentación deberá pagar a SCHAAFPRODUCCIONES SPA el 100% (cien por ciento) del monto establecido como Remuneración en la Cláusula 2 de este contrato por concepto de indemnización, haciéndose cargo también de los gastos en que SCHAAFPRODUCCIONES SPA haya incurrido producto de la presentación que fuese cancelada.");
-  
+
     // Agregar salto de página antes de la Cláusula 5
     $section->addPageBreak();
 
@@ -321,7 +371,7 @@ if ($result->num_rows > 0) {
     $textRun = $section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
     $textRun->addText("Para los efectos de la realización del evento, las partes designan a las siguientes personas con sus respectivos datos:");
 
-    $section->addTextBreak(); 
+    $section->addTextBreak();
 
     // Información de contacto alineada a la izquierda
     $leftAlignedStyle = ['alignment' => 'left'];
@@ -330,18 +380,18 @@ if ($result->num_rows > 0) {
     $section->addText("Señorita:   OLGA XIMENA SCHAAF GODOY", $boldStyle, $leftAlignedStyle);
     $section->addText("Celular:    +569995699801", $boldStyle, $leftAlignedStyle);
     $section->addText("Correo:     ARTISTAS@SCHAAFPRODUCCIONES.CL", $boldStyle, $leftAlignedStyle);
-    
+
     // Determinar el tratamiento basado en el género
     $tratamiento = (strtoupper($genero) == 'FEMENINO') ? "Señora:" : "Señor:";
 
     $textRun = $section->addTextRun($leftAlignedStyle);
     $textRun->addText($tratamiento . "       ", $boldStyle, $leftAlignedStyle);
     $textRun->addText("$nombres $apellidos", $boldFontStyle);
-    
+
     $textRun = $section->addTextRun($leftAlignedStyle);
     $textRun->addText("Celular:     ", $boldStyle, $leftAlignedStyle);
     $textRun->addText("$celular", $boldFontStyle);
-    
+
     $textRun = $section->addTextRun($leftAlignedStyle);
     $textRun->addText("Correo:     ", $boldStyle, $leftAlignedStyle);
     $textRun->addText("$correo", $boldFontStyle);
@@ -384,7 +434,7 @@ if ($result->num_rows > 0) {
     // Guardar el documento
     $fileName = "Contrato_{$nombres}_{$apellidos}.docx";
     $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-    
+
     try {
         $objWriter->save($fileName);
         error_log("Documento guardado exitosamente: $fileName");
@@ -401,7 +451,7 @@ if ($result->num_rows > 0) {
     header("Expires: 0");
     header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
     header("Pragma: public");
-    
+
     if (file_exists($fileName)) {
         readfile($fileName);
         unlink($fileName); // Eliminar el archivo después de enviarlo
@@ -409,7 +459,7 @@ if ($result->num_rows > 0) {
         error_log("El archivo $fileName no existe.");
         die("Error al descargar el contrato. Por favor, contacte al administrador.");
     }
-    
+
     exit();
 } else {
     error_log("No se encontraron datos del cliente o del evento. cliente_id: $cliente_id, evento_id: $evento_id");
