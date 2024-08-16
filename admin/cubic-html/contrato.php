@@ -338,8 +338,7 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Valor</label>
                                                         <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="valor_formatted" name="valor_formatted" required>
-                                                            <input type="hidden" id="valor" name="valor">
+                                                            <input type="number" class="form-control" id="valor" name="valor" required min="1000000" max="100000000">
                                                             <span id="valor_error" class="text-danger"></span>
                                                         </div>
                                                     </div>
@@ -531,6 +530,33 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
     </script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="../plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var valorInput = document.getElementById('valor');
+            var valorError = document.getElementById('valor_error');
+
+            valorInput.addEventListener('input', function() {
+                var valor = parseInt(this.value);
+                if (valor < 1000000) {
+                    valorError.textContent = "El valor mínimo es $1.000.000";
+                } else if (valor > 100000000) {
+                    valorError.textContent = "El valor máximo es $100.000.000";
+                } else {
+                    valorError.textContent = "";
+                }
+            });
+
+            document.querySelector('form').addEventListener('submit', function(e) {
+                var valor = parseInt(valorInput.value);
+                if (valor < 1000000 || valor > 100000000) {
+                    e.preventDefault();
+                    valorError.textContent = "El valor debe estar entre $1.000.000 y $100.000.000";
+                }
+            });
+        });
+    </script>
+
 
     <script>
         document.getElementById('hora_evento').addEventListener('change', function(e) {
