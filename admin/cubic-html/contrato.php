@@ -38,10 +38,10 @@ if ($cliente_id > 0) {
         $cliente = $result_cliente->fetch_assoc();
 
         // Consulta para obtener todos los eventos del cliente, ordenados por fecha descendente
-        $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento
-                            FROM eventos 
-                            WHERE cliente_id = ? 
-                            ORDER BY fecha_evento DESC";
+        $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar, valor, tipo_evento, hotel, traslados, viaticos
+                FROM eventos 
+                WHERE cliente_id = ? 
+                ORDER BY fecha_evento DESC";
 
         $stmt_eventos = $conn->prepare($sql_eventos);
         $stmt_eventos->bind_param("i", $cliente_id);
@@ -279,14 +279,17 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                                                 <select class="form-control" id="eventos_pasados">
                                                                     <option value="">Seleccione un evento pasado</option>
                                                                     <?php foreach ($eventos as $evento): ?>
-                                                                        <option value="<?php echo $evento['id']; ?>"
+                                                                        <option value="<?php echo htmlspecialchars($evento['id']); ?>"
                                                                             data-nombre="<?php echo htmlspecialchars($evento['nombre_evento']); ?>"
-                                                                            data-fecha="<?php echo $evento['fecha_evento']; ?>"
-                                                                            data-hora="<?php echo $evento['hora_evento']; ?>"
+                                                                            data-fecha="<?php echo htmlspecialchars($evento['fecha_evento']); ?>"
+                                                                            data-hora="<?php echo htmlspecialchars($evento['hora_evento']); ?>"
                                                                             data-lugar="<?php echo htmlspecialchars($evento['lugar']); ?>"
-                                                                            data-valor="<?php echo $evento['valor']; ?>"
-                                                                            data-tipo="<?php echo htmlspecialchars($evento['tipo_evento']); ?>">
-                                                                            <?php echo htmlspecialchars($evento['nombre_evento']) . ' - ' . $evento['fecha_evento']; ?>
+                                                                            data-valor="<?php echo htmlspecialchars($evento['valor']); ?>"
+                                                                            data-tipo="<?php echo htmlspecialchars($evento['tipo_evento']); ?>"
+                                                                            data-hotel="<?php echo htmlspecialchars($evento['hotel'] ?? 'No'); ?>"
+                                                                            data-traslados="<?php echo htmlspecialchars($evento['traslados'] ?? 'No'); ?>"
+                                                                            data-viaticos="<?php echo htmlspecialchars($evento['viaticos'] ?? 'No'); ?>">
+                                                                            <?php echo htmlspecialchars($evento['nombre_evento']) . ' - ' . htmlspecialchars($evento['fecha_evento']); ?>
                                                                         </option>
                                                                     <?php endforeach; ?>
                                                                 </select>
@@ -567,30 +570,7 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
         });
     </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var selectEventos = document.getElementById('eventos_pasados');
-            if (selectEventos) {
-                selectEventos.addEventListener('change', function() {
-                    var selectedOption = this.options[this.selectedIndex];
-                    if (selectedOption.value !== "") {
-                        document.getElementById('evento_id').value = selectedOption.value; // Añade esta línea
-                        document.getElementById('nombre_evento').value = selectedOption.dataset.nombre;
-                        document.getElementById('lugar').value = selectedOption.dataset.lugar;
-                        document.getElementById('fecha_evento').value = selectedOption.dataset.fecha;
-                        document.getElementById('hora_evento').value = selectedOption.dataset.hora;
-                        document.getElementById('valor').value = selectedOption.dataset.valor;
-                        document.getElementById('tipo_evento').value = selectedOption.dataset.tipo;
-                    } else {
-                        // Limpiar los campos si se selecciona la opción por defecto
-                        ['evento_id', 'nombre_evento', 'lugar', 'fecha_evento', 'hora_evento', 'valor', 'tipo_evento'].forEach(function(id) {
-                            document.getElementById(id).value = '';
-                        });
-                    }
-                });
-            }
-        });
-    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var form = document.getElementById('contratoForm');
@@ -676,6 +656,111 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                     e.preventDefault(); // Previene el envío del formulario si la validación falla
                 }
             });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#eventos_pasados').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                if (selectedOption.val() !== "") {
+                    $('#evento_id').val(selectedOption.val());
+                    $('#nombre_evento').val(selectedOption.data('nombre'));
+                    $('#fecha_evento').val(selectedOption.data('fecha'));
+                    $('#hora_evento').val(selectedOption.data('hora'));
+                    $('#lugar').val(selectedOption.data('lugar'));
+                    $('#valor').val(selectedOption.data('valor'));
+                    $('#tipo_evento').val(selectedOption.data('tipo'));
+
+                    // Actualizar los radio buttons
+                    $('input[name="hotel"][value="' + selectedOption.data('hotel') + '"]').prop('checked', true);
+                    $('input[name="traslados"][value="' + selectedOption.data('traslados') + '"]').prop('checked', true);
+                    $('input[name="viaticos"][value="' + selectedOption.data('viaticos') + '"]').prop('checked', true);
+                } else {
+                    // Limpiar los campos si no se selecciona ningún evento
+                    $('#evento_id').val('0');
+                    $('#nombre_evento').val('');
+                    $('#fecha_evento').val('');
+                    $('#hora_evento').val('');
+                    $('#lugar').val('');
+                    $('#valor').val('');
+                    $('#tipo_evento').val('');
+
+                    // Restablecer los radio buttons a "No"
+                    $('input[name="hotel"][value="No"]').prop('checked', true);
+                    $('input[name="traslados"][value="No"]').prop('checked', true);
+                    $('input[name="viaticos"][value="No"]').prop('checked', true);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded and parsed');
+            var selectEventos = document.getElementById('eventos_pasados');
+            console.log('Select element:', selectEventos);
+
+            if (selectEventos) {
+                selectEventos.addEventListener('change', function() {
+                    console.log('Select changed');
+                    var selectedOption = this.options[this.selectedIndex];
+                    console.log('Selected option:', selectedOption);
+
+                    if (selectedOption.value !== "") {
+                        console.log('Filling form fields');
+                        fillFormFields(selectedOption);
+                    } else {
+                        console.log('Clearing form fields');
+                        clearFormFields();
+                    }
+                });
+            } else {
+                console.error('Select element not found');
+            }
+
+            function fillFormFields(option) {
+                setInputValue('evento_id', option.value);
+                setInputValue('nombre_evento', option.dataset.nombre);
+                setInputValue('lugar', option.dataset.lugar);
+                setInputValue('fecha_evento', option.dataset.fecha);
+                setInputValue('hora_evento', option.dataset.hora);
+                setInputValue('valor', option.dataset.valor);
+                setInputValue('tipo_evento', option.dataset.tipo);
+
+                setRadioValue('hotel', option.dataset.hotel);
+                setRadioValue('traslados', option.dataset.traslados);
+                setRadioValue('viaticos', option.dataset.viaticos);
+            }
+
+            function setInputValue(id, value) {
+                var element = document.getElementById(id);
+                if (element) {
+                    element.value = value;
+                    console.log(`Set ${id} to ${value}`);
+                } else {
+                    console.error(`Element with id ${id} not found`);
+                }
+            }
+
+            function setRadioValue(name, value) {
+                var radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                if (radio) {
+                    radio.checked = true;
+                    console.log(`Set ${name} radio to ${value}`);
+                } else {
+                    console.error(`Radio button ${name} with value ${value} not found`);
+                }
+            }
+
+            function clearFormFields() {
+                ['evento_id', 'nombre_evento', 'lugar', 'fecha_evento', 'hora_evento', 'valor', 'tipo_evento'].forEach(function(id) {
+                    setInputValue(id, '');
+                });
+                ['hotel', 'traslados', 'viaticos'].forEach(function(name) {
+                    setRadioValue(name, 'No');
+                });
+            }
         });
     </script>
 </body>
