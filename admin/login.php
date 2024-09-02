@@ -48,16 +48,16 @@ $conn->close();
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" type="image/png" sizes="16x16" href="plugins/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/plugins/images/favicon.png">
     <title>Schaaf Producciones - Login</title>
     <!-- ===== Bootstrap CSS ===== -->
-    <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- ===== Animation CSS ===== -->
-    <link href="css/animate.css" rel="stylesheet">
+    <link href="assets/css/animate.css" rel="stylesheet">
     <!-- ===== Custom CSS ===== -->
-    <link href="css/style.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
     <!-- ===== Color CSS ===== -->
-    <link href="css/colors/default.css" id="theme" rel="stylesheet">
+    <link href="assets/css/colors/default.css" id="theme" rel="stylesheet">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -132,19 +132,19 @@ $conn->close();
         </div>
     </section>
     <!-- jQuery -->
-    <script src="plugins/components/jquery/dist/jquery.min.js"></script>
+    <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
     <!-- Bootstrap Core JavaScript -->
-    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
     <!-- Menu Plugin JavaScript -->
-    <script src="js/sidebarmenu.js"></script>
+    <script src="assets/js/sidebarmenu.js"></script>
     <!--slimscroll JavaScript -->
-    <script src="js/jquery.slimscroll.js"></script>
+    <script src="assets/js/jquery.slimscroll.js"></script>
     <!--Wave Effects -->
-    <script src="js/waves.js"></script>
+    <script src="assets/js/waves.js"></script>
     <!-- Custom Theme JavaScript -->
-    <script src="js/custom.js"></script>
+    <script src="assets/js/custom.js"></script>
     <!--Style Switcher -->
-    <script src="plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+    <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
 </body>
 
 </html>

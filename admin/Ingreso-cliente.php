@@ -80,20 +80,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="keywords" content="">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" type="image/png" sizes="16x16" href="plugins/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/plugins/images/favicon.png">
     <title>Panel de Control - Schaaf Producciones</title>
     <!-- ===== Bootstrap CSS ===== -->
-    <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- ===== Plugin CSS ===== -->
-    <link href="plugins/components/chartist-js/dist/chartist.min.css" rel="stylesheet">
-    <link href="plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.css" rel="stylesheet">
-    <link href='plugins/components/fullcalendar/fullcalendar.css' rel='stylesheet'>
+    <link href="assets/plugins/components/chartist-js/dist/chartist.min.css" rel="stylesheet">
+    <link href="assets/plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.css" rel="stylesheet">
+    <link href='assets/plugins/components/fullcalendar/fullcalendar.css' rel='stylesheet'>
     <!-- ===== Animation CSS ===== -->
-    <link href="css/animate.css" rel="stylesheet">
+    <link href="assets/css/animate.css" rel="stylesheet">
     <!-- ===== Custom CSS ===== -->
-    <link href="css/style.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
     <!-- ===== Color CSS ===== -->
-    <link href="css/colors/default.css" id="theme" rel="stylesheet">
+    <link href="assets/css/colors/default.css" id="theme" rel="stylesheet">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -116,10 +116,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="top-left-part">
                     <a class="logo" href="index.php">
                         <b>
-                            <img src="plugins/images/logo.png" alt="home" />
+                            <img src="assets/plugins/images/logo.png" alt="home" />
                         </b>
                         <span>
-                            <img src="plugins/images/logo-text.png" alt="homepage" class="dark-logo" />
+                            <img src="assets/plugins/images/logo-text.png" alt="homepage" class="dark-logo" />
                         </span>
                     </a>
                 </div>
@@ -137,7 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div class="user-profile">
                     <div class="dropdown user-pro-body">
                         <div class="profile-image">
-                            <img src="plugins/images/users/logo.png" alt="user-img" class="img-circle">
+                            <img src="assets/plugins/images/users/logo.png" alt="user-img" class="img-circle">
                         </div>
                         <p class="profile-text m-t-15 font-16"><a href="javascript:void(0);"> Schaaf Producciones</a></p>
                     </div>
@@ -245,26 +245,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         Required JS Files
     =============================== -->
     <!-- ===== jQuery ===== -->
-    <script src="plugins/components/jquery/dist/jquery.min.js"></script>
+    <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
     <!-- ===== Bootstrap JavaScript ===== -->
-    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
     <!-- ===== Slimscroll JavaScript ===== -->
-    <script src="js/jquery.slimscroll.js"></script>
+    <script src="assets/js/jquery.slimscroll.js"></script>
     <!-- ===== Wave Effects JavaScript ===== -->
-    <script src="js/waves.js"></script>
+    <script src="assets/js/waves.js"></script>
     <!-- ===== Menu Plugin JavaScript ===== -->
-    <script src="js/sidebarmenu.js"></script>
+    <script src="assets/js/sidebarmenu.js"></script>
     <!-- ===== Custom JavaScript ===== -->
-    <script src="js/custom.js"></script>
+    <script src="assets/js/custom.js"></script>
     <!-- ===== Plugin JS ===== -->
-    <script src="plugins/components/chartist-js/dist/chartist.min.js"></script>
-    <script src="plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.min.js"></script>
-    <script src='plugins/components/moment/moment.js'></script>
-    <script src='plugins/components/fullcalendar/fullcalendar.js'></script>
-    <script src="js/db2.js"></script>
+    <script src="assets/plugins/components/chartist-js/dist/chartist.min.js"></script>
+    <script src="assets/plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.min.js"></script>
+    <script src='assets/plugins/components/moment/moment.js'></script>
+    <script src='assets/plugins/components/fullcalendar/fullcalendar.js'></script>
+    <script src="assets/js/db2.js"></script>
     <!-- ===== Style Switcher JS ===== -->
-    <script src="plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
-    <script src="plugins/components/jquery/dist/jquery.min.js"></script>
+    <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+    <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
 
     <script>
         $(document).ready(function() {

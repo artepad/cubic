@@ -1584,7 +1584,7 @@ hr {
 
 .custom-select {
     padding: 9px 45px 9px 20px;
-    background: url(../../plugins/images/arrow-down.png) right 16px center no-repeat #f4f8f9;
+    background: url(../../assets/plugins/images/arrow-down.png) right 16px center no-repeat #f4f8f9;
     border: none;
     margin-left: 8px;
     font-size: 15px;
@@ -4331,7 +4331,7 @@ table.focus-on tbody tr.focused th {
 }
 
 .login-register {
-    background: url(../../plugins/images/login-register.jpg) center center/cover no-repeat!important;
+    background: url(../../assets/plugins/images/login-register.jpg) center center/cover no-repeat!important;
     height: 100%;
     position: fixed
 }
@@ -6886,7 +6886,7 @@ ul.list-icons li i {
 }
 
 .carousel-widget {
-    background: url(../../plugins/images/flowers.jpg) -140px;
+    background: url(../../assets/plugins/images/flowers.jpg) -140px;
     background-size: cover;
     position: relative;
     text-align: center;
