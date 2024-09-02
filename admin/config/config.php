@@ -7,7 +7,7 @@ define('DB_NAME', 'schaaf_producciones');
 
 // Configuración de la aplicación
 define('APP_NAME', 'Schaaf Producciones');
-define('APP_URL', 'http://localhost/tu_proyecto'); // Ajusta esto a tu URL base
+define('APP_URL', 'http://localhost/schaaf_producciones'); // Ajusta esto a tu URL base
 
 // Configuración de paginación
 define('RESULTADOS_POR_PAGINA', 10);
