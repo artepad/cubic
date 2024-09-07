@@ -192,7 +192,11 @@ $sectionStyle = [
 $section = $phpWord->addSection($sectionStyle);
 
 // Agregar la imagen de forma simple
-$imagePath = 'img/logo-negro.png';
+$imagePath = __DIR__ . '/assets/img/logo-negro.png';
+if (!file_exists($imagePath)) {
+    throw new Exception("La imagen no se encuentra en la ruta especificada: $imagePath");
+}
+
 $imageStyle = array(
     'width' => 100,
     'height' => 49,
@@ -453,7 +457,10 @@ $cell1 = $table->addCell(6000);
 $cell2 = $table->addCell(3000);
 
 // Añadir la imagen de la firma en la primera celda
-$firmaPath = 'img/firma.png';
+$firmaPath = __DIR__ . '/assets/img/firma.png';
+if (!file_exists($firmaPath)) {
+    throw new Exception("La imagen de la firma no se encuentra en la ruta especificada: $firmaPath");
+}
 $firmaStyle = array(
     'width' => 100,
     'height' => 74,
@@ -468,7 +475,7 @@ $cell1->addText("76.748.346-5", $boldFontStyle, ['alignment' => 'center']);
 $cell1->addText("SCHAAFPRODUCCIONES SpA", $boldFontStyle, ['alignment' => 'center']);
 
 // Añadir la segunda imagen de firma en la segunda celda
-$firma2Path = 'img/firma-2.png';
+$firma2Path= __DIR__ . '/assets/img/firma-2.png';
 $cell2->addImage($firma2Path, $firmaStyle);
 
 $cell2->addText("___________________________", $boldFontStyle, ['alignment' => 'center']);
