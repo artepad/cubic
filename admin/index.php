@@ -181,17 +181,18 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                                     if ($result->num_rows > 0) {
                                         while($row = $result->fetch_assoc()) {
                                             echo "<tr>
-                                                <td>{$row['nombres']}</td>
-                                                <td>{$row['apellidos']}</td>
-                                                <td>{$row['rut']}</td>
-                                                <td>{$row['nombre_empresa']}</td>
-                                                <td>{$row['correo']}</td>
-                                                <td>
-                                                    <a href='contrato.php?id={$row['id']}' class='btn btn-primary btn-sm' title='Generar Contrato'><i class='fa fa-file-text-o'></i></a>
-                                                    <a href='editar_cliente.php?id={$row['id']}' class='btn btn-info btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
-                                                    <a href='eliminar_cli.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Eliminar' onclick='return confirm(\"¿Está seguro de que desea eliminar este cliente?\")'><i class='fa fa-trash-o'></i></a>
-                                                </td>
-                                            </tr>";
+                                            <td>{$row['nombres']}</td>
+                                            <td>{$row['apellidos']}</td>
+                                            <td>{$row['rut']}</td>
+                                            <td>{$row['nombre_empresa']}</td>
+                                            <td>{$row['correo']}</td>
+                                            <td>
+                                                <a href='contrato.php?id={$row['id']}' class='btn btn-primary btn-sm' title='Generar Contrato'><i class='fa fa-file-text-o'></i></a>
+                                                <a href='cotizacion.php?id={$row['id']}' class='btn btn-info btn-sm' title='Generar Cotización'><i class='fa fa-calculator'></i></a>
+                                                <a href='editar_cliente.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
+                                                <a href='eliminar_cli.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Eliminar' onclick='return confirm(\"¿Está seguro de que desea eliminar este cliente?\")'><i class='fa fa-trash-o'></i></a>
+                                            </td>
+                                        </tr>";
                                         }
                                     } else {
                                         echo "<tr><td colspan='7'>No se encontraron clientes.</td></tr>";
