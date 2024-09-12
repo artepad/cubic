@@ -74,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'name' => 'Lato Light',
         'size' => 23,
         'color' => '1F4E79',
-        'bold' => false
+        'bold' => true
     ]);
 
     // Estilo para el subtítulo
