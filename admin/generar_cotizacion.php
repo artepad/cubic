@@ -12,126 +12,311 @@ use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Style\Image;
 
+// Definir constantes
+define('FONT_LATO', 'Lato');
+define('FONT_LATO_LIGHT', 'Lato Light');
+define('COLOR_BLUE', '1F4E79');
+define('DEFAULT_FONT_SIZE', 18);
+
+// Configuración
+$config = [
+    'background_images' => [
+        'portada' => 'assets/img/portada.png',
+        'hoja2' => 'assets/img/hoja2.png',
+        'hoja3' => 'assets/img/hoja3.png',
+        'hoja4' => 'assets/img/hoja4.png',
+    ],
+];
+
+/**
+ * Clase principal para generar la cotización
+ */
+class QuoteGenerator
+{
+    private $phpWord;
+    private $formData;
+    private $config;
+
+    public function __construct($formData, $config)
+    {
+        $this->phpWord = new PhpWord();
+        $this->formData = $formData;
+        $this->config = $config;
+        $this->setupDocument();
+    }
+
+    private function setupDocument()
+    {
+        $this->phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language(\PhpOffice\PhpWord\Style\Language::ES_ES));
+        $this->defineStyles();
+    }
+
+    private function defineStyles()
+    {
+        $this->phpWord->addFontStyle('titleStyle', ['name' => FONT_LATO, 'size' => 23, 'color' => COLOR_BLUE, 'bold' => true]);
+        $this->phpWord->addFontStyle('subtitleStyle', ['name' => FONT_LATO_LIGHT, 'size' => 21, 'bold' => true]);
+        $this->phpWord->addFontStyle('paragraphStyle', ['name' => FONT_LATO_LIGHT, 'size' => DEFAULT_FONT_SIZE, 'bold' => false]);
+        $this->phpWord->addFontStyle('boldParagraphStyle', ['name' => FONT_LATO_LIGHT, 'size' => 20, 'bold' => true]);
+        $this->phpWord->addFontStyle('normalText', ['name' => FONT_LATO_LIGHT, 'size' => DEFAULT_FONT_SIZE]);
+        $this->phpWord->addFontStyle('finalText', ['name' => FONT_LATO, 'size' => DEFAULT_FONT_SIZE, 'italic' => true, 'color' => COLOR_BLUE, 'bold' => true]);
+    }
+
+    public function generate()
+    {
+        $this->createCoverPage();
+        $this->createSecondPage();
+        $this->createThirdPage();
+        $this->createFourthPage();
+        $this->saveDocument();
+    }
+
+    private function createCoverPage()
+    {
+        $section = $this->phpWord->addSection($this->getPageSettings());
+        $this->addBackgroundImage($section, 'portada');
+    }
+
+    private function createSecondPage()
+    {
+        $section = $this->phpWord->addSection($this->getPageSettings(true));
+        $this->addBackgroundImage($section, 'hoja2');
+
+        $section->addText('COTIZACIÓN ARTÍSTICA', 'titleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+        $section->addTextBreak(1);
+
+        $section->addText('Señores:', 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
+        $section->addText(htmlspecialchars($this->formData['encabezado']), 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
+
+        if (!empty($this->formData['encabezado2'])) {
+            $section->addText(htmlspecialchars($this->formData['encabezado2']), 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
+        }
+
+        $section->addTextBreak(1);
+
+        $paragraph = "Agradecemos desde ya su interés en el espectáculo de la reconocida banda Argentina, Agrupación Marilyn. Sin duda, esta banda representa una experiencia musical integral con una destacada trayectoria. Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial, narra historias que reflejan el cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos singles: Abismo, Siento y Piel y Huesos, que adelantan una propuesta fresca y poderosa, fiel a su estilo.";
+
+        $section->addText($paragraph, 'paragraphStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH]);
+    }
+
+    private function createThirdPage()
+    {
+        $section = $this->phpWord->addSection($this->getPageSettings(true));
+        $this->addBackgroundImage($section, 'hoja3');
+
+        $newParagraph = "A continuación, paso a detallar en extenso nuestra propuesta comercial y las condiciones para la realización de una presentación de nuestro artista en su evento.";
+
+        $section->addText($newParagraph, 'paragraphStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH]);
+        $section->addTextBreak(1);
+
+        $this->addFormData($section);
+        $this->addIncludedItems($section);
+        $this->addAdditionalItems($section);
+    }
+
+    private function createFourthPage()
+    {
+        $section = $this->phpWord->addSection($this->getPageSettings(true));
+        $this->addBackgroundImage($section, 'hoja4');
+
+        $paragraphs = [
+            "La contratación adicional de locación, equipos técnicos de audio, iluminación, video, pantallas y sus respectivos operadores y técnicos, camarines, catering, seguridad privada, permisos municipales, sanitarios y/o de otra índole y todo los que sea necesario para la correcta puesta en escena y funcionamiento del show solicitado, son de exclusiva responsabilidad y costo del contratante.",
+            "La reserva de fecha y horario de los servicios del artista se dará por entendida única y exclusivamente al momento de la firma de contrato y orden de compra.",
+            "Forma de pago: Se acepta dinero en efectivo (moneda nacional), transferencia bancaria y cheque al día únicamente a Municipalidades.",
+        ];
+
+        foreach ($paragraphs as $paragraph) {
+            $section->addText($paragraph, 'normalText', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH]);
+            $section->addTextBreak(1);
+        }
+
+        $section->addTextBreak(10);
+
+        $finalParagraph = "Esperando cumplir con sus expectativas, quedo atenta a sus comentarios.";
+        $section->addText($finalParagraph, 'finalText', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+    }
+
+    private function getPageSettings($withMargins = false)
+    {
+        $settings = [
+            'orientation' => 'portrait',
+            'pageSizeW' => \PhpOffice\PhpWord\Shared\Converter::inchToTwip(8.5),
+            'pageSizeH' => \PhpOffice\PhpWord\Shared\Converter::inchToTwip(11),
+        ];
+
+        if ($withMargins) {
+            $settings = array_merge($settings, [
+                'marginTop' => 800,
+                'marginLeft' => 800,
+                'marginRight' => 800,
+                'marginBottom' => 800
+            ]);
+        } else {
+            $settings = array_merge($settings, [
+                'marginTop' => 0,
+                'marginLeft' => 0,
+                'marginRight' => 0,
+                'marginBottom' => 0
+            ]);
+        }
+
+        return $settings;
+    }
+
+    private function addBackgroundImage($section, $imageName)
+    {
+        $imagePath = $this->config['background_images'][$imageName];
+        if (!file_exists($imagePath)) {
+            throw new \Exception("Error: La imagen de fondo no se encuentra en la ruta especificada: $imagePath");
+        }
+
+        $section->addImage(
+            $imagePath,
+            [
+                'width' => 612,
+                'height' => 792,
+                'positioning' => Image::POSITION_ABSOLUTE,
+                'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
+                'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+                'posVertical' => Image::POSITION_VERTICAL_TOP,
+                'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+                'wrappingStyle' => 'behind'
+            ]
+        );
+    }
+
+    private function addFormData($section)
+    {
+        $formattedDate = $this->formatDate($this->formData['fecha']);
+        $formattedTime = date('H:i', strtotime($this->formData['horario']));
+        $formattedValue = $this->formatValue($this->formData['valor']);
+
+        $formData = [
+            "Evento: " . htmlspecialchars($this->formData['evento']),
+            "Ciudad: " . htmlspecialchars($this->formData['ciudad']),
+            "Fecha: " . $formattedDate,
+            "Hora: " . $formattedTime,
+            "Valor: $" . $formattedValue,
+        ];
+
+        foreach ($formData as $item) {
+            $section->addText($item, 'boldParagraphStyle');
+        }
+
+        $section->addTextBreak(1);
+    }
+
+    private function addIncludedItems($section)
+    {
+        $section->addText("La presente cotización incluye:", 'boldParagraphStyle');
+
+        $itemsIncluidosRadio = $this->getIncludedRadioItems();
+        $itemsIncluidosFijos = [
+            "Ejecución de un Show en vivo: 1 vocalista + 4 músicos.",
+            "Duración aproximada de 60 minutos (incluido BIS)."
+        ];
+
+        foreach (array_merge($itemsIncluidosRadio, $itemsIncluidosFijos) as $item) {
+            $section->addListItem($item, 0, 'paragraphStyle');
+        }
+
+        $section->addTextBreak(1);
+    }
+
+    private function addAdditionalItems($section)
+    {
+        $section->addText("Costos Logísticos adicionales a cubrir por el Productor Local:", 'boldParagraphStyle');
+
+        $itemsAdicionales = $this->getAdditionalItems();
+        $itemsAdicionalesFijos = [
+            "Catering y Camarines.",
+            "Rider Técnico y logístico.",
+            "Prueba de sonido con un tiempo efectivo, mínimo de 1 hora sin acceso de público general."
+        ];
+
+        foreach (array_merge($itemsAdicionales, $itemsAdicionalesFijos) as $item) {
+            $section->addListItem($item, 0, 'paragraphStyle');
+        }
+    }
+
+    private function getIncludedRadioItems()
+    {
+        $items = [];
+        if ($this->formData['hotel'] == 'Si') {
+            $items[] = "Hotel para 12 personas.";
+        }
+        if ($this->formData['transporte'] == 'Si') {
+            $items[] = "Traslados de la Banda y Staff, ida y vuelta (12 personas).";
+        }
+        if ($this->formData['viaticos'] == 'Si') {
+            $items[] = "Viáticos para (12 personas).";
+        }
+        return $items;
+    }
+
+    private function getAdditionalItems()
+    {
+        $items = [];
+        if ($this->formData['hotel'] != 'Si') {
+            $items[] = "Hotel para 12 personas.";
+        }
+        if ($this->formData['transporte'] != 'Si') {
+            $items[] = "Traslados de la Banda y Staff, ida y vuelta (12 personas).";
+        }
+        if ($this->formData['viaticos'] != 'Si') {
+            $items[] = "Viáticos para (12 personas).";
+        }
+        return $items;
+    }
+
+private function formatDate($date)
+    {
+        $formattedDate = date('d \d\e F \d\e\l Y', strtotime($date));
+        $months = [
+            'January' => 'Enero', 'February' => 'Febrero', 'March' => 'Marzo',
+            'April' => 'Abril', 'May' => 'Mayo', 'June' => 'Junio',
+            'July' => 'Julio', 'August' => 'Agosto', 'September' => 'Septiembre',
+            'October' => 'Octubre', 'November' => 'Noviembre', 'December' => 'Diciembre'
+        ];
+        return str_replace(array_keys($months), array_values($months), $formattedDate);
+    }
+
+    private function formatValue($value)
+    {
+        return number_format($value, 0, ',', '.') . ' IVA Incluido';
+    }
+
+    private function saveDocument()
+    {
+        $writer = IOFactory::createWriter($this->phpWord, 'Word2007');
+        header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        header("Content-Disposition: attachment; filename=cotizacion_artistica.docx");
+        header("Cache-Control: max-age=0");
+        $writer->save("php://output");
+    }
+}
+
 // Verificar si se recibió una solicitud POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Obtener datos del formulario
-    $encabezado = $_POST['encabezado'] ?? '';
-    // Extraer otros campos del formulario aquí...
+    try {
+        $formData = [
+            'encabezado' => $_POST['encabezado'] ?? '',
+            'encabezado2' => $_POST['encabezado2'] ?? '',
+            'ciudad' => $_POST['ciudad'] ?? '',
+            'fecha' => $_POST['fecha'] ?? '',
+            'horario' => $_POST['horario'] ?? '',
+            'evento' => $_POST['evento'] ?? '',
+            'valor' => $_POST['valor'] ?? '',
+            'hotel' => $_POST['hotel'] ?? '',
+            'transporte' => $_POST['transporte'] ?? '',
+            'viaticos' => $_POST['viaticos'] ?? '',
+        ];
 
-    // Crear nuevo documento de PhpWord
-    $phpWord = new PhpWord();
-    $phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language(\PhpOffice\PhpWord\Style\Language::ES_ES));
-
-    // Primera página (portada)
-    $section1 = $phpWord->addSection([
-        'orientation' => 'portrait',
-        'pageSizeW' => \PhpOffice\PhpWord\Shared\Converter::inchToTwip(8.5),
-        'pageSizeH' => \PhpOffice\PhpWord\Shared\Converter::inchToTwip(11),
-        'marginTop' => 0,
-        'marginLeft' => 0,
-        'marginRight' => 0,
-        'marginBottom' => 0
-    ]);
-
-    // Agregar imagen de fondo a la primera página
-    $backgroundImagePath = 'assets/img/portada9.png';
-    if (!file_exists($backgroundImagePath)) {
-        die("Error: La imagen de fondo no se encuentra en la ruta especificada.");
+        $quoteGenerator = new QuoteGenerator($formData, $config);
+        $quoteGenerator->generate();
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        exit();
     }
-
-    $section1->addImage(
-        $backgroundImagePath,
-        [
-            'width' => 612,
-            'height' => 792,
-            'positioning' => Image::POSITION_ABSOLUTE,
-            'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
-            'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
-            'posVertical' => Image::POSITION_VERTICAL_TOP,
-            'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
-            'wrappingStyle' => 'infront'
-        ]
-    );
-
-    // Segunda página
-    $section2 = $phpWord->addSection([
-        'orientation' => 'portrait',
-        'pageSizeW' => \PhpOffice\PhpWord\Shared\Converter::inchToTwip(8.5),
-        'pageSizeH' => \PhpOffice\PhpWord\Shared\Converter::inchToTwip(11),
-        'marginTop' => 800,
-        'marginLeft' => 800,
-        'marginRight' => 800,
-        'marginBottom' => 800
-    ]);
-
-    // Agregar imagen de fondo a la segunda página
-    $backgroundImagePath2 = 'assets/img/marilyn2.png';
-    if (!file_exists($backgroundImagePath2)) {
-        die("Error: La imagen de fondo para la segunda página no se encuentra en la ruta especificada.");
-    }
-
-    $section2->addImage(
-        $backgroundImagePath2,
-        [
-            'width' => 612,
-            'height' => 792,
-            'positioning' => Image::POSITION_ABSOLUTE,
-            'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
-            'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
-            'posVertical' => Image::POSITION_VERTICAL_TOP,
-            'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
-            'wrappingStyle' => 'behind'
-        ]
-    );
-
-    // Definir estilos de texto
-    $phpWord->addFontStyle('titleStyle', [
-        'name' => 'Lato',
-        'size' => 23,
-        'color' => '1F4E79',
-        'bold' => true
-    ]);
-
-    $phpWord->addFontStyle('subtitleStyle', [
-        'name' => 'Lato',
-        'size' => 21,
-        'bold' => true
-    ]);
-
-    $phpWord->addFontStyle('paragraphStyle', [
-        'name' => 'Lato',
-        'size' => 20,
-        'bold' => false
-    ]);
-
-    // Agregar contenido a la segunda página
-    $section2->addText('COTIZACIÓN ARTÍSTICA', 'titleStyle', [
-        'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER
-    ]);
-
-    $section2->addTextBreak(1);
-
-    $section2->addText(htmlspecialchars($encabezado), 'subtitleStyle', [
-        'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT
-    ]);
-
-    $section2->addTextBreak(1);
-
-    $paragraph = "Agradecemos desde ya su interés en el espectáculo de la reconocida banda Argentina, Agrupación Marilyn. Sin duda, esta banda representa una experiencia musical integral con una destacada trayectoria. Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial, narra historias que reflejan el cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos singles: Abismo, Siento y Piel y Huesos, que adelantan una propuesta fresca y poderosa, fiel a su estilo.";
-
-    $section2->addText($paragraph, 'paragraphStyle', [
-        'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH  
-    ]);
-
-    $section2->addTextBreak(1);
-
-    // Guardar el documento
-    $writer = IOFactory::createWriter($phpWord, 'Word2007');
-    header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    header("Content-Disposition: attachment; filename=cotizacion_artistica.docx");
-    header("Cache-Control: max-age=0");
-    $writer->save("php://output");
-    exit();
 } else {
     echo "Error: No se recibieron datos del formulario.";
     exit();
