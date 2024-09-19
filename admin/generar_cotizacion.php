@@ -1,18 +1,24 @@
 <?php
+// Configuración de errores
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Incluir autoloader de Composer
 require_once 'vendor/autoload.php';
 
+// Importar clases necesarias
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Style\Image;
 
+// Verificar si se recibió una solicitud POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Obtener datos del formulario
     $encabezado = $_POST['encabezado'] ?? '';
     // Extraer otros campos del formulario aquí...
 
+    // Crear nuevo documento de PhpWord
     $phpWord = new PhpWord();
     $phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language(\PhpOffice\PhpWord\Style\Language::ES_ES));
 
@@ -27,6 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'marginBottom' => 0
     ]);
 
+    // Agregar imagen de fondo a la primera página
     $backgroundImagePath = 'assets/img/portada9.png';
     if (!file_exists($backgroundImagePath)) {
         die("Error: La imagen de fondo no se encuentra en la ruta especificada.");
@@ -57,6 +64,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         'marginBottom' => 800
     ]);
 
+    // Agregar imagen de fondo a la segunda página
+    $backgroundImagePath2 = 'assets/img/marilyn2.png';
+    if (!file_exists($backgroundImagePath2)) {
+        die("Error: La imagen de fondo para la segunda página no se encuentra en la ruta especificada.");
+    }
+
+    $section2->addImage(
+        $backgroundImagePath2,
+        [
+            'width' => 612,
+            'height' => 792,
+            'positioning' => Image::POSITION_ABSOLUTE,
+            'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
+            'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+            'posVertical' => Image::POSITION_VERTICAL_TOP,
+            'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+            'wrappingStyle' => 'behind'
+        ]
+    );
+
+    // Definir estilos de texto
     $phpWord->addFontStyle('titleStyle', [
         'name' => 'Lato',
         'size' => 23,
@@ -65,17 +93,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     ]);
 
     $phpWord->addFontStyle('subtitleStyle', [
-        'name' => 'Lato Light',
-        'size' => 20,
+        'name' => 'Lato',
+        'size' => 21,
         'bold' => true
     ]);
 
     $phpWord->addFontStyle('paragraphStyle', [
-        'name' => 'Lato Light',
+        'name' => 'Lato',
         'size' => 20,
         'bold' => false
     ]);
 
+    // Agregar contenido a la segunda página
     $section2->addText('COTIZACIÓN ARTÍSTICA', 'titleStyle', [
         'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER
     ]);
@@ -93,43 +122,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $section2->addText($paragraph, 'paragraphStyle', [
         'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::BOTH  
     ]);
-  
+
     $section2->addTextBreak(1);
-    // Añadir imagen al pie de la segunda página
-    $imagePath = 'assets/img/agrupacionmarilyn3.png';
-    if (!file_exists($imagePath)) {
-        die("Error: La imagen no se encuentra en la ruta especificada.");
-    }
 
-    list($width, $height) = getimagesize($imagePath);
-    $aspectRatio = $width / $height;
-    $maxWidth = 400;
-    $newHeight = $maxWidth / $aspectRatio;
-
-    // Calcular el espacio restante en la página
-    $pageHeight = $section2->getStyle()->getPageSizeH() - $section2->getStyle()->getMarginBottom() - $section2->getStyle()->getMarginTop();
-    $usedSpace = $section2->getElemetnsCount() * 20; // Estimación aproximada del espacio usado
-    $availableSpace = $pageHeight - $usedSpace;
-
-    if ($newHeight > $availableSpace) {
-        $newHeight = $availableSpace;
-        $maxWidth = $newHeight * $aspectRatio;
-    }
-
-    $section2->addImage(
-        $imagePath,
-        [
-            'width' => $maxWidth,
-            'height' => $newHeight,
-            'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::START,  // Cambiado de CENTER a START
-            'positioning' => \PhpOffice\PhpWord\Style\Image::POSITION_RELATIVE,
-            'wrappingStyle' => 'inline',
-            'marginTop' => 0,
-            'marginBottom' => 0,
-            'marginLeft' => -50  // Valor negativo para mover la imagen a la izquierda
-        ]
-    );
-
+    // Guardar el documento
     $writer = IOFactory::createWriter($phpWord, 'Word2007');
     header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     header("Content-Disposition: attachment; filename=cotizacion_artistica.docx");
