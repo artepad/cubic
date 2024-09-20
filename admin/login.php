@@ -2,12 +2,28 @@
 session_start();
 require_once 'config.php';
 
+// Definir constantes para mensajes de error
+define('ERR_USER_NOT_FOUND', 'Usuario no encontrado.');
+define('ERR_INCORRECT_PASSWORD', 'Contraseña incorrecta.');
+define('ERR_GENERAL', 'Oops! Algo salió mal. Por favor, intenta nuevamente más tarde.');
+
 $login_err = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    
+    // Validar y sanitizar entradas
+    $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
+    $password = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
+
+    if ($username && $password) {
+        $login_err = authenticate_user($conn, $username, $password);
+    } else {
+        $login_err = ERR_GENERAL;
+    }
+}
+
+$conn->close();
+
+function authenticate_user($conn, $username, $password) {
     $sql = "SELECT id, username, password FROM usuarios WHERE username = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("s", $username);
@@ -22,25 +38,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $_SESSION['username'] = $username;
                         $_SESSION['id'] = $id;
                         header("location: index.php");
+                        exit;
                     } else {
-                        $login_err = "Contraseña incorrecta.";
+                        return ERR_INCORRECT_PASSWORD;
                     }
                 }
             } else {
-                $login_err = "Usuario no encontrado.";
+                return ERR_USER_NOT_FOUND;
             }
         } else {
-            $login_err = "Oops! Algo salió mal. Por favor, intenta nuevamente más tarde.";
+            return ERR_GENERAL;
         }
         $stmt->close();
+    } else {
+        return ERR_GENERAL;
     }
+    return '';
 }
-$conn->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -50,24 +68,12 @@ $conn->close();
     <meta name="author" content="">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/plugins/images/favicon.png">
     <title>Schaaf Producciones - Login</title>
-    <!-- ===== Bootstrap CSS ===== -->
     <link href="assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- ===== Animation CSS ===== -->
     <link href="assets/css/animate.css" rel="stylesheet">
-    <!-- ===== Custom CSS ===== -->
     <link href="assets/css/style.css" rel="stylesheet">
-    <!-- ===== Color CSS ===== -->
     <link href="assets/css/colors/default.css" id="theme" rel="stylesheet">
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
 </head>
-
 <body class="mini-sidebar">
-    <!-- Preloader -->
     <div class="preloader">
         <div class="cssload-speeding-wheel"></div>
     </div>
@@ -76,12 +82,10 @@ $conn->close();
             <div class="white-box">
                 <form class="form-horizontal form-material" id="loginform" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                     <h3 class="box-title m-b-20">Iniciar Sesión</h3>
-                    <?php 
-                    if(!empty($login_err)){
-                        echo '<div class="alert alert-danger">' . $login_err . '</div>';
-                    }        
-                    ?>
-                    <div class="form-group ">
+                    <?php if (!empty($login_err)): ?>
+                        <div class="alert alert-danger"><?php echo $login_err; ?></div>
+                    <?php endif; ?>
+                    <div class="form-group">
                         <div class="col-xs-12">
                             <input class="form-control" type="text" required="" placeholder="Usuario" name="username">
                         </div>
@@ -97,7 +101,8 @@ $conn->close();
                                 <input id="checkbox-signup" type="checkbox">
                                 <label for="checkbox-signup"> Recuérdame </label>
                             </div>
-                            <a href="javascript:void(0)" id="to-recover" class="text-dark pull-right"><i class="fa fa-lock m-r-5"></i> ¿Olvidaste la contraseña?</a> </div>
+                            <a href="javascript:void(0)" id="to-recover" class="text-dark pull-right"><i class="fa fa-lock m-r-5"></i> ¿Olvidaste la contraseña?</a>
+                        </div>
                     </div>
                     <div class="form-group text-center m-t-20">
                         <div class="col-xs-12">
@@ -111,13 +116,13 @@ $conn->close();
                     </div>
                 </form>
                 <form class="form-horizontal" id="recoverform" action="index.html">
-                    <div class="form-group ">
+                    <div class="form-group">
                         <div class="col-xs-12">
                             <h3>Recuperar Contraseña</h3>
-                            <p class="text-muted">¡Ingresa tu correo electrónico y te enviaremos las instrucciones! </p>
+                            <p class="text-muted">¡Ingresa tu correo electrónico y te enviaremos las instrucciones!</p>
                         </div>
                     </div>
-                    <div class="form-group ">
+                    <div class="form-group">
                         <div class="col-xs-12">
                             <input class="form-control" type="text" required="" placeholder="Correo Electrónico">
                         </div>
@@ -131,20 +136,12 @@ $conn->close();
             </div>
         </div>
     </section>
-    <!-- jQuery -->
     <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
-    <!-- Bootstrap Core JavaScript -->
     <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
-    <!-- Menu Plugin JavaScript -->
     <script src="assets/js/sidebarmenu.js"></script>
-    <!--slimscroll JavaScript -->
     <script src="assets/js/jquery.slimscroll.js"></script>
-    <!--Wave Effects -->
     <script src="assets/js/waves.js"></script>
-    <!-- Custom Theme JavaScript -->
     <script src="assets/js/custom.js"></script>
-    <!--Style Switcher -->
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
 </body>
-
 </html>

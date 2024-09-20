@@ -7,17 +7,14 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     exit;
 }
 
-// Conectar a la base de datos
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "schaaf_producciones";
+// Incluir el archivo de configuración que contiene la conexión a la base de datos
+require_once 'config.php';
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
+// Verificar la conexión a la base de datos
 if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
+
 
 // Consulta para obtener el número total de clientes
 $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
