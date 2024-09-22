@@ -49,6 +49,60 @@ $result = $conn->query($sql);
 $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
 $result_total_clientes = $conn->query($sql_total_clientes);
 $total_clientes = $result_total_clientes->fetch_assoc()['total'];
+
+
+//*************** */ Consulta para obtener los eventos activos
+// Configuración de paginación para eventos
+$eventos_por_pagina = 10;
+$pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$offset = ($pagina_actual - 1) * $eventos_por_pagina;
+
+// Consulta para obtener el número total de eventos activos
+$sql_count_eventos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
+$result_count_eventos = $conn->query($sql_count_eventos);
+
+if ($result_count_eventos === false) {
+    die("Error en la consulta de conteo: " . $conn->error);
+}
+
+$row_count_eventos = $result_count_eventos->fetch_assoc();
+$total_eventos = $row_count_eventos['total'];
+$total_paginas = ceil($total_eventos / $eventos_por_pagina);
+
+// Consulta para obtener los eventos activos de la página actual
+$sql_eventos = "SELECT e.id, e.nombre_evento, e.fecha_evento, e.lugar, c.nombres, c.apellidos, g.nombre as nombre_gira, e.estado 
+                FROM eventos e 
+                LEFT JOIN clientes c ON e.cliente_id = c.id 
+                LEFT JOIN giras g ON e.gira_id = g.id 
+                WHERE e.fecha_evento >= CURDATE() 
+                ORDER BY e.fecha_evento ASC 
+                LIMIT ?, ?";
+
+// Preparar la declaración
+$stmt = $conn->prepare($sql_eventos);
+if ($stmt === false) {
+    die("Error en la preparación de la consulta: " . $conn->error);
+}
+
+// Vincular parámetros
+$stmt->bind_param("ii", $offset, $eventos_por_pagina);
+
+// Ejecutar la consulta
+$stmt->execute();
+
+// Obtener resultados
+$result_eventos = $stmt->get_result();
+
+if ($result_eventos === false) {
+    die("Error al obtener resultados: " . $stmt->error);
+}
+
+
+// Agregar esta consulta al principio del archivo, junto con las otras consultas
+$sql_count_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
+$result_count_eventos_activos = $conn->query($sql_count_eventos_activos);
+$total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
+
 ?>
 
 <!DOCTYPE html>
@@ -126,13 +180,37 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
                 <nav class="sidebar-nav">
                     <ul id="side-menu">
                         <li>
-                            <a class="active waves-effect" href="javascript:void(0);" aria-expanded="false"><i class="icon-screen-desktop fa-fw"></i> <span class="hide-menu"> Clientes <span class="label label-rounded label-info pull-right"><?php echo $total_clientes; ?></span></span></a>
-                            <ul aria-expanded="false" class="collapse">
-                                <li> <a href="index.php">Listar Clientes</a> </li>
-                                <li> <a href="ingreso-cliente.php">Ingresar Nuevo</a> </li>
+                            <a class="waves-effect" href="index.php" aria-expanded="false">
+                                <i class="icon-screen-desktop fa-fw"></i> 
+                                <span class="hide-menu"> Dashboard 
+                                    <span class="label label-rounded label-info pull-right"><?php echo $total_eventos_activos; ?></span>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);" class="waves-effect" data-toggle="collapse" data-target="#menuClientes">
+                                <i class="icon-user fa-fw"></i> 
+                                <span class="hide-menu"> Clientes 
+                                    <span class="label label-rounded label-info pull-right"><?php echo $total_clientes; ?></span>
+                                </span>
+                            </a>
+                            <ul id="menuClientes" class="collapse" aria-expanded="false">
+                                <li> <a href="listar_clientes.php">Listar</a> </li>
+                                <li> <a href="ingreso-cliente.php">Ingresar</a> </li>
+                                <li> <a href="modificar-cliente.php">Modificar</a> </li>
                             </ul>
                         </li>
-                     </ul>
+                        <li>
+                            <a href="agenda.php" aria-expanded="false">
+                                <i class="icon-notebook fa-fw"></i> <span class="hide-menu">Agenda</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="calendario.php" aria-expanded="false">
+                                <i class="icon-calender fa-fw"></i> <span class="hide-menu">Calendario</span>
+                            </a>
+                        </li>
+                    </ul>
                 </nav>
                 <div class="p-30">
                     <span class="hide-menu">
@@ -144,10 +222,89 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
         <!-- ===== Left-Sidebar-End ===== -->
         <!-- ===== Page-Content ===== -->
         <div class="page-wrapper">
+
+            
             <!-- ===== Page-Container ===== -->
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-sm-12">
+                    <div class="white-box">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h4 class="box-title">Eventos Activos</h4>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                        <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Evento</th>
+                                <th>Fecha</th>
+                                <th>Lugar</th>
+                                <th>Cliente</th>
+                                <th>Gira</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            if ($result_eventos->num_rows > 0) {
+                                while($row = $result_eventos->fetch_assoc()) {
+                                    $fecha_formateada = date("d M Y", strtotime($row['fecha_evento']));
+                                    echo "<tr>
+                                        <td>" . htmlspecialchars($row['nombre_evento']) . "</td>
+                                        <td>" . htmlspecialchars($fecha_formateada) . "</td>
+                                        <td>" . htmlspecialchars($row['lugar']) . "</td>
+                                        <td>" . htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) . "</td>
+                                        <td>" . htmlspecialchars($row['nombre_gira']) . "</td>
+                                        <td>" . htmlspecialchars($row['estado']) . "</td>
+                                        <td>
+                                            <a href='editar_evento.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
+                                            <a href='bajar_evento.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Bajar Evento' onclick='return confirm(\"¿Está seguro de que desea dar de baja este evento?\")'><i class='fa fa-times'></i></a>
+                                        </td>
+                                    </tr>";
+                                }
+                            } else {
+                                echo "<tr><td colspan='7'>No se encontraron eventos activos.</td></tr>";
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                        </div>
+                        <!-- Paginación -->
+                        <ul class="pagination">
+                            <?php
+                            $rango = 2;
+
+                            if ($pagina_actual > 1) {
+                                echo "<li><a href='?pagina=".($pagina_actual-1)."'>«</a></li>";
+                            } else {
+                                echo "<li class='disabled'><span>«</span></li>";
+                            }
+
+                            for ($i = max(1, $pagina_actual - $rango); $i <= min($total_paginas, $pagina_actual + $rango); $i++) {
+                                if ($i == $pagina_actual) {
+                                    echo "<li class='active'><span>$i</span></li>";
+                                } else {
+                                    echo "<li><a href='?pagina=$i'>$i</a></li>";
+                                }
+                            }
+
+                            if ($pagina_actual < $total_paginas) {
+                                echo "<li><a href='?pagina=".($pagina_actual+1)."'>»</a></li>";
+                            } else {
+                                echo "<li class='disabled'><span>»</span></li>";
+                            }
+                            ?>
+                        </ul>
+                    </div>
+
+                    <?php
+                    $stmt->close();
+                    ?>
+
+                         <!-- ********************************************************** SEGUNDA TABLA ************************************************************************ -->
                         <div class="white-box">
                             <div class="row">
                                 <div class="col-sm-6">
@@ -246,6 +403,17 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
         Required JS Files
     =============================== -->
     <!-- ===== jQuery ===== -->
+
+    <script>
+            $(document).ready(function() {
+        // Toggle para el menú de Clientes
+        $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
+            e.preventDefault();
+            $($(this).data('target')).toggleClass('in');
+        });
+    });
+    </script>
+
     <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
     <!-- ===== Bootstrap JavaScript ===== -->
     <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -266,5 +434,4 @@ $total_clientes = $result_total_clientes->fetch_assoc()['total'];
     <!-- ===== Style Switcher JS ===== -->
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
 </body>
-
 </html>
