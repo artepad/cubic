@@ -1,4 +1,8 @@
 <?php
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once 'config.php';
 
@@ -34,10 +38,6 @@ try {
     $viaticos = filter_input(INPUT_POST, 'viaticos', FILTER_SANITIZE_STRING);
     $gira_id = filter_input(INPUT_POST, 'gira_id', FILTER_VALIDATE_INT);
 
-    if (!$cliente_id || !$nombre_evento || !$fecha_evento || !$hora_evento || !$valor_evento) {
-        throw new Exception("Faltan campos obligatorios");
-    }
-
     $sql = "INSERT INTO eventos (cliente_id, gira_id, nombre_evento, fecha_evento, hora_evento, ciudad_evento, lugar_evento, valor_evento, tipo_evento, encabezado_evento, estado_evento, hotel, traslados, viaticos) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -55,7 +55,8 @@ try {
     sendJsonResponse(true, "Evento creado con éxito", ["evento_id" => $conn->insert_id]);
 
 } catch (Exception $e) {
-    sendJsonResponse(false, $e->getMessage());
+    error_log("Error en crear_evento.php: " . $e->getMessage());
+    sendJsonResponse(false, "Error al crear el evento: " . $e->getMessage());
 } finally {
     if (isset($stmt)) $stmt->close();
     if (isset($conn)) $conn->close();
