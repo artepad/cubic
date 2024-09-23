@@ -155,33 +155,28 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                 <nav class="sidebar-nav">
                     <ul id="side-menu">
                         <li>
-                            <a href="index.php">
+                            <a class="waves-effect" href="index.php" aria-expanded="false">
                                 <i class="icon-screen-desktop fa-fw"></i> 
-                                <span class="hide-menu">Dashboard 
+                                <span class="hide-menu"> Dashboard 
                                     <span class="label label-rounded label-info pull-right"><?php echo $total_eventos_activos; ?></span>
                                 </span>
                             </a>
                         </li>
                         <li>
-                            <a href="javascript:void(0);" class="waves-effect" data-toggle="collapse" data-target="#menuClientes">
+                            <a class="waves-effect" href="clientes.php" aria-expanded="false">
                                 <i class="icon-user fa-fw"></i> 
-                                <span class="hide-menu">Clientes 
-                                    <span class="label label-rounded label-info pull-right"><?php echo $total_clientes; ?></span>
+                                <span class="hide-menu"> Clientes 
+                                    <span class="label label-rounded label-success pull-right"><?php echo $total_clientes; ?></span>
                                 </span>
                             </a>
-                            <ul id="menuClientes" class="collapse">
-                                <li><a href="listar_clientes.php">Listar</a></li>
-                                <li><a href="ingreso-cliente.php">Ingresar</a></li>
-                                <li><a href="modificar-cliente.php">Modificar</a></li>
-                            </ul>
                         </li>
                         <li>
-                            <a href="agenda.php">
+                            <a href="agenda.php" aria-expanded="false">
                                 <i class="icon-notebook fa-fw"></i> <span class="hide-menu">Agenda</span>
                             </a>
                         </li>
                         <li>
-                            <a href="calendario.php">
+                            <a href="calendario.php" aria-expanded="false">
                                 <i class="icon-calender fa-fw"></i> <span class="hide-menu">Calendario</span>
                             </a>
                         </li>
@@ -189,6 +184,7 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                 </nav>
                 <div class="p-30">
                     <span class="hide-menu">
+                        <a href="eventos.php" target="_blank" class="btn btn-success">Nuevo Evento</a>
                         <a href="logout.php" target="_blank" class="btn btn-default m-t-15">Cerrar Sesión</a>
                     </span>
                 </div>

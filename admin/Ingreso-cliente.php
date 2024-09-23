@@ -142,16 +142,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <nav class="sidebar-nav">
                     <ul id="side-menu">
                         <li>
-                            <a class="active waves-effect" href="javascript:void(0);" aria-expanded="false"><i class="icon-screen-desktop fa-fw"></i> <span class="hide-menu"> Clientes <span class="label label-rounded label-info pull-right"><?php echo $total_clientes; ?></span></span></a>
-                            <ul aria-expanded="false" class="collapse">
-                                <li> <a href="index.php">Listar Clientes</a> </li>
-                                <li> <a href="ingreso-cliente.php">Ingresar Nuevo</a> </li>
-                            </ul>
+                            <a class="waves-effect" href="index.php" aria-expanded="false">
+                                <i class="icon-screen-desktop fa-fw"></i> 
+                                <span class="hide-menu"> Dashboard 
+                                    <span class="label label-rounded label-info pull-right"><?php echo $total_eventos_activos; ?></span>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="waves-effect" href="clientes.php" aria-expanded="false">
+                                <i class="icon-user fa-fw"></i> 
+                                <span class="hide-menu"> Clientes 
+                                    <span class="label label-rounded label-success pull-right"><?php echo $total_clientes; ?></span>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="agenda.php" aria-expanded="false">
+                                <i class="icon-notebook fa-fw"></i> <span class="hide-menu">Agenda</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="calendario.php" aria-expanded="false">
+                                <i class="icon-calender fa-fw"></i> <span class="hide-menu">Calendario</span>
+                            </a>
                         </li>
                     </ul>
                 </nav>
                 <div class="p-30">
                     <span class="hide-menu">
+                        <a href="eventos.php" target="_blank" class="btn btn-success">Nuevo Evento</a>
                         <a href="logout.php" target="_blank" class="btn btn-default m-t-15">Cerrar Sesión</a>
                     </span>
                 </div>

@@ -218,175 +218,91 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
         <!-- ===== Left-Sidebar-End ===== -->
         <!-- ===== Page-Content ===== -->
         <div class="page-wrapper">
-
-            
-            <!-- ===== Page-Container ===== -->
-            <div class="container-fluid">
+        <div class="container-fluid">
+                <!-- row -->
                 <div class="row">
-                    <div class="col-sm-12">
-                    <div class="white-box">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <h4 class="box-title">Eventos Activos</h4>
-                            </div>
+                    <div class="col-md-12">
+                        <div class="white-box cal-event">
+                            <h3 class="box-title">Drag and drop your event</h3>
+                            <div class="m-t-20">
+                                <div class="calendar-event" data-class="bg-primary">My Event One <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
+                                <div class="calendar-event" data-class="bg-success">My Event Two <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
+                                <div class="calendar-event" data-class="bg-warning">My Event Three <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
+                                <div class="calendar-event" data-class="bg-custom">My Event Four <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
+                                <input type="text" placeholder="Add Event and hit enter" class="form-control add-event m-t-20"> </div>
                         </div>
-                        <div class="table-responsive">
-                        <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nombre del Evento</th>
-                                <th>Fecha</th>
-                                <th>Lugar</th>
-                                <th>Cliente</th>
-                                <th>Gira</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            if ($result_eventos->num_rows > 0) {
-                                while($row = $result_eventos->fetch_assoc()) {
-                                    $fecha_formateada = date("d M Y", strtotime($row['fecha_evento']));
-                                    echo "<tr>
-                                        <td>" . htmlspecialchars($row['nombre_evento']) . "</td>
-                                        <td>" . htmlspecialchars($fecha_formateada) . "</td>
-                                        <td>" . htmlspecialchars($row['lugar_evento']) . "</td>
-                                        <td>" . htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) . "</td>
-                                        <td>" . htmlspecialchars($row['nombre_gira']) . "</td>
-                                        <td>" . htmlspecialchars($row['estado_evento']) . "</td>
-                                        <td>
-                                            <a href='editar_evento.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
-                                            <a href='bajar_evento.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Bajar Evento' onclick='return confirm(\"¿Está seguro de que desea dar de baja este evento?\")'><i class='fa fa-times'></i></a>
-                                        </td>
-                                    </tr>";
-                                }
-                            } else {
-                                echo "<tr><td colspan='7'>No se encontraron eventos activos.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                        </div>
-                        <!-- Paginación -->
-                        <ul class="pagination">
-                            <?php
-                            $rango = 2;
-
-                            if ($pagina_actual > 1) {
-                                echo "<li><a href='?pagina=".($pagina_actual-1)."'>«</a></li>";
-                            } else {
-                                echo "<li class='disabled'><span>«</span></li>";
-                            }
-
-                            for ($i = max(1, $pagina_actual - $rango); $i <= min($total_paginas, $pagina_actual + $rango); $i++) {
-                                if ($i == $pagina_actual) {
-                                    echo "<li class='active'><span>$i</span></li>";
-                                } else {
-                                    echo "<li><a href='?pagina=$i'>$i</a></li>";
-                                }
-                            }
-
-                            if ($pagina_actual < $total_paginas) {
-                                echo "<li><a href='?pagina=".($pagina_actual+1)."'>»</a></li>";
-                            } else {
-                                echo "<li class='disabled'><span>»</span></li>";
-                            }
-                            ?>
-                        </ul>
                     </div>
-
-                    <?php
-                    $stmt->close();
-                    ?>
-
-                         <!-- ********************************************************** SEGUNDA TABLA ************************************************************************ -->
+                    <div class="col-md-12">
                         <div class="white-box">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <h4 class="box-title">Clientes</h4>
-                                </div>
-                                <div class="col-sm-6">
-                                    <form action="" method="GET" class="form-inline pull-right">
-                                        <div class="input-group">
-                                            <input type="text" name="search" class="form-control" placeholder="Buscar clientes..." value="<?php echo htmlspecialchars($search); ?>">
-                                            <span class="input-group-btn">
-                                                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                                            </span>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Nombres</th>
-                                        <th>Apellidos</th>
-                                        <th>RUT</th>
-                                        <th>Empresa</th>
-                                        <th>Correo</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    if ($result->num_rows > 0) {
-                                        while($row = $result->fetch_assoc()) {
-                                            echo "<tr>
-                                            <td>{$row['nombres']}</td>
-                                            <td>{$row['apellidos']}</td>
-                                            <td>{$row['rut']}</td>
-                                            <td>{$row['nombre_empresa']}</td>
-                                            <td>{$row['correo']}</td>
-                                            <td>
-                                                <a href='contrato.php?id={$row['id']}' class='btn btn-primary btn-sm' title='Generar Contrato'><i class='fa fa-file-text-o'></i></a>
-                                                <a href='cotizacion.php?id={$row['id']}' class='btn btn-info btn-sm' title='Generar Cotización'><i class='fa fa-calculator'></i></a>
-                                                <a href='editar_cliente.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
-                                                <a href='eliminar_cli.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Eliminar' onclick='return confirm(\"¿Está seguro de que desea eliminar este cliente?\")'><i class='fa fa-trash-o'></i></a>
-                                            </td>
-                                        </tr>";
-                                        }
-                                    } else {
-                                        echo "<tr><td colspan='7'>No se encontraron clientes.</td></tr>";
-                                    }
-                                    ?>
-                                </tbody>
-                                </table>
-                            </div>
-                            <!-- Paginación -->
-                            <ul class="pagination">
-                                <?php
-                                $rango = 2; // Número de páginas a mostrar antes y después de la página actual
-
-                                // Botón "Anterior"
-                                if ($pagina_actual > 1) {
-                                    echo "<li><a href='?pagina=".($pagina_actual-1)."&search=$search'>«</a></li>";
-                                } else {
-                                    echo "<li class='disabled'><span>«</span></li>";
-                                }
-
-                                // Páginas numeradas
-                                for ($i = max(1, $pagina_actual - $rango); $i <= min($total_paginas, $pagina_actual + $rango); $i++) {
-                                    if ($i == $pagina_actual) {
-                                        echo "<li class='active'><span>$i</span></li>";
-                                    } else {
-                                        echo "<li><a href='?pagina=$i&search=$search'>$i</a></li>";
-                                    }
-                                }
-
-                                // Botón "Siguiente"
-                                if ($pagina_actual < $total_paginas) {
-                                    echo "<li><a href='?pagina=".($pagina_actual+1)."&search=$search'>»</a></li>";
-                                } else {
-                                    echo "<li class='disabled'><span>»</span></li>";
-                                }
-                                ?>
+                            <div id="calendar"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+                <!-- ===== Right-Sidebar ===== -->
+                <div class="right-sidebar">
+                    <div class="slimscrollright">
+                        <div class="rpanel-title"> Service Panel <span><i class="icon-close right-side-toggler"></i></span> </div>
+                        <div class="r-panel-body">
+                            <ul class="hidden-xs">
+                                <li><b>Layout Options</b></li>
+                                <li>
+                                    <div class="checkbox checkbox-danger">
+                                        <input id="headcheck" type="checkbox" class="fxhdr">
+                                        <label for="headcheck"> Fix Header </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="checkbox checkbox-warning">
+                                        <input id="sidecheck" type="checkbox" class="fxsdr">
+                                        <label for="sidecheck"> Fix Sidebar </label>
+                                    </div>
+                                </li>
+                            </ul>
+                            <ul id="themecolors" class="m-t-20">
+                                <li><b>With Light sidebar</b></li>
+                                <li><a href="javascript:void(0)" data-theme="default" class="default-theme working">1</a></li>
+                                <li><a href="javascript:void(0)" data-theme="green" class="green-theme">2</a></li>
+                                <li><a href="javascript:void(0)" data-theme="yellow" class="yellow-theme">3</a></li>
+                                <li><a href="javascript:void(0)" data-theme="red" class="red-theme">4</a></li>
+                                <li><a href="javascript:void(0)" data-theme="purple" class="purple-theme">5</a></li>
+                                <li><a href="javascript:void(0)" data-theme="black" class="black-theme">6</a></li>
+                                <li class="db"><b>With Dark sidebar</b></li>
+                                <li><a href="javascript:void(0)" data-theme="default-dark" class="default-dark-theme">7</a></li>
+                                <li><a href="javascript:void(0)" data-theme="green-dark" class="green-dark-theme">8</a></li>
+                                <li><a href="javascript:void(0)" data-theme="yellow-dark" class="yellow-dark-theme">9</a></li>
+                                <li><a href="javascript:void(0)" data-theme="red-dark" class="red-dark-theme">10</a></li>
+                                <li><a href="javascript:void(0)" data-theme="purple-dark" class="purple-dark-theme">11</a></li>
+                                <li><a href="javascript:void(0)" data-theme="black-dark" class="black-dark-theme">12</a></li>
+                            </ul>
+                            <ul class="m-t-20 chatonline">
+                                <li><b>Chat option</b></li>
+                                <li>
+                                    <a href="javascript:void(0)"><img src="../plugins/images/users/1.jpg" alt="user-img" class="img-circle"> <span>Varun Dhavan <small class="text-success">online</small></span></a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"><img src="../plugins/images/users/2.jpg" alt="user-img" class="img-circle"> <span>Genelia Deshmukh <small class="text-warning">Away</small></span></a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"><img src="../plugins/images/users/3.jpg" alt="user-img" class="img-circle"> <span>Ritesh Deshmukh <small class="text-danger">Busy</small></span></a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"><img src="../plugins/images/users/4.jpg" alt="user-img" class="img-circle"> <span>Arijit Sinh <small class="text-muted">Offline</small></span></a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"><img src="../plugins/images/users/5.jpg" alt="user-img" class="img-circle"> <span>Govinda Star <small class="text-success">online</small></span></a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0)"><img src="../plugins/images/users/6.jpg" alt="user-img" class="img-circle"> <span>John Abraham<small class="text-success">online</small></span></a>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
+                <!-- ===== Right-Sidebar-End ===== -->
             </div>
+
+
             <!-- ===== Page-Container-End ===== -->
             <footer class="footer t-a-c">
                 © 2024 Schaaf Producciones
@@ -428,6 +344,14 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
     <script src='assets/plugins/components/fullcalendar/fullcalendar.js'></script>
     <script src="assets/js/db2.js"></script>
     <!-- ===== Style Switcher JS ===== -->
+    <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+
+     <!-- Calendar JavaScript -->
+     <script src="assets/plugins/components/calendar/jquery-ui.min.js"></script>
+    <script src="assets/plugins/components/moment/moment.js"></script>
+    <script src='assets/plugins/components/calendar/dist/fullcalendar.min.js'></script>
+    <script src="assets/plugins/components/calendar/dist/jquery.fullcalendar.js"></script>
+    <!--Style Switcher -->
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
 </body>
 </html>
