@@ -65,6 +65,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+// Consulta para obtener el número total de clientes
+$sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
+$result_total_clientes = $conn->query($sql_total_clientes);
+$total_clientes = $result_total_clientes->fetch_assoc()['total'];
+// Consulta para obtener el número total de eventos activos
+$sql_count_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
+$result_count_eventos_activos = $conn->query($sql_count_eventos_activos);
+$total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
 ?>
 
 <!DOCTYPE html>
