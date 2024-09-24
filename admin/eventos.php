@@ -33,34 +33,17 @@ if ($cliente_id > 0) {
 
     if ($result_cliente->num_rows > 0) {
         $cliente = $result_cliente->fetch_assoc();
-
-        // Consulta para obtener todos los eventos del cliente, ordenados por fecha descendente
-        $sql_eventos = "SELECT id, nombre_evento, fecha_evento, hora_evento, lugar_evento, ciudad_evento, valor_evento, tipo_evento, hotel, traslados, viaticos
-                        FROM eventos 
-                        WHERE cliente_id = ? 
-                        ORDER BY fecha_evento DESC";
-
-        $stmt_eventos = $conn->prepare($sql_eventos);
-        if ($stmt_eventos === false) {
-            die("Error en la preparación de la consulta de eventos: " . $conn->error);
-        }
-
-        $stmt_eventos->bind_param("i", $cliente_id);
-        if (!$stmt_eventos->execute()) {
-            die("Error al ejecutar la consulta de eventos: " . $stmt_eventos->error);
-        }
-
-        $result_eventos = $stmt_eventos->get_result();
-
-        $eventos = [];
-        while ($row = $result_eventos->fetch_assoc()) {
-            $eventos[] = $row;
-        }
     } else {
         die("Cliente no encontrado");
     }
 } else {
-    die("ID de cliente no válido");
+    // Lógica para manejar la creación de un nuevo evento sin cliente seleccionado
+    $sql_clientes = "SELECT id, nombres, apellidos FROM clientes ORDER BY nombres, apellidos";
+    $result_clientes = $conn->query($sql_clientes);
+    if ($result_clientes === false) {
+        die("Error al obtener la lista de clientes: " . $conn->error);
+    }
+    $clientes = $result_clientes->fetch_all(MYSQLI_ASSOC);
 }
 
 // Consulta para obtener el número total de clientes (para el menú lateral)
@@ -78,6 +61,14 @@ if ($result_count_eventos_activos === false) {
     die("Error al obtener el total de eventos activos: " . $conn->error);
 }
 $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
+
+// Obtener las últimas 4 giras
+$sql_giras = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 4";
+$result_giras = $conn->query($sql_giras);
+if ($result_giras === false) {
+    die("Error al obtener las giras: " . $conn->error);
+}
+$giras = $result_giras->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -202,7 +193,28 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body">
                                     <form id="eventoForm" class="form-horizontal" role="form">
+                                        <?php if ($cliente_id == 0): ?>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Seleccionar Cliente:</label>
+                                                    <div class="col-md-9">
+                                                        <select class="form-control" id="cliente_id" name="cliente_id" required>
+                                                            <option value="">Seleccione un cliente</option>
+                                                            <?php foreach ($clientes as $cliente): ?>
+                                                                <option value="<?php echo $cliente['id']; ?>">
+                                                                    <?php echo htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']); ?>
+                                                                </option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php else: ?>
                                         <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
+                                        <?php endif; ?>
+                                        
                                         <input type="hidden" name="evento_id" id="evento_id" value="0">
                                         <div class="form-body">
                                             <h3 class="box-title">Cliente</h3>
@@ -212,9 +224,8 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Nombre:</label>
                                                         <div class="col-md-9">
-                                                            <p class="form-control-static">
-                                                                <?php echo htmlspecialchars($cliente['nombres']); ?>
-                                                                <?php echo htmlspecialchars($cliente['apellidos']); ?>
+                                                            <p class="form-control-static" id="nombre_cliente">
+                                                                <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']) : ''; ?>
                                                             </p>
                                                         </div>
                                                     </div>
@@ -223,8 +234,8 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Empresa:</label>
                                                         <div class="col-md-9">
-                                                            <p class="form-control-static">
-                                                            <?php echo htmlspecialchars($cliente['nombre_empresa'] ?? 'N/A'); ?>
+                                                            <p class="form-control-static" id="empresa_cliente">
+                                                                <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombre_empresa'] ?? 'N/A') : ''; ?>
                                                             </p>
                                                         </div>
                                                     </div>
@@ -233,35 +244,6 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                             
                                             <h3 class="box-title">Detalles del Evento</h3>
                                             <hr class="m-t-0 m-b-40">
-                                            <?php if (!empty($eventos)): ?>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="control-label col-md-3">Eventos Pasados:</label>
-                                                            <div class="col-md-9">
-                                                                <select class="form-control" id="eventos_pasados">
-                                                                    <option value="">Seleccione un evento pasado</option>
-                                                                    <?php foreach ($eventos as $evento): ?>
-                                                                        <option value="<?php echo htmlspecialchars($evento['id']); ?>"
-                                                                            data-nombre="<?php echo htmlspecialchars($evento['nombre_evento']); ?>"
-                                                                            data-fecha="<?php echo htmlspecialchars($evento['fecha_evento']); ?>"
-                                                                            data-hora="<?php echo htmlspecialchars($evento['hora_evento']); ?>"
-                                                                            data-lugar="<?php echo htmlspecialchars($evento['lugar_evento']); ?>"
-                                                                            data-ciudad="<?php echo htmlspecialchars($evento['ciudad_evento'] ?? ''); ?>"
-                                                                            data-valor="<?php echo htmlspecialchars($evento['valor_evento']); ?>"
-                                                                            data-tipo="<?php echo htmlspecialchars($evento['tipo_evento']); ?>"
-                                                                            data-hotel="<?php echo htmlspecialchars($evento['hotel'] ?? 'No'); ?>"
-                                                                            data-traslados="<?php echo htmlspecialchars($evento['traslados'] ?? 'No'); ?>"
-                                                                            data-viaticos="<?php echo htmlspecialchars($evento['viaticos'] ?? 'No'); ?>">
-                                                                            <?php echo htmlspecialchars($evento['nombre_evento']) . ' - ' . htmlspecialchars($evento['fecha_evento']); ?>
-                                                                        </option>
-                                                                    <?php endforeach; ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
@@ -343,14 +325,9 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                                         <div class="col-md-9">
                                                             <select class="form-control" id="gira_id" name="gira_id">
                                                                 <option value="">Seleccione una gira</option>
-                                                                <?php
-                                                                // Obtener las últimas 4 giras
-                                                                $sql_giras = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 4";
-                                                                $result_giras = $conn->query($sql_giras);
-                                                                while ($gira = $result_giras->fetch_assoc()) {
-                                                                    echo "<option value='" . $gira['id'] . "'>" . htmlspecialchars($gira['nombre']) . "</option>";
-                                                                }
-                                                                ?>
+                                                                <?php foreach ($giras as $gira): ?>
+                                                                    <option value="<?php echo $gira['id']; ?>"><?php echo htmlspecialchars($gira['nombre']); ?></option>
+                                                                <?php endforeach; ?>
                                                             </select>
                                                         </div>
                                                     </div>
@@ -526,18 +503,53 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
         function validateForm() {
             var isValid = true;
             // Implementa la validación del formulario aquí
-            // Por ejemplo:
             if ($('#nombre_evento').val().trim() === '') {
                 $('#nombre_evento_error').text('El nombre del evento es requerido');
                 isValid = false;
             } else {
                 $('#nombre_evento_error').text('');
             }
+            
+            var valor = $('#valor').val();
+            if (valor === '' || isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000) {
+                $('#valor_error').text('El valor debe estar entre 1,000,000 y 100,000,000');
+                isValid = false;
+            } else {
+                $('#valor_error').text('');
+            }
+            
             // Añade más validaciones según sea necesario
             return isValid;
         }
 
-        // Resto del código JavaScript...
+        // Manejar cambio en la selección del cliente
+        $('#cliente_id').on('change', function() {
+            var clienteId = $(this).val();
+            if (clienteId) {
+                $.ajax({
+                    url: 'obtener_cliente.php',
+                    type: 'GET',
+                    data: { id: clienteId },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            $('#nombre_cliente').text(response.cliente.nombres + ' ' + response.cliente.apellidos);
+                            $('#empresa_cliente').text(response.cliente.nombre_empresa || 'N/A');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX error:', textStatus, errorThrown);
+                        console.log('Respuesta del servidor:', jqXHR.responseText);
+                        alert('Error en la conexión: ' + textStatus);
+                    }
+                });
+            } else {
+                $('#nombre_cliente').text('');
+                $('#empresa_cliente').text('');
+            }
+        });
     });
     </script>
 </body>
