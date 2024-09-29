@@ -408,6 +408,26 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
         </div>
     </div>
 </form>
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirmar Creación de Evento</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea crear un nuevo evento?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" id="confirmCreateEvent">Sí</button>
+            </div>
+        </div>
+    </div>
+</div>
                                 </div>
                             </div>
                         </div>
@@ -461,70 +481,77 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
     </script>
 
     <script>
-    $(document).ready(function() {
-        $('#eventoForm').on('submit', function(e) {
-            e.preventDefault();
+   $(document).ready(function() {
+    let isSubmitting = false;
+
+    $('#eventoForm').on('submit', function(e) {
+        e.preventDefault();
+        if (!isSubmitting && validateForm()) {
+            $('#confirmationModal').modal('show');
+        }
+    });
+
+    $('#confirmCreateEvent').on('click', function() {
+        if (!isSubmitting) {
+            isSubmitting = true;
             crearEvento();
-        });
+        }
+    });
 
-        function crearEvento() {
-            if (!validateForm()) {
-                return;
-            }
+    function crearEvento() {
+        var formData = new FormData(document.getElementById('eventoForm'));
 
-            var formData = new FormData(document.getElementById('eventoForm'));
-
-            $.ajax({
-                url: 'crear_evento.php',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    console.log('Respuesta del servidor:', response);
-                    if (response.success) {
-                        alert('Evento creado con éxito');
-                        // Opcionalmente, limpiar el formulario o redirigir
-                        // window.location.href = 'lista_eventos.php';
-                    } else {
-                        alert('Error al crear el evento: ' + (response.message || 'Error desconocido'));
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Ajax error:', status, error);
-                    console.error('Respuesta del servidor:', xhr.responseText);
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        alert('Error en el servidor: ' + (response.message || error));
-                    } catch(e) {
-                        alert('Error en la conexión: ' + error);
-                    }
+        $.ajax({
+            url: 'crear_evento.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                $('#confirmationModal').modal('hide');
+                if (response.success) {
+                    // Redirigir inmediatamente sin mostrar mensaje
+                    window.location.href = 'index.php';
+                } else {
+                    showErrorMessage(response.message || 'Error desconocido al crear el evento');
                 }
-            });
-        }
+                isSubmitting = false;
+            },
+            error: function(xhr, status, error) {
+                $('#confirmationModal').modal('hide');
+                console.error('Ajax error:', status, error);
+                showErrorMessage('Error en la conexión: ' + error);
+                isSubmitting = false;
+            }
+        });
+    }
 
-        function validateForm() {
-            var isValid = true;
-            // Implementa la validación del formulario aquí
-            if ($('#nombre_evento').val().trim() === '') {
-                $('#nombre_evento_error').text('El nombre del evento es requerido');
-                isValid = false;
-            } else {
-                $('#nombre_evento_error').text('');
-            }
-            
-            var valor = $('#valor').val();
-            if (valor === '' || isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000) {
-                $('#valor_error').text('El valor debe estar entre 1,000,000 y 100,000,000');
-                isValid = false;
-            } else {
-                $('#valor_error').text('');
-            }
-            
-            // Añade más validaciones según sea necesario
-            return isValid;
+    function validateForm() {
+        var isValid = true;
+        
+        if ($('#nombre_evento').val().trim() === '') {
+            $('#nombre_evento_error').text('El nombre del evento es requerido');
+            isValid = false;
+        } else {
+            $('#nombre_evento_error').text('');
         }
+        
+        var valor = $('#valor').val();
+        if (valor === '' || isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000) {
+            $('#valor_error').text('El valor debe estar entre 1,000,000 y 100,000,000');
+            isValid = false;
+        } else {
+            $('#valor_error').text('');
+        }
+        
+        return isValid;
+    }
+
+    function showErrorMessage(message) {
+        $('#errorModalBody').text(message);
+        $('#errorModal').modal('show');
+    }
 
         // Manejar cambio en la selección del cliente
         $('#cliente_id').on('change', function() {
@@ -555,6 +582,107 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
             }
         });
     });
+
+    $(document).ready(function() {
+    let isSubmitting = false;
+
+    $('#eventoForm').on('submit', function(e) {
+        e.preventDefault();
+        if (!isSubmitting && validateForm()) {
+            $('#confirmationModal').modal('show');
+        }
+    });
+
+    $('#confirmCreateEvent').on('click', function() {
+        if (!isSubmitting) {
+            isSubmitting = true;
+            $('#confirmationModal').modal('hide');
+            crearEvento();
+        }
+    });
+
+    function crearEvento() {
+        var formData = new FormData(document.getElementById('eventoForm'));
+
+        $.ajax({
+            url: 'crear_evento.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    window.location.href = 'index.php';
+                } else {
+                    showErrorMessage(response.message || 'Error desconocido al crear el evento');
+                }
+                isSubmitting = false;
+            },
+            error: function(xhr, status, error) {
+                console.error('Ajax error:', status, error);
+                showErrorMessage('Error en la conexión: ' + error);
+                isSubmitting = false;
+            }
+        });
+    }
+
+    function validateForm() {
+        var isValid = true;
+        // Implementa la validación del formulario aquí
+        if ($('#nombre_evento').val().trim() === '') {
+            $('#nombre_evento_error').text('El nombre del evento es requerido');
+            isValid = false;
+        } else {
+            $('#nombre_evento_error').text('');
+        }
+        
+        var valor = $('#valor').val();
+        if (valor === '' || isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000) {
+            $('#valor_error').text('El valor debe estar entre 1,000,000 y 100,000,000');
+            isValid = false;
+        } else {
+            $('#valor_error').text('');
+        }
+        
+        // Añade más validaciones según sea necesario
+        return isValid;
+    }
+});
     </script>
+
+    <!-- Modal de Éxito -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Éxito</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Evento creado con éxito. Redirigiendo...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Éxito -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Éxito</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Evento creado con éxito. Redirigiendo...
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

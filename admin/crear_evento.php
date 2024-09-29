@@ -38,6 +38,17 @@ try {
     $viaticos = filter_input(INPUT_POST, 'viaticos', FILTER_SANITIZE_STRING);
     $gira_id = filter_input(INPUT_POST, 'gira_id', FILTER_VALIDATE_INT);
 
+    // Verificar si el evento ya existe
+    $check_sql = "SELECT id FROM eventos WHERE nombre_evento = ? AND fecha_evento = ? AND cliente_id = ?";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("ssi", $nombre_evento, $fecha_evento, $cliente_id);
+    $check_stmt->execute();
+    $result = $check_stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        sendJsonResponse(false, "Este evento ya existe para este cliente en la fecha especificada.");
+    }
+
     $sql = "INSERT INTO eventos (cliente_id, gira_id, nombre_evento, fecha_evento, hora_evento, ciudad_evento, lugar_evento, valor_evento, tipo_evento, encabezado_evento, estado_evento, hotel, traslados, viaticos) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -59,6 +70,7 @@ try {
     sendJsonResponse(false, "Error al crear el evento: " . $e->getMessage());
 } finally {
     if (isset($stmt)) $stmt->close();
+    if (isset($check_stmt)) $check_stmt->close();
     if (isset($conn)) $conn->close();
 }
 ?>
