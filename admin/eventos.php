@@ -192,234 +192,222 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
                             <div class="panel-heading">Generador de Eventos</div>
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body">
-                                    <form id="eventoForm" class="form-horizontal" role="form">
-                                        <?php if ($cliente_id == 0): ?>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-3">Seleccionar Cliente:</label>
-                                                    <div class="col-md-9">
-                                                        <select class="form-control" id="cliente_id" name="cliente_id" required>
-                                                            <option value="">Seleccione un cliente</option>
-                                                            <?php foreach ($clientes as $cliente): ?>
-                                                                <option value="<?php echo $cliente['id']; ?>">
-                                                                    <?php echo htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']); ?>
-                                                                </option>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php else: ?>
-                                        <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
-                                        <?php endif; ?>
-                                        
-                                        <input type="hidden" name="evento_id" id="evento_id" value="0">
-                                        <div class="form-body">
-                                            <h3 class="box-title">Cliente</h3>
-                                            <hr class="m-t-0 m-b-40">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Nombre:</label>
-                                                        <div class="col-md-9">
-                                                            <p class="form-control-static" id="nombre_cliente">
-                                                                <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']) : ''; ?>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Empresa:</label>
-                                                        <div class="col-md-9">
-                                                            <p class="form-control-static" id="empresa_cliente">
-                                                                <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombre_empresa'] ?? 'N/A') : ''; ?>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <h3 class="box-title">Detalles del Evento</h3>
-                                            <hr class="m-t-0 m-b-40">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Nombre Evento</label>
-                                                        <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="nombre_evento" name="nombre_evento" required maxlength="60">
-                                                            <span id="nombre_evento_error" class="text-danger"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Encabezado</label>
-                                                        <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="encabezado_evento" name="encabezado_evento" maxlength="100">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Fecha</label>
-                                                        <div class="col-md-9">
-                                                            <input type="date" class="form-control" id="fecha_evento" name="fecha_evento" required>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Hora</label>
-                                                        <div class="col-md-9">
-                                                            <input type="time" class="form-control" id="hora_evento" name="hora_evento" required step="1800">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Ciudad</label>
-                                                        <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="ciudad_evento" name="ciudad_evento" required maxlength="100">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Lugar</label>
-                                                        <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="lugar" name="lugar" required maxlength="150">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Valor</label>
-                                                        <div class="col-md-9">
-                                                            <input type="number" class="form-control" id="valor" name="valor" required min="1000000" max="100000000">
-                                                            <span id="valor_error" class="text-danger"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Tipo de Evento</label>
-                                                        <div class="col-md-9">
-                                                            <input type="text" class="form-control" id="tipo_evento" name="tipo_evento" required maxlength="100">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Gira</label>
-                                                        <div class="col-md-9">
-                                                        <select class="form-control" id="gira_id" name="gira_id">
-                                                            <option value="">Seleccione una gira</option>
-                                                            <?php foreach ($giras as $gira): ?>
-                                                                <option value="<?php echo $gira['id']; ?>"><?php echo htmlspecialchars($gira['nombre']); ?></option>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3"></label>
-                                                        <div class="col-md-9">
-                                                             <a href="ingreso-giras.php?cliente_id=<?php echo $cliente_id; ?>" class="btn btn-info text-white">
-                                                                <i class="fa fa-plus"></i> Nueva Gira
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Estado:</label>
-                                                        <div class="col-md-9">
-                                                            <select class="form-control" id="estado_evento" name="estado_evento">
-                                                                <option value="Pendiente">Pendiente</option>
-                                                                <option value="Confirmado">Confirmado</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Hotel</label>
-                                                        <div class="col-md-9">
-                                                            <div class="radio-list">
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="hotel" value="Si"> Sí
-                                                                </label>
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="hotel" value="No" checked> No
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Traslados</label>
-                                                        <div class="col-md-9">
-                                                            <div class="radio-list">
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="traslados" value="Si"> Sí
-                                                                </label>
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="traslados" value="No" checked> No
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Viáticos</label>
-                                                        <div class="col-md-9">
-                                                            <div class="radio-list">
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="viaticos" value="Si"> Sí
-                                                                </label>
-                                                                <label class="radio-inline">
-                                                                    <input type="radio" name="viaticos" value="No" checked> No
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-actions">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="row">
-                                                        <div class="col-md-offset-3 col-md-9">
-                                                            <button type="submit" id="crearEventoBtn" class="btn btn-primary text-white">
-                                                                <i class="fa fa-file-text"></i> Crear Evento
-                                                            </button>
-                                                            <button type="button" class="btn btn-default">Cancelar</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6"></div>
-                                            </div>
-                                        </div>
-                                    </form>
+                                <form id="eventoForm" class="form-horizontal" role="form">
+    <?php if ($cliente_id == 0): ?>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label col-md-3">Seleccionar Cliente:</label>
+                <div class="col-md-9">
+                    <select class="form-control" id="cliente_id" name="cliente_id" required>
+                        <option value="">Seleccione un cliente</option>
+                        <?php foreach ($clientes as $cliente): ?>
+                            <option value="<?php echo $cliente['id']; ?>">
+                                <?php echo htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php else: ?>
+    <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
+    <?php endif; ?>
+    
+    <input type="hidden" name="evento_id" id="evento_id" value="0">
+    <div class="form-body">
+        <h3 class="box-title">Cliente</h3>
+        <hr class="m-t-0 m-b-40">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Nombre:</label>
+                    <div class="col-md-9">
+                        <p class="form-control-static" id="nombre_cliente">
+                            <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']) : ''; ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Empresa:</label>
+                    <div class="col-md-9">
+                        <p class="form-control-static" id="empresa_cliente">
+                            <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombre_empresa'] ?? 'N/A') : ''; ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h3 class="box-title">Detalles del Evento</h3>
+        <hr class="m-t-0 m-b-40">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Nombre Evento</label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="nombre_evento" name="nombre_evento" required maxlength="60">
+                        <span id="nombre_evento_error" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Encabezado</label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="encabezado_evento" name="encabezado_evento" maxlength="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Fecha</label>
+                    <div class="col-md-9">
+                        <input type="date" class="form-control" id="fecha_evento" name="fecha_evento" required>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Hora</label>
+                    <div class="col-md-9">
+                        <input type="time" class="form-control" id="hora_evento" name="hora_evento" required step="1800">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Ciudad</label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="ciudad_evento" name="ciudad_evento" required maxlength="100">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Lugar</label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="lugar" name="lugar" required maxlength="150">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Valor</label>
+                    <div class="col-md-9">
+                        <input type="number" class="form-control" id="valor" name="valor" required min="1000000" max="100000000">
+                        <span id="valor_error" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Tipo de Evento</label>
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" id="tipo_evento" name="tipo_evento" required maxlength="100">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Gira</label>
+                    <div class="col-md-9">
+                        <?php if (count($giras) > 0): ?>
+                            <select class="form-control" id="gira_id" name="gira_id">
+                                <option value="">Seleccione una gira</option>
+                                <?php foreach ($giras as $gira): ?>
+                                    <option value="<?php echo $gira['id']; ?>"><?php echo htmlspecialchars($gira['nombre']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php else: ?>
+                            <p class="form-control-static">No hay giras disponibles. Por favor, cree una nueva gira.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3"></label>
+                    <div class="col-md-9">
+                        <a href="ingreso-giras.php" class="btn btn-info btn-sm text-white">
+                            <i class="fa fa-plus"></i> Nueva Gira
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Hotel</label>
+                    <div class="col-md-9">
+                        <div class="radio-list">
+                            <label class="radio-inline">
+                                <input type="radio" name="hotel" value="Si"> Sí
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="hotel" value="No" checked> No
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Traslados</label>
+                    <div class="col-md-9">
+                        <div class="radio-list">
+                            <label class="radio-inline">
+                                <input type="radio" name="traslados" value="Si"> Sí
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="traslados" value="No" checked> No
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-3">Viáticos</label>
+                    <div class="col-md-9">
+                        <div class="radio-list">
+                            <label class="radio-inline">
+                                <input type="radio" name="viaticos" value="Si"> Sí
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="viaticos" value="No" checked> No
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <button type="submit" id="crearEventoBtn" class="btn btn-success">
+                    <i class="fa fa-check"></i> Crear Evento
+                </button>
+                <button type="button" class="btn btn-default">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</form>
                                 </div>
                             </div>
                         </div>
@@ -457,23 +445,20 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
     <script src="assets/js/db2.js"></script>
 
     <script>
-$(document).ready(function() {
-    // Verificar si hay una nueva gira en la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const nuevaGiraId = urlParams.get('nueva_gira');
-    
-    if (nuevaGiraId) {
-        // Seleccionar la nueva gira en el dropdown
-        $('#gira_id').val(nuevaGiraId);
+    $(document).ready(function() {
+        // Verificar si hay una nueva gira en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const nuevaGiraId = urlParams.get('nueva_gira');
         
-        // Opcional: Mostrar un mensaje de éxito
-        alert('La gira ha sido creada exitosamente.');
-        
-        // Limpiar el parámetro de la URL para evitar selecciones no deseadas en recargas
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-});
-</script>
+        if (nuevaGiraId) {
+            // Seleccionar la nueva gira en el dropdown
+            $('#gira_id').val(nuevaGiraId);
+            
+            // Limpiar el parámetro de la URL para evitar selecciones no deseadas en recargas
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+    </script>
 
     <script>
     $(document).ready(function() {
