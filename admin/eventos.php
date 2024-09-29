@@ -62,8 +62,8 @@ if ($result_count_eventos_activos === false) {
 }
 $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
 
-// Obtener las últimas 4 giras
-$sql_giras = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 4";
+// Obtener las últimas 5 giras
+$sql_giras = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 5";
 $result_giras = $conn->query($sql_giras);
 if ($result_giras === false) {
     die("Error al obtener las giras: " . $conn->error);
@@ -323,12 +323,12 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Gira</label>
                                                         <div class="col-md-9">
-                                                            <select class="form-control" id="gira_id" name="gira_id">
-                                                                <option value="">Seleccione una gira</option>
-                                                                <?php foreach ($giras as $gira): ?>
-                                                                    <option value="<?php echo $gira['id']; ?>"><?php echo htmlspecialchars($gira['nombre']); ?></option>
-                                                                <?php endforeach; ?>
-                                                            </select>
+                                                        <select class="form-control" id="gira_id" name="gira_id">
+                                                            <option value="">Seleccione una gira</option>
+                                                            <?php foreach ($giras as $gira): ?>
+                                                                <option value="<?php echo $gira['id']; ?>"><?php echo htmlspecialchars($gira['nombre']); ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -336,7 +336,7 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3"></label>
                                                         <div class="col-md-9">
-                                                            <a href="ingreso-giras.php" class="btn btn-info text-white">
+                                                             <a href="ingreso-giras.php?cliente_id=<?php echo $cliente_id; ?>" class="btn btn-info text-white">
                                                                 <i class="fa fa-plus"></i> Nueva Gira
                                                             </a>
                                                         </div>
@@ -455,6 +455,25 @@ $giras = $result_giras->fetch_all(MYSQLI_ASSOC);
     <script src='assets/plugins/components/moment/moment.js'></script>
     <script src='assets/plugins/components/fullcalendar/fullcalendar.js'></script>
     <script src="assets/js/db2.js"></script>
+
+    <script>
+$(document).ready(function() {
+    // Verificar si hay una nueva gira en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const nuevaGiraId = urlParams.get('nueva_gira');
+    
+    if (nuevaGiraId) {
+        // Seleccionar la nueva gira en el dropdown
+        $('#gira_id').val(nuevaGiraId);
+        
+        // Opcional: Mostrar un mensaje de éxito
+        alert('La gira ha sido creada exitosamente.');
+        
+        // Limpiar el parámetro de la URL para evitar selecciones no deseadas en recargas
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
 
     <script>
     $(document).ready(function() {

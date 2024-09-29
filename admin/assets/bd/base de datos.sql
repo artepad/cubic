@@ -3,8 +3,9 @@ DROP TABLE IF EXISTS eventos;
 DROP TABLE IF EXISTS empresas;
 DROP TABLE IF EXISTS clientes;
 DROP TABLE IF EXISTS giras;
+DROP TABLE IF EXISTS usuarios;
 
--- Crear tabla clientes (sin cambios)
+-- Crear tabla clientes
 CREATE TABLE clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombres VARCHAR(100) NOT NULL,
@@ -16,7 +17,7 @@ CREATE TABLE clientes (
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear tabla empresas (sin cambios)
+-- Crear tabla empresas
 CREATE TABLE empresas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -26,7 +27,7 @@ CREATE TABLE empresas (
     FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
 );
 
--- Crear tabla usuarios (sin cambios)
+-- Crear tabla usuarios
 CREATE TABLE usuarios (
     id INT(11) NOT NULL AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -37,17 +38,14 @@ CREATE TABLE usuarios (
     PRIMARY KEY (id)
 );
 
--- Nueva tabla: giras
+-- Crear tabla giras
 CREATE TABLE giras (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    fecha_inicio DATE,
-    fecha_fin DATE,
-    descripcion TEXT,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Modificar tabla eventos para incluir referencia a giras
+-- Crear tabla eventos
 CREATE TABLE eventos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT,
@@ -74,4 +72,4 @@ CREATE INDEX idx_cliente_rut ON clientes(rut);
 CREATE INDEX idx_empresa_rut ON empresas(rut);
 CREATE INDEX idx_evento_fecha ON eventos(fecha_evento);
 CREATE INDEX idx_evento_fecha_hora ON eventos(fecha_evento, hora_evento);
-CREATE INDEX idx_gira_fechas ON giras(fecha_inicio, fecha_fin);
+CREATE INDEX idx_gira_nombre ON giras(nombre);

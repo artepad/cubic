@@ -8,47 +8,40 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 }
 
 // Conectar a la base de datos
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "schaaf_producciones";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
-}
+require_once 'config.php';
 
 $mensaje = '';
-$cliente_id = isset($_GET['cliente_id']) ? intval($_GET['cliente_id']) : 0;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nombre = $conn->real_escape_string($_POST['nombre']);
-    $sql = "INSERT INTO giras (nombre) VALUES ('$nombre')";
+
+    $sql = "INSERT INTO giras (nombre) VALUES (?)";
     
-    if ($conn->query($sql) === TRUE) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $nombre);
+    
+    if ($stmt->execute()) {
         $nueva_gira_id = $conn->insert_id;
-        header("Location: cotizacion.php?id=$cliente_id&nueva_gira=$nueva_gira_id");
+        header("Location: eventos.php?nueva_gira=$nueva_gira_id");
         exit;
     } else {
         $mensaje = "Error al guardar la gira: " . $conn->error;
     }
 }
 
-// Consulta para obtener el número total de clientes
+// Consulta para obtener el número total de clientes (para el menú lateral)
 $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
 $result_total_clientes = $conn->query($sql_total_clientes);
 $total_clientes = $result_total_clientes->fetch_assoc()['total'];
+
 // Consulta para obtener el número total de eventos activos
 $sql_count_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
 $result_count_eventos_activos = $conn->query($sql_count_eventos_activos);
 $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
-
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -177,7 +170,7 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                 <div class="form-group">
                                     <div class="col-sm-12">
                                         <button type="submit" class="btn btn-success">Guardar Gira</button>
-                                        <a href="cotizacion.php?id=<?php echo $cliente_id; ?>" class="btn btn-primary">Volver</a>
+                                        <a href="eventos.php" class="btn btn-primary">Volver</a>
                                     </div>
                                 </div>
                             </form>
@@ -213,5 +206,4 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
     <script src="assets/plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.min.js"></script>
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
 </body>
-
 </html>
