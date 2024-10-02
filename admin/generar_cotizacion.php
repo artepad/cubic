@@ -36,6 +36,7 @@ class QuoteGenerator
     private $phpWord;
     private $formData;
     private $config;
+    private $fileName;
 
     public function __construct($formData, $config)
     {
@@ -43,6 +44,7 @@ class QuoteGenerator
         $this->formData = $formData;
         $this->config = $config;
         $this->setupDocument();
+        $this->setFileName();
     }
 
     private function setupDocument()
@@ -84,12 +86,10 @@ class QuoteGenerator
         $section->addText('COTIZACIÓN ARTÍSTICA', 'titleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
         $section->addTextBreak(1);
 
-        $section->addText('Señores:', 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
+        // Determinar el saludo basado en si es un encabezado de evento o nombre de cliente
+        $saludo = $this->formData['es_encabezado_evento'] ? 'Señores(as):' : 'Señor(a):';
+        $section->addText($saludo, 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
         $section->addText(htmlspecialchars($this->formData['encabezado']), 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
-
-        if (!empty($this->formData['encabezado2'])) {
-            $section->addText(htmlspecialchars($this->formData['encabezado2']), 'subtitleStyle', ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::LEFT]);
-        }
 
         $section->addTextBreak(1);
 
@@ -268,14 +268,22 @@ class QuoteGenerator
         return $items;
     }
 
-private function formatDate($date)
+    private function formatDate($date)
     {
         $formattedDate = date('d \d\e F \d\e\l Y', strtotime($date));
         $months = [
-            'January' => 'Enero', 'February' => 'Febrero', 'March' => 'Marzo',
-            'April' => 'Abril', 'May' => 'Mayo', 'June' => 'Junio',
-            'July' => 'Julio', 'August' => 'Agosto', 'September' => 'Septiembre',
-            'October' => 'Octubre', 'November' => 'Noviembre', 'December' => 'Diciembre'
+            'January' => 'Enero',
+            'February' => 'Febrero',
+            'March' => 'Marzo',
+            'April' => 'Abril',
+            'May' => 'Mayo',
+            'June' => 'Junio',
+            'July' => 'Julio',
+            'August' => 'Agosto',
+            'September' => 'Septiembre',
+            'October' => 'Octubre',
+            'November' => 'Noviembre',
+            'December' => 'Diciembre'
         ];
         return str_replace(array_keys($months), array_values($months), $formattedDate);
     }
@@ -285,34 +293,81 @@ private function formatDate($date)
         return number_format($value, 0, ',', '.') . ' IVA Incluido';
     }
 
+    private function setFileName()
+    {
+        // Limpiar el encabezado de caracteres especiales y espacios
+        $cleanName = preg_replace('/[^A-Za-z0-9]/', '_', $this->formData['encabezado']);
+        $cleanName = strtolower(trim($cleanName, '_'));
+        $this->fileName = 'cotizacion_' . $cleanName . '.docx';
+    }
+
     private function saveDocument()
     {
         $writer = IOFactory::createWriter($this->phpWord, 'Word2007');
         header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        header("Content-Disposition: attachment; filename=cotizacion_artistica.docx");
+        header("Content-Disposition: attachment; filename=" . $this->fileName);
         header("Cache-Control: max-age=0");
         $writer->save("php://output");
     }
 }
 
-// Verificar si se recibió una solicitud POST
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// Verificar si se recibió una solicitud POST o GET
+if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['id'])) {
     try {
-        $formData = [
-            'encabezado' => $_POST['encabezado'] ?? '',
-            'encabezado2' => $_POST['encabezado2'] ?? '',
-            'ciudad' => $_POST['ciudad'] ?? '',
-            'fecha' => $_POST['fecha'] ?? '',
-            'horario' => $_POST['horario'] ?? '',
-            'evento' => $_POST['evento'] ?? '',
-            'valor' => $_POST['valor'] ?? '',
-            'hotel' => $_POST['hotel'] ?? '',
-            'transporte' => $_POST['transporte'] ?? '',
-            'viaticos' => $_POST['viaticos'] ?? '',
-        ];
+        // Obtener el ID del evento
+        $evento_id = isset($_POST['evento_id']) ? $_POST['evento_id'] : $_GET['id'];
 
-        $quoteGenerator = new QuoteGenerator($formData, $config);
-        $quoteGenerator->generate();
+        // Conexión a la base de datos
+        $servername = "localhost";
+        $username = "root";
+        $password = "";
+        $dbname = "schaaf_producciones";
+
+        $conn = new mysqli($servername, $username, $password, $dbname);
+        if ($conn->connect_error) {
+            throw new Exception("Conexión fallida: " . $conn->connect_error);
+        }
+
+        // Consulta para obtener los datos del evento
+        $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut as rut_cliente, c.correo, c.celular, 
+        emp.nombre as nombre_empresa, emp.rut as rut_empresa, e.encabezado_evento
+        FROM eventos e 
+        LEFT JOIN clientes c ON e.cliente_id = c.id 
+        LEFT JOIN empresas emp ON c.id = emp.cliente_id
+        WHERE e.id = ?";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $evento_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $evento = $result->fetch_assoc();
+
+            // Preparar los datos para la cotización
+            $formData = [
+                'encabezado' => !empty($evento['encabezado_evento']) ? $evento['encabezado_evento'] : ($evento['nombres'] . ' ' . $evento['apellidos']),
+                'es_encabezado_evento' => !empty($evento['encabezado_evento']),
+                'ciudad' => $evento['ciudad_evento'],
+                'fecha' => $evento['fecha_evento'],
+                'horario' => $evento['hora_evento'],
+                'evento' => $evento['nombre_evento'],
+                'valor' => $evento['valor_evento'],
+                'hotel' => $evento['hotel'],
+                'transporte' => $evento['traslados'],
+                'viaticos' => $evento['viaticos'],
+                // Agregar más campos según sea necesario
+            ];
+
+            // Crear y generar la cotización
+            $quoteGenerator = new QuoteGenerator($formData, $config);
+            $quoteGenerator->generate();
+        } else {
+            throw new Exception("No se encontró el evento especificado.");
+        }
+
+        $stmt->close();
+        $conn->close();
     } catch (Exception $e) {
         echo "Error: " . $e->getMessage();
         exit();
@@ -321,4 +376,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     echo "Error: No se recibieron datos del formulario.";
     exit();
 }
-?>

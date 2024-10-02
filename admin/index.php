@@ -24,39 +24,6 @@ $resultados_por_pagina = 10;
 $pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $offset = ($pagina_actual - 1) * $resultados_por_pagina;
 
-// Procesar búsqueda
-$search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$where = '';
-if (!empty($search)) {
-    $where = "WHERE c.nombres LIKE '%$search%' OR c.apellidos LIKE '%$search%' OR c.rut LIKE '%$search%' OR e.nombre LIKE '%$search%'";
-}
-
-// Consulta para obtener el número total de registros
-$sql_count = "SELECT COUNT(*) as total FROM clientes c LEFT JOIN empresas e ON c.id = e.cliente_id $where";
-$result_count = $conn->query($sql_count);
-$row_count = $result_count->fetch_assoc();
-$total_registros = $row_count['total'];
-$total_paginas = ceil($total_registros / $resultados_por_pagina);
-
-// Consulta para obtener los clientes de la página actual
-$sql = "SELECT c.*, e.nombre as nombre_empresa FROM clientes c 
-        LEFT JOIN empresas e ON c.id = e.cliente_id 
-        $where 
-        LIMIT $offset, $resultados_por_pagina";
-$result = $conn->query($sql);
-
-// Consulta para obtener el número total de clientes
-$sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
-$result_total_clientes = $conn->query($sql_total_clientes);
-$total_clientes = $result_total_clientes->fetch_assoc()['total'];
-
-
-//*************** */ Consulta para obtener los eventos activos
-// Configuración de paginación para eventos
-$eventos_por_pagina = 10;
-$pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
-$offset = ($pagina_actual - 1) * $eventos_por_pagina;
-
 // Consulta para obtener el número total de eventos activos
 $sql_count_eventos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
 $result_count_eventos = $conn->query($sql_count_eventos);
@@ -67,7 +34,7 @@ if ($result_count_eventos === false) {
 
 $row_count_eventos = $result_count_eventos->fetch_assoc();
 $total_eventos = $row_count_eventos['total'];
-$total_paginas = ceil($total_eventos / $eventos_por_pagina);
+$total_paginas = ceil($total_eventos / $resultados_por_pagina);
 
 // Consulta para obtener los eventos activos de la página actual
 $sql_eventos = "SELECT e.id, e.nombre_evento, e.fecha_evento, e.lugar_evento, c.nombres, c.apellidos, g.nombre as nombre_gira, e.estado_evento 
@@ -85,7 +52,7 @@ if ($stmt === false) {
 }
 
 // Vincular parámetros
-$stmt->bind_param("ii", $offset, $eventos_por_pagina);
+$stmt->bind_param("ii", $offset, $resultados_por_pagina);
 
 // Ejecutar la consulta
 $stmt->execute();
@@ -97,8 +64,7 @@ if ($result_eventos === false) {
     die("Error al obtener resultados: " . $stmt->error);
 }
 
-
-// Agregar esta consulta al principio del archivo, junto con las otras consultas
+// Consulta para obtener el número total de eventos activos
 $sql_count_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
 $result_count_eventos_activos = $conn->query($sql_count_eventos_activos);
 $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
@@ -190,9 +156,7 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                         <li>
                             <a class="waves-effect" href="clientes.php" aria-expanded="false">
                                 <i class="icon-user fa-fw"></i> 
-                                <span class="hide-menu"> Clientes 
-                                    <span class="label label-rounded label-success pull-right"><?php echo $total_clientes; ?></span>
-                                </span>
+                                <span class="hide-menu"> Clientes</span>
                             </a>
                         </li>
                         <li>
@@ -218,172 +182,89 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
         <!-- ===== Left-Sidebar-End ===== -->
         <!-- ===== Page-Content ===== -->
         <div class="page-wrapper">
-
-            
             <!-- ===== Page-Container ===== -->
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-sm-12">
-                    <div class="white-box">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <h4 class="box-title">Eventos Activos</h4>
-                            </div>
-                        </div>
-                        <div class="table-responsive">
-                        <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nombre del Evento</th>
-                                <th>Fecha</th>
-                                <th>Lugar</th>
-                                <th>Cliente</th>
-                                <th>Gira</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            if ($result_eventos->num_rows > 0) {
-                                while($row = $result_eventos->fetch_assoc()) {
-                                    $fecha_formateada = date("d M Y", strtotime($row['fecha_evento']));
-                                    echo "<tr>
-                                        <td>" . htmlspecialchars($row['nombre_evento']) . "</td>
-                                        <td>" . htmlspecialchars($fecha_formateada) . "</td>
-                                        <td>" . htmlspecialchars($row['lugar_evento']) . "</td>
-                                        <td>" . htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) . "</td>
-                                        <td>" . htmlspecialchars($row['nombre_gira']) . "</td>
-                                        <td>" . htmlspecialchars($row['estado_evento']) . "</td>
-                                        <td>
-                                            <a href='editar_evento.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
-                                            <a href='bajar_evento.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Bajar Evento' onclick='return confirm(\"¿Está seguro de que desea dar de baja este evento?\")'><i class='fa fa-times'></i></a>
-                                        </td>
-                                    </tr>";
-                                }
-                            } else {
-                                echo "<tr><td colspan='7'>No se encontraron eventos activos.</td></tr>";
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                        </div>
-                        <!-- Paginación -->
-                        <ul class="pagination">
-                            <?php
-                            $rango = 2;
-
-                            if ($pagina_actual > 1) {
-                                echo "<li><a href='?pagina=".($pagina_actual-1)."'>«</a></li>";
-                            } else {
-                                echo "<li class='disabled'><span>«</span></li>";
-                            }
-
-                            for ($i = max(1, $pagina_actual - $rango); $i <= min($total_paginas, $pagina_actual + $rango); $i++) {
-                                if ($i == $pagina_actual) {
-                                    echo "<li class='active'><span>$i</span></li>";
-                                } else {
-                                    echo "<li><a href='?pagina=$i'>$i</a></li>";
-                                }
-                            }
-
-                            if ($pagina_actual < $total_paginas) {
-                                echo "<li><a href='?pagina=".($pagina_actual+1)."'>»</a></li>";
-                            } else {
-                                echo "<li class='disabled'><span>»</span></li>";
-                            }
-                            ?>
-                        </ul>
-                    </div>
-
-                    <?php
-                    $stmt->close();
-                    ?>
-
-                         <!-- ********************************************************** SEGUNDA TABLA ************************************************************************ -->
                         <div class="white-box">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <h4 class="box-title">Clientes</h4>
-                                </div>
-                                <div class="col-sm-6">
-                                    <form action="" method="GET" class="form-inline pull-right">
-                                        <div class="input-group">
-                                            <input type="text" name="search" class="form-control" placeholder="Buscar clientes..." value="<?php echo htmlspecialchars($search); ?>">
-                                            <span class="input-group-btn">
-                                                <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i></button>
-                                            </span>
-                                        </div>
-                                    </form>
+                                    <h4 class="box-title">Eventos Activos</h4>
                                 </div>
                             </div>
                             <div class="table-responsive">
                                 <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Nombres</th>
-                                        <th>Apellidos</th>
-                                        <th>RUT</th>
-                                        <th>Empresa</th>
-                                        <th>Correo</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    if ($result->num_rows > 0) {
-                                        while($row = $result->fetch_assoc()) {
-                                            echo "<tr>
-                                            <td>{$row['nombres']}</td>
-                                            <td>{$row['apellidos']}</td>
-                                            <td>{$row['rut']}</td>
-                                            <td>{$row['nombre_empresa']}</td>
-                                            <td>{$row['correo']}</td>
-                                            <td>
-                                                <a href='contrato.php?id={$row['id']}' class='btn btn-primary btn-sm' title='Generar Contrato'><i class='fa fa-file-text-o'></i></a>
-                                                <a href='cotizacion.php?id={$row['id']}' class='btn btn-info btn-sm' title='Generar Cotización'><i class='fa fa-calculator'></i></a>
-                                                <a href='editar_cliente.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
-                                                <a href='eliminar_cli.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Eliminar' onclick='return confirm(\"¿Está seguro de que desea eliminar este cliente?\")'><i class='fa fa-trash-o'></i></a>
-                                            </td>
-                                        </tr>";
+                                    <thead>
+                                        <tr>
+                                            <th>Acciones</th>
+                                            <th>Nombre del Evento</th>
+                                            <th>Fecha</th>
+                                            <th>Lugar</th>
+                                            <th>Cliente</th>
+                                            <th>Gira</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        if ($result_eventos->num_rows > 0) {
+                                            while($row = $result_eventos->fetch_assoc()) {
+                                                $fecha_formateada = date("d M Y", strtotime($row['fecha_evento']));
+                                                echo "<tr>
+                                                    <td>
+                                                        <a href='editar_evento.php?id={$row['id']}' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
+                                                        <a href='bajar_evento.php?id={$row['id']}' class='btn btn-danger btn-sm' title='Bajar Evento' onclick='return confirm(\"¿Está seguro de que desea dar de baja este evento?\")'><i class='fa fa-times'></i></a>
+                                                        <form action='generar_cotizacion.php' method='post' style='display:inline;'>
+                                                            <input type='hidden' name='evento_id' value='{$row['id']}'>
+                                                            <button type='submit' class='btn btn-info btn-sm' title='Generar Cotización'><i class='fa fa-file-text-o'></i></button>
+                                                        </form>
+                                                    </td>
+                                                    <td>" . htmlspecialchars($row['nombre_evento']) . "</td>
+                                                    <td>" . htmlspecialchars($fecha_formateada) . "</td>
+                                                    <td>" . htmlspecialchars($row['lugar_evento']) . "</td>
+                                                    <td>" . htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) . "</td>
+                                                    <td>" . htmlspecialchars($row['nombre_gira']) . "</td>
+                                                    <td>" . htmlspecialchars($row['estado_evento']) . "</td>
+                                                </tr>";
+                                            }
+                                        } else {
+                                            echo "<tr><td colspan='7'>No se encontraron eventos activos.</td></tr>";
                                         }
-                                    } else {
-                                        echo "<tr><td colspan='7'>No se encontraron clientes.</td></tr>";
-                                    }
-                                    ?>
-                                </tbody>
+                                        ?>
+                                    </tbody>
                                 </table>
                             </div>
                             <!-- Paginación -->
                             <ul class="pagination">
                                 <?php
-                                $rango = 2; // Número de páginas a mostrar antes y después de la página actual
+                                $rango = 2;
 
-                                // Botón "Anterior"
                                 if ($pagina_actual > 1) {
-                                    echo "<li><a href='?pagina=".($pagina_actual-1)."&search=$search'>«</a></li>";
+                                    echo "<li><a href='?pagina=".($pagina_actual-1)."'>«</a></li>";
                                 } else {
                                     echo "<li class='disabled'><span>«</span></li>";
                                 }
 
-                                // Páginas numeradas
                                 for ($i = max(1, $pagina_actual - $rango); $i <= min($total_paginas, $pagina_actual + $rango); $i++) {
                                     if ($i == $pagina_actual) {
                                         echo "<li class='active'><span>$i</span></li>";
                                     } else {
-                                        echo "<li><a href='?pagina=$i&search=$search'>$i</a></li>";
+                                        echo "<li><a href='?pagina=$i'>$i</a></li>";
                                     }
                                 }
 
-                                // Botón "Siguiente"
                                 if ($pagina_actual < $total_paginas) {
-                                    echo "<li><a href='?pagina=".($pagina_actual+1)."&search=$search'>»</a></li>";
+                                    echo "<li><a href='?pagina=".($pagina_actual+1)."'>»</a></li>";
                                 } else {
                                     echo "<li class='disabled'><span>»</span></li>";
                                 }
                                 ?>
                             </ul>
                         </div>
+
+                        <?php
+                        $stmt->close();
+                        ?>
                     </div>
                 </div>
             </div>
@@ -399,17 +280,6 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
         Required JS Files
     =============================== -->
     <!-- ===== jQuery ===== -->
-
-    <script>
-            $(document).ready(function() {
-        // Toggle para el menú de Clientes
-        $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
-            e.preventDefault();
-            $($(this).data('target')).toggleClass('in');
-        });
-    });
-    </script>
-
     <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
     <!-- ===== Bootstrap JavaScript ===== -->
     <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -429,5 +299,14 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
     <script src="assets/js/db2.js"></script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Toggle para el menú de Clientes
+            $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
+                e.preventDefault();
+                $($(this).data('target')).toggleClass('in');
+            });
+        });
+    </script>
 </body>
 </html>
