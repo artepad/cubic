@@ -45,7 +45,7 @@ CREATE TABLE giras (
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear tabla eventos
+-- Crear tabla eventos con el campo estado_evento actualizado
 CREATE TABLE eventos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT,
@@ -58,7 +58,7 @@ CREATE TABLE eventos (
     valor_evento INT,
     tipo_evento VARCHAR(100),
     encabezado_evento VARCHAR(255),
-    estado_evento VARCHAR(20) DEFAULT 'Pendiente',
+    estado_evento ENUM('Propuesta', 'Confirmado', 'Documentación', 'En Producción', 'Finalizado', 'Reagendado', 'Cancelado') DEFAULT 'Propuesta',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     hotel ENUM('Si', 'No') DEFAULT 'No',
     traslados ENUM('Si', 'No') DEFAULT 'No',
