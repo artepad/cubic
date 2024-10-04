@@ -15,28 +15,30 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 require_once 'config.php';
 
 // Función para obtener datos del cliente
-function obtenerDatosCliente($conn, $cliente_id) {
+function obtenerDatosCliente($conn, $cliente_id)
+{
     $sql = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
             FROM clientes c 
             LEFT JOIN empresas e ON c.id = e.cliente_id 
             WHERE c.id = ?";
-    
+
     $stmt = $conn->prepare($sql);
     if ($stmt === false) {
         throw new Exception("Error en la preparación de la consulta: " . $conn->error);
     }
-    
+
     $stmt->bind_param("i", $cliente_id);
     if (!$stmt->execute()) {
         throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
     }
-    
+
     $result = $stmt->get_result();
     return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
 }
 
 // Función para obtener lista de clientes
-function obtenerListaClientes($conn) {
+function obtenerListaClientes($conn)
+{
     $sql = "SELECT id, nombres, apellidos FROM clientes ORDER BY nombres, apellidos";
     $result = $conn->query($sql);
     if ($result === false) {
@@ -46,24 +48,26 @@ function obtenerListaClientes($conn) {
 }
 
 // Función para obtener estadísticas
-function obtenerEstadisticas($conn) {
+function obtenerEstadisticas($conn)
+{
     $stats = [];
-    
+
     // Total de clientes
     $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
     $result = $conn->query($sql_total_clientes);
     $stats['total_clientes'] = $result->fetch_assoc()['total'];
-    
+
     // Total de eventos activos
     $sql_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
     $result = $conn->query($sql_eventos_activos);
     $stats['total_eventos_activos'] = $result->fetch_assoc()['total'];
-    
+
     return $stats;
 }
 
 // Función para obtener giras recientes
-function obtenerGirasRecientes($conn) {
+function obtenerGirasRecientes($conn)
+{
     $sql = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 5";
     $result = $conn->query($sql);
     if ($result === false) {
@@ -95,6 +99,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -121,7 +126,7 @@ try {
         <div class="preloader">
             <div class="cssload-speeding-wheel"></div>
         </div>
-        
+
         <!-- Navigation -->
         <nav class="navbar navbar-default navbar-static-top m-b-0">
             <div class="navbar-header">
@@ -145,7 +150,7 @@ try {
                 </ul>
             </div>
         </nav>
-        
+
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="scroll-sidebar">
@@ -161,16 +166,16 @@ try {
                     <ul id="side-menu">
                         <li>
                             <a class="waves-effect" href="index.php" aria-expanded="false">
-                                <i class="icon-screen-desktop fa-fw"></i> 
-                                <span class="hide-menu"> Dashboard 
+                                <i class="icon-screen-desktop fa-fw"></i>
+                                <span class="hide-menu"> Dashboard
                                     <span class="label label-rounded label-info pull-right"><?php echo $stats['total_eventos_activos']; ?></span>
                                 </span>
                             </a>
                         </li>
                         <li>
                             <a class="waves-effect" href="clientes.php" aria-expanded="false">
-                                <i class="icon-user fa-fw"></i> 
-                                <span class="hide-menu"> Clientes 
+                                <i class="icon-user fa-fw"></i>
+                                <span class="hide-menu"> Clientes
                                     <span class="label label-rounded label-success pull-right"><?php echo $stats['total_clientes']; ?></span>
                                 </span>
                             </a>
@@ -195,7 +200,7 @@ try {
                 </div>
             </div>
         </aside>
-        
+
         <!-- Page Wrapper -->
         <div class="page-wrapper">
             <div class="container-fluid">
@@ -206,98 +211,6 @@ try {
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body">
                                     <form id="eventoForm" class="form-horizontal" role="form">
-                                        <?php if ($cliente_id == 0): ?>
-                                            <!-- Selector de cliente si no hay cliente seleccionado -->
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Seleccionar Cliente:</label>
-                                                <div class="col-md-9">
-                                                    <select class="form-control" id="cliente_id" name="cliente_id" required>
-                                                        <option value="">Seleccione un cliente</option>
-                                                        <?php foreach ($clientes as $c): ?>
-                                                            <option value="<?php echo $c['id']; ?>">
-                                                                <?php echo htmlspecialchars($c['nombres'] . ' ' . $c['apellidos']); ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        <?php else: ?>
-                                            <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
-                                        <?php endif; ?>
-                                        
-                                        <!-- Campos del formulario -->
-                                        <input type="hidden" name="evento_id" id="evento_id" value="0">
-                                        
-                                        <!-- Sección de información del cliente -->
-                                        <h3 class="box-title">Cliente</h3>
-                                        <hr class="m-t-0 m-b-40">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-3">Nombre:</label>
-                                                    <div class="col-md-9">
-                                                        <p class="form-control-static" id="nombre_cliente">
-                                                            <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']) : ''; ?>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-3">Empresa:</label>
-                                                    <div class="col-md-9">
-                                                        <p class="form-control-static" id="empresa_cliente">
-                                                            <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombre_empresa'] ?? 'N/A') : ''; ?>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Sección de detalles del evento -->
-                                        <h3 class="box-title">Detalles del Evento</h3>
-                                        <hr class="m-t-0 m-b-40">
-                                        
-                                        <!-- Campos del evento -->
-                                        <?php
-                                        $event_fields = [
-                                            ['name' => 'nombre_evento', 'label' => 'Nombre Evento', 'type' => 'text', 'required' => true, 'maxlength' => 60],
-                                            ['name' => 'encabezado_evento', 'label' => 'Encabezado', 'type' => 'text', 'maxlength' => 100],
-                                            ['name' => 'fecha_evento', 'label' => 'Fecha', 'type' => 'date', 'required' => true],
-                                            ['name' => 'hora_evento', 'label' => 'Hora', 'type' => 'time', 'required' => true, 'step' => 1800],
-                                            ['name' => 'ciudad_evento', 'label' => 'Ciudad', 'type' => 'text', 'required' => true, 'maxlength' => 100],
-                                            ['name' => 'lugar', 'label' => 'Lugar', 'type' => 'text', 'required' => true, 'maxlength' => 150],
-                                            ['name' => 'valor', 'label' => 'Valor', 'type' => 'number', 'required' => true, 'min' => 1000000, 'max' => 100000000],
-                                            ['name' => 'tipo_evento', 'label' => 'Tipo de Evento', 'type' => 'text', 'required' => true, 'maxlength' => 100],
-                                        ];
-
-                                        foreach (array_chunk($event_fields, 2) as $row): ?>
-                                            <div class="row">
-                                                <?php foreach ($row as $field): ?>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="control-label col-md-3"><?php echo $field['label']; ?></label>
-                                                            <div class="col-md-9">
-                                                                <input type="<?php echo $field['type']; ?>" 
-                                                                       class="form-control" 
-                                                                       id="<?php echo $field['name']; ?>" 
-                                                                       name="<?php echo $field['name']; ?>"
-                                                                       <?php echo isset($field['required']) && $field['required'] ? 'required' : ''; ?>
-                                                                       <?php echo isset($field['maxlength']) ? 'maxlength="'.$field['maxlength'].'"' : ''; ?>
-                                                                       <?php echo isset($field['min']) ? 'min="'.$field['min'].'"' : ''; ?>
-                                                                       <?php echo isset($field['max']) ? 'max="'.$field['max'].'"' : ''; ?>
-                                                                       <?php echo isset($field['step']) ? 'step="'.$field['step'].'"' : ''; ?>>
-                                                                <?php if ($field['name'] === 'nombre_evento' || $field['name'] === 'valor'): ?>
-                                                                    <span id="<?php echo $field['name']; ?>_error" class="text-danger"></span>
-                                                                <?php endif; ?>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        <?php endforeach; ?>
-
-                                        <!-- Sección de gira -->
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
@@ -327,43 +240,141 @@ try {
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <!-- Opciones adicionales -->
-                                        <?php
-                                        $additional_options = ['hotel', 'traslados', 'viaticos'];
-                                        foreach (array_chunk($additional_options, 2) as $row): ?>
+                                        <?php if ($cliente_id == 0): ?>
+                                            <!-- Selector de cliente si no hay cliente seleccionado -->
                                             <div class="row">
-                                                <?php foreach ($row as $option): ?>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label class="control-label col-md-3"><?php echo ucfirst($option); ?></label>
-                                                            <div class="col-md-9">
-                                                                <div class="radio-list">
-                                                                    <label class="radio-inline">
-                                                                        <input type="radio" name="<?php echo $option; ?>" value="Si"> Sí
-                                                                    </label>
-                                                                    <label class="radio-inline">
-                                                                        <input type="radio" name="<?php echo $option; ?>" value="No" checked> No
-                                                                    </label>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Seleccionar Cliente:</label>
+                                                        <div class="col-md-9">
+                                                            <select class="form-control" id="cliente_id" name="cliente_id" required>
+                                                                <option value="">Seleccione un cliente</option>
+                                                                <?php foreach ($clientes as $c): ?>
+                                                                    <option value="<?php echo $c['id']; ?>">
+                                                                        <?php echo htmlspecialchars($c['nombres'] . ' ' . $c['apellidos']); ?>
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <!-- Esta columna se deja vacía para mantener la alineación -->
+                                                </div>
+                                            </div>
+                                            <?php else: ?>
+                                                <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
+                                            <?php endif; ?>
+
+                                            <!-- Campos del formulario -->
+                                            <input type="hidden" name="evento_id" id="evento_id" value="0">
+
+                                            <!-- Sección de información del cliente -->
+                                            <h3 class="box-title">Cliente</h3>
+                                            <hr class="m-t-0 m-b-40">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Nombre:</label>
+                                                        <div class="col-md-9">
+                                                            <p class="form-control-static" id="nombre_cliente">
+                                                                <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']) : ''; ?>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Empresa:</label>
+                                                        <div class="col-md-9">
+                                                            <p class="form-control-static" id="empresa_cliente">
+                                                                <?php echo $cliente_id > 0 ? htmlspecialchars($cliente['nombre_empresa'] ?? 'N/A') : ''; ?>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Sección de detalles del evento -->
+                                            <h3 class="box-title">Detalles del Evento</h3>
+                                            <hr class="m-t-0 m-b-40">
+
+                                            <!-- Campos del evento -->
+                                            <?php
+                                            $event_fields = [
+                                                ['name' => 'nombre_evento', 'label' => 'Nombre Evento', 'type' => 'text', 'required' => true, 'maxlength' => 60],
+                                                ['name' => 'encabezado_evento', 'label' => 'Encabezado', 'type' => 'text', 'maxlength' => 100],
+                                                ['name' => 'fecha_evento', 'label' => 'Fecha', 'type' => 'date', 'required' => true],
+                                                ['name' => 'hora_evento', 'label' => 'Hora', 'type' => 'time', 'required' => true, 'step' => 1800],
+                                                ['name' => 'ciudad_evento', 'label' => 'Ciudad', 'type' => 'text', 'required' => true, 'maxlength' => 100],
+                                                ['name' => 'lugar', 'label' => 'Lugar', 'type' => 'text', 'required' => true, 'maxlength' => 150],
+                                                ['name' => 'valor', 'label' => 'Valor', 'type' => 'number', 'required' => true, 'min' => 1000000, 'max' => 100000000],
+                                                ['name' => 'tipo_evento', 'label' => 'Tipo de Evento', 'type' => 'text', 'required' => true, 'maxlength' => 100],
+                                            ];
+
+                                            foreach (array_chunk($event_fields, 2) as $row): ?>
+                                                <div class="row">
+                                                    <?php foreach ($row as $field): ?>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-3"><?php echo $field['label']; ?></label>
+                                                                <div class="col-md-9">
+                                                                    <input type="<?php echo $field['type']; ?>"
+                                                                        class="form-control"
+                                                                        id="<?php echo $field['name']; ?>"
+                                                                        name="<?php echo $field['name']; ?>"
+                                                                        <?php echo isset($field['required']) && $field['required'] ? 'required' : ''; ?>
+                                                                        <?php echo isset($field['maxlength']) ? 'maxlength="' . $field['maxlength'] . '"' : ''; ?>
+                                                                        <?php echo isset($field['min']) ? 'min="' . $field['min'] . '"' : ''; ?>
+                                                                        <?php echo isset($field['max']) ? 'max="' . $field['max'] . '"' : ''; ?>
+                                                                        <?php echo isset($field['step']) ? 'step="' . $field['step'] . '"' : ''; ?>>
+                                                                    <?php if ($field['name'] === 'nombre_evento' || $field['name'] === 'valor'): ?>
+                                                                        <span id="<?php echo $field['name']; ?>_error" class="text-danger"></span>
+                                                                    <?php endif; ?>
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+
+
+                                            <!-- Opciones adicionales -->
+                                            <?php
+                                            $additional_options = ['hotel', 'traslados', 'viaticos'];
+                                            foreach (array_chunk($additional_options, 2) as $row): ?>
+                                                <div class="row">
+                                                    <?php foreach ($row as $option): ?>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label class="control-label col-md-3"><?php echo ucfirst($option); ?></label>
+                                                                <div class="col-md-9">
+                                                                    <div class="radio-list">
+                                                                        <label class="radio-inline">
+                                                                            <input type="radio" name="<?php echo $option; ?>" value="Si"> Sí
+                                                                        </label>
+                                                                        <label class="radio-inline">
+                                                                            <input type="radio" name="<?php echo $option; ?>" value="No" checked> No
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+
+                                            <!-- Botones de acción -->
+                                            <div class="form-actions">
+                                                <div class="row">
+                                                    <div class="col-md-12 text-center">
+                                                        <button type="submit" id="crearEventoBtn" class="btn btn-success">
+                                                            <i class="fa fa-check"></i> Crear Evento
+                                                        </button>
+                                                        <button type="button" class="btn btn-default">Cancelar</button>
                                                     </div>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                        
-                                        <!-- Botones de acción -->
-                                        <div class="form-actions">
-                                            <div class="row">
-                                                <div class="col-md-12 text-center">
-                                                    <button type="submit" id="crearEventoBtn" class="btn btn-success">
-                                                        <i class="fa fa-check"></i> Crear Evento
-                                                    </button>
-                                                    <button type="button" class="btn btn-default">Cancelar</button>
                                                 </div>
                                             </div>
-                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -433,120 +444,123 @@ try {
     <script src="assets/js/db2.js"></script>
 
     <script>
-    $(document).ready(function() {
-        let isSubmitting = false;
+        $(document).ready(function() {
+            let isSubmitting = false;
 
-        // Verificar si hay una nueva gira en la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const nuevaGiraId = urlParams.get('nueva_gira');
-        
-        if (nuevaGiraId) {
-            $('#gira_id').val(nuevaGiraId);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+            // Verificar si hay una nueva gira en la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const nuevaGiraId = urlParams.get('nueva_gira');
 
-        // Manejar el envío del formulario
-        $('#eventoForm').on('submit', function(e) {
-            e.preventDefault();
-            if (!isSubmitting && validateForm()) {
-                $('#confirmationModal').modal('show');
+            if (nuevaGiraId) {
+                $('#gira_id').val(nuevaGiraId);
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
-        });
 
-        // Confirmar la creación del evento
-        $('#confirmCreateEvent').on('click', function() {
-            if (!isSubmitting) {
-                isSubmitting = true;
-                crearEvento();
-            }
-        });
-
-        // Función para crear el evento
-        function crearEvento() {
-            var formData = new FormData(document.getElementById('eventoForm'));
-
-            $.ajax({
-                url: 'crear_evento.php',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    $('#confirmationModal').modal('hide');
-                    if (response.success) {
-                        window.location.href = 'index.php';
-                    } else {
-                        showErrorMessage(response.message || 'Error desconocido al crear el evento');
-                    }
-                    isSubmitting = false;
-                },
-                error: function(xhr, status, error) {
-                    $('#confirmationModal').modal('hide');
-                    console.error('Ajax error:', status, error);
-                    showErrorMessage('Error en la conexión: ' + error);
-                    isSubmitting = false;
+            // Manejar el envío del formulario
+            $('#eventoForm').on('submit', function(e) {
+                e.preventDefault();
+                if (!isSubmitting && validateForm()) {
+                    $('#confirmationModal').modal('show');
                 }
             });
-        }
 
-        // Validación del formulario
-        function validateForm() {
-            var isValid = true;
-            
-            if ($('#nombre_evento').val().trim() === '') {
-                $('#nombre_evento_error').text('El nombre del evento es requerido');
-                isValid = false;
-            } else {
-                $('#nombre_evento_error').text('');
-            }
-            
-            var valor = $('#valor').val();
-            if (valor === '' || isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000) {
-                $('#valor_error').text('El valor debe estar entre 1,000,000 y 100,000,000');
-                isValid = false;
-            } else {
-                $('#valor_error').text('');
-            }
-            
-            return isValid;
-        }
+            // Confirmar la creación del evento
+            $('#confirmCreateEvent').on('click', function() {
+                if (!isSubmitting) {
+                    isSubmitting = true;
+                    crearEvento();
+                }
+            });
 
-        // Mostrar mensaje de error
-        function showErrorMessage(message) {
-            $('#errorModalBody').text(message);
-            $('#errorModal').modal('show');
-        }
+            // Función para crear el evento
+            function crearEvento() {
+                var formData = new FormData(document.getElementById('eventoForm'));
 
-        // Manejar cambio en la selección del cliente
-        $('#cliente_id').on('change', function() {
-            var clienteId = $(this).val();
-            if (clienteId) {
                 $.ajax({
-                    url: 'obtener_cliente.php',
-                    type: 'GET',
-                    data: { id: clienteId },
+                    url: 'crear_evento.php',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     dataType: 'json',
                     success: function(response) {
+                        $('#confirmationModal').modal('hide');
                         if (response.success) {
-                            $('#nombre_cliente').text(response.cliente.nombres + ' ' + response.cliente.apellidos);
-                            $('#empresa_cliente').text(response.cliente.nombre_empresa || 'N/A');
+                            window.location.href = 'index.php';
                         } else {
-                            alert('Error: ' + response.message);
+                            showErrorMessage(response.message || 'Error desconocido al crear el evento');
                         }
+                        isSubmitting = false;
                     },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error('AJAX error:', textStatus, errorThrown);
-                        console.log('Respuesta del servidor:', jqXHR.responseText);
-                        alert('Error en la conexión: ' + textStatus);
+                    error: function(xhr, status, error) {
+                        $('#confirmationModal').modal('hide');
+                        console.error('Ajax error:', status, error);
+                        showErrorMessage('Error en la conexión: ' + error);
+                        isSubmitting = false;
                     }
                 });
-            } else {
-                $('#nombre_cliente').text('');
-                $('#empresa_cliente').text('');
             }
+
+            // Validación del formulario
+            function validateForm() {
+                var isValid = true;
+
+                if ($('#nombre_evento').val().trim() === '') {
+                    $('#nombre_evento_error').text('El nombre del evento es requerido');
+                    isValid = false;
+                } else {
+                    $('#nombre_evento_error').text('');
+                }
+
+                var valor = $('#valor').val();
+                if (valor === '' || isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000) {
+                    $('#valor_error').text('El valor debe estar entre 1,000,000 y 100,000,000');
+                    isValid = false;
+                } else {
+                    $('#valor_error').text('');
+                }
+
+                return isValid;
+            }
+
+            // Mostrar mensaje de error
+            function showErrorMessage(message) {
+                $('#errorModalBody').text(message);
+                $('#errorModal').modal('show');
+            }
+
+            // Manejar cambio en la selección del cliente
+            $('#cliente_id').on('change', function() {
+                var clienteId = $(this).val();
+                if (clienteId) {
+                    $.ajax({
+                        url: 'obtener_cliente.php',
+                        type: 'GET',
+                        data: {
+                            id: clienteId
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                $('#nombre_cliente').text(response.cliente.nombres + ' ' + response.cliente.apellidos);
+                                $('#empresa_cliente').text(response.cliente.nombre_empresa || 'N/A');
+                            } else {
+                                alert('Error: ' + response.message);
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error('AJAX error:', textStatus, errorThrown);
+                            console.log('Respuesta del servidor:', jqXHR.responseText);
+                            alert('Error en la conexión: ' + textStatus);
+                        }
+                    });
+                } else {
+                    $('#nombre_cliente').text('');
+                    $('#empresa_cliente').text('');
+                }
+            });
         });
-    });
     </script>
 </body>
+
 </html>

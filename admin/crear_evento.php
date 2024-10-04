@@ -17,6 +17,30 @@ function sendJsonResponse($success, $message, $data = null) {
     exit;
 }
 
+function obtenerGiraPredeterminada($conn) {
+    $nombreGiraPredeterminada = "Sin Gira";
+    
+    // Verificar si ya existe la gira predeterminada
+    $sql = "SELECT id FROM giras WHERE nombre = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $nombreGiraPredeterminada);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        // La gira ya existe, devolver su ID
+        $row = $result->fetch_assoc();
+        return $row['id'];
+    } else {
+        // La gira no existe, crearla
+        $sql = "INSERT INTO giras (nombre) VALUES (?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $nombreGiraPredeterminada);
+        $stmt->execute();
+        return $conn->insert_id;
+    }
+}
+
 try {
     if ($_SERVER["REQUEST_METHOD"] != "POST") {
         throw new Exception("Método no permitido");
@@ -32,11 +56,16 @@ try {
     $valor_evento = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_INT);
     $tipo_evento = filter_input(INPUT_POST, 'tipo_evento', FILTER_SANITIZE_STRING);
     $encabezado_evento = filter_input(INPUT_POST, 'encabezado_evento', FILTER_SANITIZE_STRING);
-    $estado_evento = filter_input(INPUT_POST, 'estado_evento', FILTER_SANITIZE_STRING);
-    $hotel = filter_input(INPUT_POST, 'hotel', FILTER_SANITIZE_STRING);
-    $traslados = filter_input(INPUT_POST, 'traslados', FILTER_SANITIZE_STRING);
-    $viaticos = filter_input(INPUT_POST, 'viaticos', FILTER_SANITIZE_STRING);
+    $estado_evento = filter_input(INPUT_POST, 'estado_evento', FILTER_SANITIZE_STRING) ?: 'Propuesta';
+    $hotel = filter_input(INPUT_POST, 'hotel', FILTER_SANITIZE_STRING) ?: 'No';
+    $traslados = filter_input(INPUT_POST, 'traslados', FILTER_SANITIZE_STRING) ?: 'No';
+    $viaticos = filter_input(INPUT_POST, 'viaticos', FILTER_SANITIZE_STRING) ?: 'No';
     $gira_id = filter_input(INPUT_POST, 'gira_id', FILTER_VALIDATE_INT);
+
+    // Si no se seleccionó una gira, usar la gira predeterminada
+    if (!$gira_id) {
+        $gira_id = obtenerGiraPredeterminada($conn);
+    }
 
     // Verificar si el evento ya existe
     $check_sql = "SELECT id FROM eventos WHERE nombre_evento = ? AND fecha_evento = ? AND cliente_id = ?";
