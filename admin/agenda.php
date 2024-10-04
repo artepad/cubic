@@ -46,7 +46,7 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
 $sql_eventos = "SELECT e.*, c.nombres, c.apellidos 
                 FROM eventos e 
                 LEFT JOIN clientes c ON e.cliente_id = c.id 
-                ORDER BY e.fecha_evento DESC, e.hora_evento DESC";
+                ORDER BY e.fecha_creacion DESC";
 $result_eventos = executeQuery($conn, $sql_eventos);
 
 // Cerrar la conexión
@@ -189,7 +189,7 @@ $conn->close();
                                                         <th>Fecha</th>
                                                         <th>Hora</th>
                                                         <th>Cliente</th>
-                                                        <th>Lugar</th>
+                                                        <th>Ciudad</th>
                                                         <th>Estado</th>
                                                     </tr>
                                                 </thead>
@@ -197,24 +197,18 @@ $conn->close();
                                                     <?php while ($evento = $result_eventos->fetch_assoc()): ?>
                                                         <tr>
                                                             <td>
-                                                                <a href="documentos_evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-sm btn-icon btn-pure btn-outline" data-toggle="tooltip" data-original-title="Documentos">
-                                                                    <i class="ti-files" aria-hidden="true"></i>
+                                                                <a href="ver_evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-sm btn-icon btn-pure btn-outline" data-toggle="tooltip" data-original-title="Ver Evento">
+                                                                    <i class="ti-search" aria-hidden="true"></i>
                                                                 </a>
                                                                 <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline cambiar-estado" data-id="<?php echo $evento['id']; ?>" data-toggle="tooltip" data-original-title="Cambiar Estado">
                                                                     <i class="ti-exchange-vertical" aria-hidden="true"></i>
-                                                                </button>
-                                                                <a href="editar_evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-sm btn-icon btn-pure btn-outline" data-toggle="tooltip" data-original-title="Editar">
-                                                                    <i class="ti-pencil-alt" aria-hidden="true"></i>
-                                                                </a>
-                                                                <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-evento" data-id="<?php echo $evento['id']; ?>" data-toggle="tooltip" data-original-title="Eliminar">
-                                                                    <i class="ti-close" aria-hidden="true"></i>
                                                                 </button>
                                                             </td>
                                                             <td><?php echo htmlspecialchars($evento['nombre_evento']); ?></td>
                                                             <td><?php echo date('d/m/Y', strtotime($evento['fecha_evento'])); ?></td>
                                                             <td><?php echo date('H:i', strtotime($evento['hora_evento'])); ?></td>
                                                             <td><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></td>
-                                                            <td><?php echo htmlspecialchars($evento['lugar_evento']); ?></td>
+                                                            <td><?php echo htmlspecialchars($evento['ciudad_evento']); ?></td>
                                                             <td><?php echo generarEstadoEvento($evento['estado_evento']); ?></td>
                                                         </tr>
                                                     <?php endwhile; ?>
@@ -496,84 +490,109 @@ $conn->close();
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
 
     <script>
-    $(document).ready(function() {
-        // Toggle para el menú de Clientes
-        $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
-            e.preventDefault();
-            $($(this).data('target')).toggleClass('in');
-        });
-
-        // Función de búsqueda
-        $("#searchInput").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#eventosTable tbody tr").filter(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        $(document).ready(function() {
+            // Toggle para el menú de Clientes
+            $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
+                e.preventDefault();
+                $($(this).data('target')).toggleClass('in');
             });
-        });
 
-        // Confirmación para eliminar evento
-        $(".delete-evento").click(function() {
-            var id = $(this).data('id');
-            if (confirm('¿Está seguro de que desea eliminar este evento?')) {
-                // Aquí puedes agregar la lógica para eliminar el evento
-                console.log('Eliminar evento con ID: ' + id);
-            }
-        });
+            // Función de búsqueda
+            $("#searchInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#eventosTable tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
 
-        // Manejador para el botón de cambiar estado
-        $(".cambiar-estado").click(function() {
-            var eventoId = $(this).data('id');
-            $("#eventoId").val(eventoId);
-            $("#cambiarEstadoModal").modal('show');
-        });
-
-        // Manejador para el envío del formulario
-        $("#cambiarEstadoForm").submit(function(e) {
-            e.preventDefault();
-            var eventoId = $("#eventoId").val();
-            var nuevoEstado = $("#nuevoEstado").val();
-
-            $.ajax({
-                url: 'cambiar_estado_evento.php',
-                type: 'POST',
-                data: {
-                    eventoId: eventoId,
-                    nuevoEstado: nuevoEstado
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Actualizar la interfaz de usuario
-                        var $fila = $(".cambiar-estado[data-id='" + eventoId + "']").closest('tr');
-                        $fila.find('td:last').html(generarEstadoEvento(nuevoEstado));
-                        $("#cambiarEstadoModal").modal('hide');
-                        alert('Estado actualizado con éxito');
-                    } else {
-                        alert('Error al actualizar el estado: ' + response.message);
-                    }
-                },
-                error: function() {
-                    alert('Error de conexión al actualizar el estado');
+            // Confirmación para eliminar evento
+            $(".delete-evento").click(function() {
+                var id = $(this).data('id');
+                if (confirm('¿Está seguro de que desea eliminar este evento?')) {
+                    // Aquí puedes agregar la lógica para eliminar el evento
+                    console.log('Eliminar evento con ID: ' + id);
                 }
             });
+
+            // Manejador para el botón de cambiar estado
+            $(".cambiar-estado").click(function() {
+                var eventoId = $(this).data('id');
+                $("#eventoId").val(eventoId);
+                $("#cambiarEstadoModal").modal('show');
+            });
+
+            // Manejador para el envío del formulario
+            $("#cambiarEstadoForm").submit(function(e) {
+                e.preventDefault();
+                var eventoId = $("#eventoId").val();
+                var nuevoEstado = $("#nuevoEstado").val();
+
+                $.ajax({
+                    url: 'cambiar_estado_evento.php',
+                    type: 'POST',
+                    data: {
+                        eventoId: eventoId,
+                        nuevoEstado: nuevoEstado
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Actualizar la interfaz de usuario
+                            var $fila = $(".cambiar-estado[data-id='" + eventoId + "']").closest('tr');
+                            $fila.find('td:last').html(generarEstadoEvento(nuevoEstado));
+                            $("#cambiarEstadoModal").modal('hide');
+                            alert('Estado actualizado con éxito');
+                        } else {
+                            alert('Error al actualizar el estado: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error de conexión al actualizar el estado');
+                    }
+                });
+            });
+
+            // Función para generar el HTML del estado del evento
+            function generarEstadoEvento(estado) {
+                var estadosInfo = {
+                    'Propuesta': {
+                        class: 'warning',
+                        icon: 'fa-clock-o'
+                    },
+                    'Confirmado': {
+                        class: 'success',
+                        icon: 'fa-check'
+                    },
+                    'Documentación': {
+                        class: 'info',
+                        icon: 'fa-file-text-o'
+                    },
+                    'En Producción': {
+                        class: 'primary',
+                        icon: 'fa-cogs'
+                    },
+                    'Finalizado': {
+                        class: 'default',
+                        icon: 'fa-flag-checkered'
+                    },
+                    'Reagendado': {
+                        class: 'warning',
+                        icon: 'fa-calendar'
+                    },
+                    'Cancelado': {
+                        class: 'danger',
+                        icon: 'fa-times'
+                    }
+                };
+
+                var info = estadosInfo[estado] || {
+                    class: 'default',
+                    icon: 'fa-question'
+                };
+                return '<span class="label label-' + info.class + '"><i class="fa ' + info.icon + '"></i> ' + estado + '</span>';
+            }
         });
-
-        // Función para generar el HTML del estado del evento
-        function generarEstadoEvento(estado) {
-            var estadosInfo = {
-                'Propuesta': {class: 'warning', icon: 'fa-clock-o'},
-                'Confirmado': {class: 'success', icon: 'fa-check'},
-                'Documentación': {class: 'info', icon: 'fa-file-text-o'},
-                'En Producción': {class: 'primary', icon: 'fa-cogs'},
-                'Finalizado': {class: 'default', icon: 'fa-flag-checkered'},
-                'Reagendado': {class: 'warning', icon: 'fa-calendar'},
-                'Cancelado': {class: 'danger', icon: 'fa-times'}
-            };
-
-            var info = estadosInfo[estado] || {class: 'default', icon: 'fa-question'};
-            return '<span class="label label-' + info.class + '"><i class="fa ' + info.icon + '"></i> ' + estado + '</span>';
-        }
-    });
     </script>
 </body>
+
 </html>
