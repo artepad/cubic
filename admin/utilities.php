@@ -10,13 +10,15 @@ $estadosInfo = [
     'Cancelado' => ['class' => 'danger', 'icon' => 'fa-times']
 ];
 
-function getEstadoInfo($estado) {
+function getEstadoInfo($estado)
+{
     global $estadosInfo;
     return $estadosInfo[$estado] ?? ['class' => 'default', 'icon' => 'fa-question'];
 }
 
 // Función para generar el HTML del estado del evento
-function generarEstadoEvento($estado) {
+function generarEstadoEvento($estado)
+{
     $info = getEstadoInfo($estado);
     return sprintf(
         '<span class="label label-%s"><i class="fa %s"></i> %s</span>',
@@ -25,4 +27,20 @@ function generarEstadoEvento($estado) {
         htmlspecialchars($estado)
     );
 }
-?>
+
+function obtenerEstadisticas($conn)
+{
+    $stats = [];
+
+    // Total de clientes
+    $sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
+    $result = $conn->query($sql_total_clientes);
+    $stats['total_clientes'] = $result->fetch_assoc()['total'];
+
+    // Total de eventos activos
+    $sql_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
+    $result = $conn->query($sql_eventos_activos);
+    $stats['total_eventos_activos'] = $result->fetch_assoc()['total'];
+
+    return $stats;
+}
