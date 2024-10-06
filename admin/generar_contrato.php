@@ -110,14 +110,14 @@ try {
         throw new Exception("Error de conexión a la base de datos");
     }
 
-    // Consulta para obtener todos los datos necesarios usando solo evento_id
-    $sql = "SELECT ev.*, c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
-            FROM eventos ev
-            LEFT JOIN clientes c ON ev.cliente_id = c.id
-            LEFT JOIN empresas e ON c.id = e.cliente_id
-            WHERE ev.id = ?";
+    $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut, c.correo, c.celular, c.genero, 
+            em.nombre as nombre_empresa, em.rut as rut_empresa, em.direccion as direccion_empresa
+            FROM eventos e
+            LEFT JOIN clientes c ON e.cliente_id = c.id
+            LEFT JOIN empresas em ON c.id = em.cliente_id
+            WHERE e.id = ?";
 
-    $stmt = $conn->prepare($sql);
+    $stmt = $conn->prepare($sql);   
     if (!$stmt) {
         throw new Exception("Error en la preparación de la consulta: " . $conn->error);
     }
@@ -191,12 +191,15 @@ try {
     $nombre_empresa = mb_strtoupper_custom($row['nombre_empresa']);
     $rut_empresa = mb_strtoupper_custom($row['rut_empresa']);
     $direccion_empresa = mb_strtoupper_custom($row['direccion_empresa']);
-    $lugar_evento = mb_strtoupper_custom($row['lugar']);
+    $lugar_evento = mb_strtoupper_custom($row['lugar_evento']);
     $fecha_evento = convertirFecha($row['fecha_evento']);
     $hora_evento = date('H:i', strtotime($row['hora_evento']));
     $nombre_evento = mb_strtoupper_custom($row['nombre_evento']);
     $nombre_agrupacion = "AGRUPACIÓN MARILYN";
     $nombre_productora = "SCHAAFPRODUCCIONES SPA";
+    $hotel = isset($row['hotel']) ? $row['hotel'] : 'No';
+    $traslados = isset($row['traslados']) ? $row['traslados'] : 'No';
+    $viaticos = isset($row['viaticos']) ? $row['viaticos'] : 'No';
 
 
     // Definir estilo para texto en negrita
@@ -226,7 +229,7 @@ try {
     $textRun->addText("$direccion_empresa", $boldFontStyle);
     $textRun->addText(", se conviene en celebrar el presente contrato de actuación de artistas, contenido en las cláusulas siguientes:");
 
-    //$section->addTextBreak();$valor_evento = isset($_POST['valor']) ? intval($_POST['valor']) : 0;
+
     $section->addText(
         "REPRESENTATIVIDAD",
         ['name' => 'Lato Light', 'size' => 10, 'bold' => true],
@@ -286,9 +289,9 @@ try {
     $textRun->addText(" cancele la presentación del artista, considerándose esta circunstancia como una cancelación no justificada por parte del contratante y por lo tanto estará sujeto a la jurisdicción de tribunales en la ciudad de Santiago con la abogada ");
     $textRun->addText("PAULA MOLINA MALLEA.", $boldFontStyle);
 
-
     $section->addTextBreak();
     $section->addText("Cláusula 3: ALOJAMIENTO, TRASLADOS Y VIÁTICOS", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+
     $servicios_productora = [];
     $servicios_cliente = [];
 
@@ -304,27 +307,41 @@ try {
     // Generar el texto de la Cláusula 3
     $textRun = $section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
 
-    if (count($servicios_productora) == 3) {
+    if ($hotel == 'Si' && $traslados == 'Si' && $viaticos == 'Si') {
         $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
         $textRun->addText($nombre_productora, $boldFontStyle);
         $textRun->addText(". El pago de los servicios de sonido y catering se hará cargo ");
         $textRun->addText("$nombres $apellidos", $boldFontStyle);
         $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
-    } elseif (count($servicios_cliente) == 3) {
+    } elseif ($hotel == 'No' && $traslados == 'No' && $viaticos == 'No') {
         $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
         $textRun->addText("$nombres $apellidos", $boldFontStyle);
         $textRun->addText(". El pago de los servicios de sonido y catering también será responsabilidad de ");
         $textRun->addText("$nombres $apellidos", $boldFontStyle);
         $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
     } else {
+        $servicios_productora = [];
+        $servicios_cliente = [];
+
+        if ($hotel == 'Si') $servicios_productora[] = 'alojamiento';
+        else $servicios_cliente[] = 'alojamiento';
+
+        if ($traslados == 'Si') $servicios_productora[] = 'traslados (ida y vuelta)';
+        else $servicios_cliente[] = 'traslados (ida y vuelta)';
+
+        if ($viaticos == 'Si') $servicios_productora[] = 'viáticos';
+        else $servicios_cliente[] = 'viáticos';
+
         $servicios_productora_str = implode(', ', $servicios_productora);
         $servicios_cliente_str = implode(', ', $servicios_cliente);
+        
         $textRun->addText("La responsabilidad de $servicios_productora_str estará a cargo de ");
         $textRun->addText($nombre_productora, $boldFontStyle);
         $textRun->addText(". La responsabilidad de $servicios_cliente_str y el pago de los servicios de sonido y catering estará a cargo de ");
         $textRun->addText("$nombres $apellidos", $boldFontStyle);
         $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
     }
+
     // Agregar salto de página antes de la Cláusula 4
     $section->addTextBreak();
     $section->addText("Cláusula 4: SUSPENSIÓN 1", ['name' => 'Lato Light', 'size' => 10, 'bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
@@ -442,6 +459,7 @@ try {
     $cell2->addText("$rut_empresa", $boldFontStyle, ['alignment' => 'center']);
     $cell2->addText("$nombre_empresa", $boldFontStyle, ['alignment' => 'center']);
 
+
     // Guardar el documento
     $fileName = "Contrato_{$row['nombres']}_{$row['apellidos']}.docx";
     $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
@@ -455,10 +473,9 @@ try {
     header("Expires: 0");
     header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
     header("Pragma: public");
-    
+
     $objWriter->save('php://output');
     exit();
-    
 } catch (Exception $e) {
     error_log("Error en generar_contrato.php: " . $e->getMessage());
     echo "Error: " . $e->getMessage();
