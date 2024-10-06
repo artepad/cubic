@@ -316,7 +316,7 @@ $conn->close();
                                                         <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button">Documentos <span class="caret"></span></button>
                                                         <ul role="menu" class="dropdown-menu">
                                                             <li><a href="generar_cotizacion.php?id=<?php echo $evento_id; ?>">Cotización</a></li>
-                                                            <li><a href="generar_contrato.php?id=<?php echo $evento_id; ?>">Contrato</a></li>
+                                                            <li><a href="#" id="generar-contrato">Contrato</a></li>
                                                             <li class="divider"></li>
                                                             <li><a href="crear_contrato.php?id=<?php echo $evento_id; ?>">Adjuntar</a></li>
                                                         </ul>
@@ -352,17 +352,6 @@ $conn->close();
         Required JS Files
     =============================== -->
     <!-- ===== jQuery ===== -->
-
-    <script>
-        $(document).ready(function() {
-            // Toggle para el menú de Clientes
-            $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
-                e.preventDefault();
-                $($(this).data('target')).toggleClass('in');
-            });
-        });
-    </script>
-
     <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
     <!-- ===== Bootstrap JavaScript ===== -->
     <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -382,5 +371,44 @@ $conn->close();
     <script src="assets/js/db2.js"></script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#generar-contrato').on('click', function(e) {
+                e.preventDefault();
+                console.log('Botón de generar contrato clickeado');
+
+                var eventoId = <?php echo json_encode($evento_id); ?>;
+                console.log('ID del evento:', eventoId);
+
+                $.ajax({
+                    url: 'generar_contrato.php',
+                    method: 'GET',
+                    data: {
+                        id: eventoId
+                    },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    success: function(response) {
+                        console.log('Respuesta recibida del servidor');
+                        var blob = new Blob([response], {
+                            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                        });
+                        var link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = "Contrato_Evento_" + eventoId + ".docx";
+                        link.click();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error al generar el contrato:', error);
+                        alert('Hubo un error al generar el contrato. Por favor, inténtelo de nuevo.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
 
 </html>
