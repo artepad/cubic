@@ -138,7 +138,7 @@ class ContractGenerator
      */
     private function addTitle()
     {
-        $titleFontStyle = ['name' => 'Lato Light', 'size' => 14, 'bold' => true, 'color' => '1F4E79'];
+        $titleFontStyle = ['name' => 'Lato', 'size' => 15, 'bold' => true, 'color' => '1F4E79'];
         $titleParagraphStyle = ['alignment' => 'center', 'spaceAfter' => 500];
         $this->section->addText("CONTRATO DE ACTUACION DE ARTISTAS", $titleFontStyle, $titleParagraphStyle);
        
@@ -213,15 +213,15 @@ class ContractGenerator
         $boldStyle = ['bold' => true];
 
         $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" CONTRATA LOS SERVICIOS DEL SIGUIENTE ARTISTA: ");
+        $textRun->addText(" contrata los servicios del siguiente artista: ");
         $textRun->addText("AGRUPACIÓN MARILYN", $boldStyle);
-        $textRun->addText(" EL MENCIONADO, EN ADELANTE Y A LOS EFECTOS DEL PRESENTE CONTRATO DENOMINADO, EL ARTISTA, EFECTUARÁ UNA (1) PRESENTACIÓN DE APROXIMADAMENTE 60 MINUTOS, A REALIZARSE EN EL MARCO DE PRESENTACIÓN PÚBLICA, EL DÍA ");
+        $textRun->addText(" el mencionado, en adelante y a los efectos del presente contrato denominado, el artista, efectuará una (1) presentación de aproximadamente 60 minutos, a realizarse en el marco de presentación pública, el día ");
         $textRun->addText($this->convertirFecha($this->eventData['fecha_evento']), $boldStyle);
-        $textRun->addText(" A LAS ");
+        $textRun->addText(" a las ");
         $textRun->addText(mb_strtoupper(date('H:i', strtotime($this->eventData['hora_evento'])), 'UTF-8'), $boldStyle);
-        $textRun->addText(" EN ");
+        $textRun->addText(" en ");
         $textRun->addText($this->eventData['lugar_evento'], $boldStyle);
-        $textRun->addText(" PARA EL EVENTO ");
+        $textRun->addText(" para el evento ");
         $textRun->addText($this->eventData['nombre_evento'], $boldStyle);
     }
 
@@ -375,7 +375,7 @@ class ContractGenerator
     {
         $this->section->addText("Cláusula 7: COORDINACIÓN", ['bold' => true], ['spaceAfter' => 100]);
         $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $textRun->addText("PARA LOS EFECTOS DE LA REALIZACIÓN DEL EVENTO, LAS PARTES DESIGNAN A LAS SIGUIENTES PERSONAS CON SUS RESPECTIVOS DATOS:");
+        $textRun->addText("para los efectos de la realización del evento, las partes designan a las siguientes personas con sus respectivos datos: ");
 
         $this->section->addTextBreak();
 
@@ -465,7 +465,21 @@ class ContractGenerator
      */
     public function saveDocument($clienteNombre)
     {
-        $fileName = "Contrato_" . preg_replace('/[^a-zA-Z0-9_]/', '', $clienteNombre) . ".docx";
+        // Asegurarse de que tenemos un nombre de cliente válido
+        if (empty($clienteNombre)) {
+            // Si no se proporciona un nombre de cliente, usamos los datos del evento
+            $clienteNombre = trim("{$this->eventData['nombres']} {$this->eventData['apellidos']}");
+        }
+
+        // Limpiar el nombre del cliente para usarlo en el nombre del archivo
+        $clienteNombreLimpio = preg_replace('/[^a-zA-Z0-9_]/', '', $clienteNombre);
+
+        // Si después de limpiar el nombre sigue vacío, usar un nombre genérico
+        if (empty($clienteNombreLimpio)) {
+            $clienteNombreLimpio = "Cliente";
+        }
+
+        $fileName = "CONTRATO_" . $clienteNombreLimpio . ".docx";
 
         header("Content-Description: File Transfer");
         header("Content-Disposition: attachment; filename=$fileName");
