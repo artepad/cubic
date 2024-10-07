@@ -12,21 +12,22 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 }
 
 // Función para ejecutar consultas seguras
-function executeQuery($conn, $sql, $params = []) {
+function executeQuery($conn, $sql, $params = [])
+{
     $stmt = $conn->prepare($sql);
     if ($stmt === false) {
         die("Error en la preparación de la consulta: " . $conn->error);
     }
-    
+
     if (!empty($params)) {
         $types = str_repeat('s', count($params));
         $stmt->bind_param($types, ...$params);
     }
-    
+
     if (!$stmt->execute()) {
         die("Error en la ejecución de la consulta: " . $stmt->error);
     }
-    
+
     return $stmt->get_result();
 }
 
@@ -120,16 +121,16 @@ $conn->close();
                     <ul id="side-menu">
                         <li>
                             <a class="waves-effect" href="index.php" aria-expanded="false">
-                                <i class="icon-screen-desktop fa-fw"></i> 
-                                <span class="hide-menu"> Dashboard 
+                                <i class="icon-screen-desktop fa-fw"></i>
+                                <span class="hide-menu"> Dashboard
                                     <span class="label label-rounded label-info pull-right"><?php echo $total_eventos_activos; ?></span>
                                 </span>
                             </a>
                         </li>
                         <li>
                             <a class="waves-effect" href="clientes.php" aria-expanded="false">
-                                <i class="icon-user fa-fw"></i> 
-                                <span class="hide-menu"> Clientes 
+                                <i class="icon-user fa-fw"></i>
+                                <span class="hide-menu"> Clientes
                                     <span class="label label-rounded label-success pull-right"><?php echo $total_clientes; ?></span>
                                 </span>
                             </a>
@@ -157,7 +158,7 @@ $conn->close();
         <!-- ===== Left-Sidebar-End ===== -->
         <!-- ===== Page-Content ===== -->
         <div class="page-wrapper">
-        
+
 
             <!-- ===== Page-Container-End ===== -->
             <footer class="footer t-a-c">
@@ -173,13 +174,13 @@ $conn->close();
     <!-- ===== jQuery ===== -->
 
     <script>
-            $(document).ready(function() {
-        // Toggle para el menú de Clientes
-        $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
-            e.preventDefault();
-            $($(this).data('target')).toggleClass('in');
+        $(document).ready(function() {
+            // Toggle para el menú de Clientes
+            $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
+                e.preventDefault();
+                $($(this).data('target')).toggleClass('in');
+            });
         });
-    });
     </script>
 
     <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
@@ -201,4 +202,6 @@ $conn->close();
     <script src="assets/js/db2.js"></script>
     <!-- ===== Style Switcher JS ===== -->
     <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
- </html>
+
+</html>
+</body>
