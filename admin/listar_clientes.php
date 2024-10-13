@@ -12,10 +12,6 @@ $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
-// Obtener clientes
-$result_clientes = getClientes($conn);
-
-
 // Configuración de la paginación
 $registrosPorPagina = 8;
 $paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -52,6 +48,79 @@ $pageTitle = "Lista de Clientes";
 <head>
     <?php include 'includes/head.php'; ?>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
+    <style>
+        .titulo-busqueda {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .titulo-busqueda h3 {
+            margin: 0;
+        }
+
+        .search-container {
+            flex-grow: 1;
+            max-width: 300px;
+            margin-left: 20px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e4e7ea;
+            border-radius: 3px;
+            box-shadow: none;
+            color: #565656;
+            height: 38px;
+            transition: all 300ms linear 0s;
+        }
+
+        #searchInput:focus {
+            border-color: #7ace4c;
+            box-shadow: none;
+            outline: 0 none;
+        }
+
+        .custom-pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .custom-pagination .page-number {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 3px;
+        }
+
+        .custom-pagination .page-number.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .custom-pagination .page-number:hover:not(.active) {
+            background-color: #f8f9fa;
+        }
+
+        @media (max-width: 767px) {
+            .titulo-busqueda {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-container {
+                margin-left: 0;
+                margin-top: 10px;
+                max-width: none;
+            }
+        }
+    </style>
 </head>
 
 <body class="mini-sidebar">
@@ -71,7 +140,7 @@ $pageTitle = "Lista de Clientes";
                     <div class="col-md-12">
                         <div class="white-box">
                             <div class="titulo-busqueda">
-                                <h3 class="box-title">Lista de Clientes</h3>
+                                <h3 class="box-title">Base de Datos de  Clientes</h3>
                                 <div class="search-container">
                                     <input type="text" id="searchInput" placeholder="Buscar cliente...">
                                 </div>
@@ -109,6 +178,20 @@ $pageTitle = "Lista de Clientes";
                                     </tbody>
                                 </table>
                             </div>
+                            <!-- Añadir paginación personalizada -->
+                            <div class="custom-pagination">
+                                <?php
+                                $rango = 2; // Número de páginas a mostrar antes y después de la página actual
+                                
+                                for ($i = max(1, $paginaActual - $rango); $i <= min($totalPaginas, $paginaActual + $rango); $i++) {
+                                    if ($i == $paginaActual) {
+                                        echo "<span class='page-number active'>$i</span>";
+                                    } else {
+                                        echo "<a href='?pagina=$i' class='page-number'>$i</a>";
+                                    }
+                                }
+                                ?>
+                            </div>
                             <div class="row m-t-20">
                                 <div class="col-md-6 col-sm-6 col-xs-6">
                                     <a href="Ingreso-cliente.php" class="btn btn-info btn-rounded">Nuevo Cliente</a>
@@ -138,13 +221,14 @@ $pageTitle = "Lista de Clientes";
                     "infoEmpty": "Mostrando 0 a 0 de 0 registros",
                     "infoFiltered": ""
                 },
-                "pageLength": 10,
+                "pageLength": <?php echo $registrosPorPagina; ?>,
                 "ordering": true,
                 "responsive": true,
-                "dom": 'rt<"bottom"p><"clear">',
+                "dom": 'rt<"bottom"<"custom-pagination">><"clear">',
                 "lengthChange": false,
                 "info": false,
-                "searching": true // Habilitamos la búsqueda de DataTables
+                "searching": true,
+                "paging": false // Desactivamos la paginación de DataTables
             });
 
             // Implementamos nuestra propia función de búsqueda
@@ -153,64 +237,10 @@ $pageTitle = "Lista de Clientes";
             });
 
             // Aseguramos que DataTables use nuestro campo de búsqueda
-            $('.dataTables_filter').hide(); // Ocultamos el campo de búsqueda predeterminado de DataTables
-            $('#searchInput').attr('type', 'search'); // Establecemos el tipo correcto para el campo de búsqueda
+            $('.dataTables_filter').hide();
+            $('#searchInput').attr('type', 'search');
         });
     </script>
-
-    <style>
-        .titulo-busqueda {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .titulo-busqueda h3 {
-            margin: 0;
-        }
-
-        .search-container {
-            flex-grow: 1;
-            max-width: 300px;
-            margin-left: 20px;
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #e4e7ea;
-            border-radius: 3px;
-            box-shadow: none;
-            color: #565656;
-            height: 38px;
-            transition: all 300ms linear 0s;
-        }
-
-        #searchInput:focus {
-            border-color: #7ace4c;
-            box-shadow: none;
-            outline: 0 none;
-        }
-
-        .dataTables_paginate {
-            float: right;
-            margin-top: 10px;
-        }
-
-        @media (max-width: 767px) {
-            .titulo-busqueda {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .search-container {
-                margin-left: 0;
-                margin-top: 10px;
-                max-width: none;
-            }
-        }
-    </style>
 </body>
 
 </html>
