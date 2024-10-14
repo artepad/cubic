@@ -136,6 +136,14 @@ $pageTitle = "Lista de Clientes";
         <!-- Page-Content -->
         <div class="page-wrapper">
             <div class="container-fluid">
+                <?php
+                // Mostrar mensaje de éxito si existe
+                if (isset($_SESSION['mensaje'])) {
+                    echo "<div class='alert alert-" . $_SESSION['mensaje_tipo'] . "'>" . $_SESSION['mensaje'] . "</div>";
+                    unset($_SESSION['mensaje']);
+                    unset($_SESSION['mensaje_tipo']);
+                }
+                ?>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="white-box">

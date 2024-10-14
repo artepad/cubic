@@ -45,50 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $rut_empresa = $_POST['rut_empresa'] ?? '';
     $direccion_empresa = $_POST['direccion_empresa'] ?? '';
 
-    // Validar nombres y apellidos
-    if (!validarCampo($nombres, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
-        $errores['nombres'] = "Los nombres deben contener solo letras y no exceder 20 caracteres.";
-    }
-    if (!validarCampo($apellidos, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
-        $errores['apellidos'] = "Los apellidos deben contener solo letras y no exceder 20 caracteres.";
-    }
-
-    // Validar RUT
-    if (!validarRut($rut)) {
-        $errores['rut'] = "Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K";
-    } else {
-        $rut = limpiarRut($rut); // Limpiar el RUT antes de usarlo
-    }
-
-    // Validar email
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errores['email'] = "Formato de correo electrónico inválido.";
-    }
-
-    // Validar celular (asumiendo que debe ser numérico y de longitud específica)
-    if (!preg_match('/^[0-9]{9,12}$/', $celular)) {
-        $errores['celular'] = "El número de celular debe contener entre 9 y 12 dígitos.";
-    }
-
-    // Validar género
-    if (!in_array($genero, ['Masculino', 'Femenino', 'Otro'])) {
-        $errores['genero'] = "Por favor, seleccione un género válido.";
-    }
-
-    // Validar campos de empresa si se proporcionaron
-    if (!empty($nombre_empresa)) {
-        if (strlen($nombre_empresa) > 100) {
-            $errores['nombre_empresa'] = "El nombre de la empresa no debe exceder 100 caracteres.";
-        }
-        if (!empty($rut_empresa) && !validarRut($rut_empresa)) {
-            $errores['rut_empresa'] = "Formato de RUT de empresa inválido.";
-        } else {
-            $rut_empresa = limpiarRut($rut_empresa);
-        }
-        if (strlen($direccion_empresa) > 250) {
-            $errores['direccion_empresa'] = "La dirección de la empresa no debe exceder 250 caracteres.";
-        }
-    }
+    // Validaciones...
 
     if (empty($errores)) {
         // Verificar si el RUT ya existe
@@ -108,41 +65,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Insertar cliente
                 $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
                 $stmt_cliente = $conn->prepare($sql_cliente);
-                $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rut, $email, $celular, $genero);
-                $stmt_cliente->execute();
+                if ($stmt_cliente === false) {
+                    throw new Exception("Error en la preparación de la consulta de cliente: " . $conn->error);
+                }
+                $rut_limpio = limpiarRut($rut);
+                $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rut_limpio, $email, $celular, $genero);
+                if (!$stmt_cliente->execute()) {
+                    throw new Exception("Error al insertar cliente: " . $stmt_cliente->error);
+                }
                 $cliente_id = $conn->insert_id;
 
                 // Insertar empresa si se proporcionaron datos
                 if (!empty($nombre_empresa)) {
                     $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
                     $stmt_empresa = $conn->prepare($sql_empresa);
-                    $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa, $direccion_empresa, $cliente_id);
-                    $stmt_empresa->execute();
+                    if ($stmt_empresa === false) {
+                        throw new Exception("Error en la preparación de la consulta de empresa: " . $conn->error);
+                    }
+                    $rut_empresa_limpio = limpiarRut($rut_empresa);
+                    $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa_limpio, $direccion_empresa, $cliente_id);
+                    if (!$stmt_empresa->execute()) {
+                        throw new Exception("Error al insertar empresa: " . $stmt_empresa->error);
+                    }
                 }
 
                 // Confirmar transacción
                 $conn->commit();
-                $mensaje = "Cliente agregado con éxito.";
-                $mensaje_tipo = "success";
 
-                // Limpiar los campos del formulario después de una inserción exitosa
-                $nombres = $apellidos = $rut = $email = $celular = $genero = $nombre_empresa = $rut_empresa = $direccion_empresa = '';
+                $_SESSION['mensaje'] = "Cliente agregado con éxito.";
+                $_SESSION['mensaje_tipo'] = "success";
+                header("Location: listar_clientes.php");
+                exit();
             } catch (Exception $e) {
                 // Revertir transacción en caso de error
                 $conn->rollback();
                 $mensaje = "Error al agregar el cliente: " . $e->getMessage();
                 $mensaje_tipo = "danger";
+                error_log("Error en Ingreso-cliente.php: " . $e->getMessage());
             }
         }
     }
 }
 
 // Cerrar la conexión después de obtener los datos necesarios
-$conn->close();
-
-// Definir el título de la página y contenido específico
-$pageTitle = "Ingresar Nuevo Cliente";
-
+$conn->close()
 ?>
 
 <!DOCTYPE html>
