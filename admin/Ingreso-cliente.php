@@ -151,16 +151,16 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                     <ul id="side-menu">
                         <li>
                             <a class="waves-effect" href="index.php" aria-expanded="false">
-                                <i class="icon-screen-desktop fa-fw"></i> 
-                                <span class="hide-menu"> Dashboard 
+                                <i class="icon-screen-desktop fa-fw"></i>
+                                <span class="hide-menu"> Dashboard
                                     <span class="label label-rounded label-info pull-right"><?php echo $total_eventos_activos; ?></span>
                                 </span>
                             </a>
                         </li>
                         <li>
                             <a class="waves-effect" href="clientes.php" aria-expanded="false">
-                                <i class="icon-user fa-fw"></i> 
-                                <span class="hide-menu"> Clientes 
+                                <i class="icon-user fa-fw"></i>
+                                <span class="hide-menu"> Clientes
                                     <span class="label label-rounded label-success pull-right"><?php echo $total_clientes; ?></span>
                                 </span>
                             </a>
@@ -198,62 +198,111 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                     <div class="col-md-12">
                         <div class="white-box">
                             <h3 class="box-title m-b-0">Ingresar Nuevo Cliente</h3>
-                            <p class="text-muted m-b-30 font-13">Información del Cliente y Empresa</p>
-                            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                                <h4>Información del Cliente</h4>
-                                <div class="form-group">
-                                    <label for="nombres">Nombres</label>
-                                    <input type="text" class="form-control" id="nombres" name="nombres" maxlength="20" required>
-                                    <small id="nombresHelp" class="form-text text-muted">Máximo 20 caracteres, solo letras.</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="apellidos">Apellidos</label>
-                                    <input type="text" class="form-control" id="apellidos" name="apellidos" maxlength="20" required>
-                                    <small id="apellidosHelp" class="form-text text-muted">Máximo 20 caracteres, solo letras.</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="rut">RUT</label>
-                                    <input type="text" class="form-control" id="rut" name="rut" maxlength="12" required>
-                                    <small id="rutHelp" class="form-text text-muted">Formato: 12.345.678-9</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Correo Electrónico</label>
-                                    <input type="email" class="form-control" id="email" name="email" maxlength="60" required>
-                                    <small id="emailHelp" class="form-text text-muted">Máximo 60 caracteres</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="celular">Celular</label>
-                                    <input type="tel" class="form-control" id="celular" name="celular" maxlength="16" required>
-                                    <small id="celularHelp" class="form-text text-muted">Formato: +56 9 XXXX XXXX</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="genero">Género</label>
-                                    <select class="form-control" id="genero" name="genero" required>
-                                        <option value="">Seleccione un género</option>
-                                        <option value="Masculino">Masculino</option>
-                                        <option value="Femenino">Femenino</option>
-                                    </select>
-                                </div>
+                            <p class="text-muted m-b-30 font-13">Información del Cliente y Empresa o Municipalidad</p>
+                            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form-horizontal">
+                                <div class="form-body">
+                                    <h3 class="box-title">Información Personal</h3>
+                                    <hr class="m-t-0 m-b-40">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Nombres</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" name="nombres" maxlength="20" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Apellidos</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" name="apellidos" maxlength="20" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">RUT</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" name="rut" maxlength="12" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Correo Electrónico</label>
+                                                <div class="col-md-9">
+                                                    <input type="email" class="form-control" name="email" maxlength="60" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Celular</label>
+                                                <div class="col-md-9">
+                                                    <input type="tel" class="form-control" name="celular" maxlength="16" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Género</label>
+                                                <div class="col-md-9">
+                                                    <select class="form-control" name="genero" required>
+                                                        <option value="">Seleccione un género</option>
+                                                        <option value="Masculino">Masculino</option>
+                                                        <option value="Femenino">Femenino</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <h4>Información de la Empresa (Opcional)</h4>
-                                <div class="form-group">
-                                    <label for="nombre_empresa">Nombre de la Empresa</label>
-                                    <input type="text" class="form-control" id="nombre_empresa" name="nombre_empresa" maxlength="100">
-                                    <small id="nombreEmpresaHelp" class="form-text text-muted">Máximo 100 caracteres</small>
+                                    <h3 class="box-title">Información de la Empresa o Municipalidad (Opcional)</h3>
+                                    <hr class="m-t-0 m-b-40">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Nombre Empresa o Muni</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" name="nombre_empresa" maxlength="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">RUT Empresa o Muni</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" name="rut_empresa" maxlength="12">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="control-label col-md-3">Dirección Empresa o Muni</label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" name="direccion_empresa" maxlength="250">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="rut_empresa">RUT de la Empresa</label>
-                                    <input type="text" class="form-control" id="rut_empresa" name="rut_empresa" maxlength="12">
-                                    <small id="rutEmpresaHelp" class="form-text text-muted">Formato: 12.345.678-9</small>
+                                <div class="form-actions">
+                                    <div class="row">
+                                        <div class="col-md-12 text-center">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fa fa-check"></i> Guardar
+                                            </button>
+                                            <a href="index.php" class="btn btn-default">Cancelar</a>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="direccion_empresa">Dirección de la Empresa</label>
-                                    <input type="text" class="form-control" id="direccion_empresa" name="direccion_empresa" maxlength="250">
-                                    <small id="direccionEmpresaHelp" class="form-text text-muted">Máximo 250 caracteres</small>
-                                </div>
-
-                                <button type="submit" class="btn btn-success waves-effect waves-light m-r-10">Guardar</button>
-                                <button type="button" id="limpiarFormulario" class="btn btn-secondary waves-effect waves-light">Limpiar</button>
                             </form>
                         </div>
                     </div>
