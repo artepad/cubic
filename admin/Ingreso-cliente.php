@@ -1,109 +1,167 @@
 <?php
+// Iniciar sesión y configuración
 session_start();
+require_once 'config/config.php';
+require_once 'functions/functions.php';
 
-// Verificar si el usuario está logueado
-if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    header("location: login.php");
-    exit;
+// Verificar autenticación
+checkAuthentication();
+
+// Obtener datos comunes
+$totalClientes = getTotalClientes($conn);
+$totalEventosActivos = getTotalEventosActivos($conn);
+$totalEventosAnioActual = getTotalEventosAnioActual($conn);
+
+// Inicializar variables para mantener los valores del formulario
+$nombres = $apellidos = $rut = $email = $celular = $genero = $nombre_empresa = $rut_empresa = $direccion_empresa = '';
+$errores = [];
+
+// Función de validación general
+function validarCampo($valor, $longitud, $patron) {
+    $valor = trim($valor);
+    return strlen($valor) <= $longitud && preg_match($patron, $valor);
 }
 
-// Incluir el archivo de configuración que contiene la conexión a la base de datos
-require_once 'config.php';
-
-// Verificar la conexión a la base de datos
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
+// Función de validación del RUT
+function validarRut($rut) {
+    return preg_match('/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/', $rut);
 }
 
-
-// Consulta para obtener el número total de clientes
-$sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
-$result_total_clientes = $conn->query($sql_total_clientes);
-$total_clientes = $result_total_clientes->fetch_assoc()['total'];
+// Función para limpiar el RUT antes de guardarlo en la base de datos
+function limpiarRut($rut) {
+    return str_replace(['.', '-'], '', $rut);
+}
 
 // Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Verificar si el RUT ya existe
-    $check_rut_sql = "SELECT id FROM clientes WHERE rut = ?";
-    $check_stmt = $conn->prepare($check_rut_sql);
-    $check_stmt->bind_param("s", $_POST['rut']);
-    $check_stmt->execute();
-    $check_result = $check_stmt->get_result();
+    // Capturar los valores del formulario
+    $nombres = $_POST['nombres'] ?? '';
+    $apellidos = $_POST['apellidos'] ?? '';
+    $rut = $_POST['rut'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $celular = $_POST['celular'] ?? '';
+    $genero = $_POST['genero'] ?? '';
+    $nombre_empresa = $_POST['nombre_empresa'] ?? '';
+    $rut_empresa = $_POST['rut_empresa'] ?? '';
+    $direccion_empresa = $_POST['direccion_empresa'] ?? '';
 
-    if ($check_result->num_rows > 0) {
-        $mensaje = "Error: Ya existe un cliente con ese RUT.";
-        $mensaje_tipo = "danger";
+    // Validar nombres y apellidos
+    if (!validarCampo($nombres, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
+        $errores['nombres'] = "Los nombres deben contener solo letras y no exceder 20 caracteres.";
+    }
+    if (!validarCampo($apellidos, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
+        $errores['apellidos'] = "Los apellidos deben contener solo letras y no exceder 20 caracteres.";
+    }
+
+    // Validar RUT
+    if (!validarRut($rut)) {
+        $errores['rut'] = "Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K";
     } else {
-        // Iniciar transacción
-        $conn->begin_transaction();
+        $rut = limpiarRut($rut); // Limpiar el RUT antes de usarlo
+    }
 
-        try {
-            // Insertar cliente
-            $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt_cliente = $conn->prepare($sql_cliente);
-            $stmt_cliente->bind_param("ssssss", $_POST['nombres'], $_POST['apellidos'], $_POST['rut'], $_POST['email'], $_POST['celular'], $_POST['genero']);
-            $stmt_cliente->execute();
-            $cliente_id = $conn->insert_id;
+    // Validar email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errores['email'] = "Formato de correo electrónico inválido.";
+    }
 
-            // Insertar empresa si se proporcionaron datos
-            if (!empty($_POST['nombre_empresa'])) {
-                $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
-                $stmt_empresa = $conn->prepare($sql_empresa);
-                $stmt_empresa->bind_param("sssi", $_POST['nombre_empresa'], $_POST['rut_empresa'], $_POST['direccion_empresa'], $cliente_id);
-                $stmt_empresa->execute();
+    // Validar celular (asumiendo que debe ser numérico y de longitud específica)
+    if (!preg_match('/^[0-9]{9,12}$/', $celular)) {
+        $errores['celular'] = "El número de celular debe contener entre 9 y 12 dígitos.";
+    }
+
+    // Validar género
+    if (!in_array($genero, ['Masculino', 'Femenino', 'Otro'])) {
+        $errores['genero'] = "Por favor, seleccione un género válido.";
+    }
+
+    // Validar campos de empresa si se proporcionaron
+    if (!empty($nombre_empresa)) {
+        if (strlen($nombre_empresa) > 100) {
+            $errores['nombre_empresa'] = "El nombre de la empresa no debe exceder 100 caracteres.";
+        }
+        if (!empty($rut_empresa) && !validarRut($rut_empresa)) {
+            $errores['rut_empresa'] = "Formato de RUT de empresa inválido.";
+        } else {
+            $rut_empresa = limpiarRut($rut_empresa);
+        }
+        if (strlen($direccion_empresa) > 250) {
+            $errores['direccion_empresa'] = "La dirección de la empresa no debe exceder 250 caracteres.";
+        }
+    }
+
+    if (empty($errores)) {
+        // Verificar si el RUT ya existe
+        $check_rut_sql = "SELECT id FROM clientes WHERE rut = ?";
+        $check_stmt = $conn->prepare($check_rut_sql);
+        $check_stmt->bind_param("s", $rut);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+
+        if ($check_result->num_rows > 0) {
+            $errores['rut'] = "Ya existe un cliente con ese RUT.";
+        } else {
+            // Iniciar transacción
+            $conn->begin_transaction();
+
+            try {
+                // Insertar cliente
+                $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
+                $stmt_cliente = $conn->prepare($sql_cliente);
+                $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rut, $email, $celular, $genero);
+                $stmt_cliente->execute();
+                $cliente_id = $conn->insert_id;
+
+                // Insertar empresa si se proporcionaron datos
+                if (!empty($nombre_empresa)) {
+                    $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
+                    $stmt_empresa = $conn->prepare($sql_empresa);
+                    $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa, $direccion_empresa, $cliente_id);
+                    $stmt_empresa->execute();
+                }
+
+                // Confirmar transacción
+                $conn->commit();
+                $mensaje = "Cliente agregado con éxito.";
+                $mensaje_tipo = "success";
+
+                // Limpiar los campos del formulario después de una inserción exitosa
+                $nombres = $apellidos = $rut = $email = $celular = $genero = $nombre_empresa = $rut_empresa = $direccion_empresa = '';
+            } catch (Exception $e) {
+                // Revertir transacción en caso de error
+                $conn->rollback();
+                $mensaje = "Error al agregar el cliente: " . $e->getMessage();
+                $mensaje_tipo = "danger";
             }
-
-            // Confirmar transacción
-            $conn->commit();
-            $mensaje = "Cliente agregado con éxito.";
-            $mensaje_tipo = "success";
-        } catch (Exception $e) {
-            // Revertir transacción en caso de error
-            $conn->rollback();
-            $mensaje = "Error al agregar el cliente: " . $e->getMessage();
-            $mensaje_tipo = "danger";
         }
     }
 }
-// Consulta para obtener el número total de clientes
-$sql_total_clientes = "SELECT COUNT(*) as total FROM clientes";
-$result_total_clientes = $conn->query($sql_total_clientes);
-$total_clientes = $result_total_clientes->fetch_assoc()['total'];
-// Consulta para obtener el número total de eventos activos
-$sql_count_eventos_activos = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
-$result_count_eventos_activos = $conn->query($sql_count_eventos_activos);
-$total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
+
+// Cerrar la conexión después de obtener los datos necesarios
+$conn->close();
+
+// Definir el título de la página y contenido específico
+$pageTitle = "Ingresar Nuevo Cliente";
+
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="keywords" content="">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/plugins/images/favicon.png">
-    <title>Panel de Control - Schaaf Producciones</title>
-    <!-- ===== Bootstrap CSS ===== -->
-    <link href="assets/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- ===== Plugin CSS ===== -->
-    <link href="assets/plugins/components/chartist-js/dist/chartist.min.css" rel="stylesheet">
-    <link href="assets/plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.css" rel="stylesheet">
-    <link href='assets/plugins/components/fullcalendar/fullcalendar.css' rel='stylesheet'>
-    <!-- ===== Animation CSS ===== -->
-    <link href="assets/css/animate.css" rel="stylesheet">
-    <!-- ===== Custom CSS ===== -->
-    <link href="assets/css/style.css" rel="stylesheet">
-    <!-- ===== Color CSS ===== -->
-    <link href="assets/css/colors/default.css" id="theme" rel="stylesheet">
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <?php include 'includes/head.php'; ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .is-invalid {
+            border-color: red !important;
+        }
+    </style>
 </head>
 
 <body class="mini-sidebar">
@@ -112,81 +170,11 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
         <div class="preloader">
             <div class="cssload-speeding-wheel"></div>
         </div>
-        <!-- ===== Top-Navigation ===== -->
-        <nav class="navbar navbar-default navbar-static-top m-b-0">
-            <div class="navbar-header">
-                <a class="navbar-toggle font-20 hidden-sm hidden-md hidden-lg " href="javascript:void(0)" data-toggle="collapse" data-target=".navbar-collapse">
-                    <i class="fa fa-bars"></i>
-                </a>
-                <div class="top-left-part">
-                    <a class="logo" href="index.php">
-                        <b>
-                            <img src="assets/plugins/images/logo.png" alt="home" />
-                        </b>
-                        <span>
-                            <img src="assets/plugins/images/logo-text.png" alt="homepage" class="dark-logo" />
-                        </span>
-                    </a>
-                </div>
-                <ul class="nav navbar-top-links navbar-left hidden-xs">
-                    <li>
-                        <a href="javascript:void(0)" class="sidebartoggler font-20 waves-effect waves-light"><i class="icon-arrow-left-circle"></i></a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-        <!-- ===== Top-Navigation-End ===== -->
-        <!-- ===== Left-Sidebar ===== -->
-        <aside class="sidebar">
-            <div class="scroll-sidebar">
-                <div class="user-profile">
-                    <div class="dropdown user-pro-body">
-                        <div class="profile-image">
-                            <img src="assets/plugins/images/users/logo.png" alt="user-img" class="img-circle">
-                        </div>
-                        <p class="profile-text m-t-15 font-16"><a href="javascript:void(0);"> Schaaf Producciones</a></p>
-                    </div>
-                </div>
-                <nav class="sidebar-nav">
-                    <ul id="side-menu">
-                        <li>
-                            <a class="waves-effect" href="index.php" aria-expanded="false">
-                                <i class="icon-screen-desktop fa-fw"></i>
-                                <span class="hide-menu"> Dashboard
-                                    <span class="label label-rounded label-info pull-right"><?php echo $total_eventos_activos; ?></span>
-                                </span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="waves-effect" href="clientes.php" aria-expanded="false">
-                                <i class="icon-user fa-fw"></i>
-                                <span class="hide-menu"> Clientes
-                                    <span class="label label-rounded label-success pull-right"><?php echo $total_clientes; ?></span>
-                                </span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="agenda.php" aria-expanded="false">
-                                <i class="icon-notebook fa-fw"></i> <span class="hide-menu">Agenda</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="calendario.php" aria-expanded="false">
-                                <i class="icon-calender fa-fw"></i> <span class="hide-menu">Calendario</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <div class="p-30">
-                    <span class="hide-menu">
-                        <a href="eventos.php" target="_blank" class="btn btn-success">Nuevo Evento</a>
-                        <a href="logout.php" target="_blank" class="btn btn-default m-t-15">Cerrar Sesión</a>
-                    </span>
-                </div>
-            </div>
-        </aside>
-        <!-- ===== Left-Sidebar-End ===== -->
-        <!-- Page Content -->
+
+        <?php include 'includes/nav.php'; ?>
+        <?php include 'includes/sidebar.php'; ?>
+
+        <!-- Page-Content -->
         <div class="page-wrapper">
             <div class="container-fluid">
                 <?php
@@ -199,7 +187,7 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                         <div class="white-box">
                             <h3 class="box-title m-b-0">Ingresar Nuevo Cliente</h3>
                             <p class="text-muted m-b-30 font-13">Información del Cliente y Empresa o Municipalidad</p>
-                            <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form-horizontal">
+                            <form id="clienteForm" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form-horizontal">
                                 <div class="form-body">
                                     <h3 class="box-title">Información Personal</h3>
                                     <hr class="m-t-0 m-b-40">
@@ -208,7 +196,8 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Nombres</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombres" maxlength="20" required>
+                                                    <input type="text" class="form-control" name="nombres" id="nombres" maxlength="20" required>
+                                                    <span class="error-message" id="nombresError"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -216,7 +205,8 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Apellidos</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="apellidos" maxlength="20" required>
+                                                    <input type="text" class="form-control" name="apellidos" id="apellidos" maxlength="20" required>
+                                                    <span class="error-message" id="apellidosError"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -226,7 +216,8 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">RUT</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut" maxlength="12" required>
+                                                    <input type="text" class="form-control" name="rut" id="rut" maxlength="12" required>
+                                                    <span class="error-message" id="rutError"></span>
                                                 </div>
                                             </div>
                                         </div>
@@ -296,7 +287,7 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                                 <div class="form-actions">
                                     <div class="row">
                                         <div class="col-md-12 text-center">
-                                            <button type="submit" class="btn btn-success">
+                                            <button type="submit" class="btn btn-success" id="submitBtn">
                                                 <i class="fa fa-check"></i> Guardar
                                             </button>
                                             <a href="index.php" class="btn btn-default">Cancelar</a>
@@ -308,201 +299,90 @@ $total_eventos_activos = $result_count_eventos_activos->fetch_assoc()['total'];
                     </div>
                 </div>
             </div>
-            <footer class="footer t-a-c">
-                © 2024 Schaaf Producciones
-            </footer>
+            <?php include 'includes/footer.php'; ?>
         </div>
-        <!-- ===== Page-Content-End ===== -->
+        <!-- Page-Content-End -->
     </div>
     <!-- ===== Main-Wrapper-End ===== -->
-    <!-- ==============================
-        Required JS Files
-    =============================== -->
-    <!-- ===== jQuery ===== -->
-    <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
-    <!-- ===== Bootstrap JavaScript ===== -->
-    <script src="assets/bootstrap/dist/js/bootstrap.min.js"></script>
-    <!-- ===== Slimscroll JavaScript ===== -->
-    <script src="assets/js/jquery.slimscroll.js"></script>
-    <!-- ===== Wave Effects JavaScript ===== -->
-    <script src="assets/js/waves.js"></script>
-    <!-- ===== Menu Plugin JavaScript ===== -->
-    <script src="assets/js/sidebarmenu.js"></script>
-    <!-- ===== Custom JavaScript ===== -->
-    <script src="assets/js/custom.js"></script>
-    <!-- ===== Plugin JS ===== -->
-    <script src="assets/plugins/components/chartist-js/dist/chartist.min.js"></script>
-    <script src="assets/plugins/components/chartist-plugin-tooltip-master/dist/chartist-plugin-tooltip.min.js"></script>
-    <script src='assets/plugins/components/moment/moment.js'></script>
-    <script src='assets/plugins/components/fullcalendar/fullcalendar.js'></script>
-    <script src="assets/js/db2.js"></script>
-    <!-- ===== Style Switcher JS ===== -->
-    <script src="assets/plugins/components/styleswitcher/jQuery.style.switcher.js"></script>
-    <script src="assets/plugins/components/jquery/dist/jquery.min.js"></script>
+
+
 
     <script>
-        $(document).ready(function() {
-            function validateNameField(input) {
-                var value = input.val();
-                var cleaned_value = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '').substring(0, 20);
-                input.val(cleaned_value);
-                input.toggleClass("is-valid", cleaned_value.length > 0).toggleClass("is-invalid", cleaned_value.length === 0);
+    $(document).ready(function() {
+        function validarCampo(campo, regex, errorMsg) {
+            var valor = $(campo).val().trim();
+            var esValido = regex.test(valor);
+            var errorSpan = $(campo + 'Error');
+            
+            if (!esValido) {
+                errorSpan.text(errorMsg).show();
+                $(campo).addClass('is-invalid');
+            } else {
+                errorSpan.text('').hide();
+                $(campo).removeClass('is-invalid');
             }
+            
+            return esValido;
+        }
 
-            $('#nombres, #apellidos').on('input', function() {
-                validateNameField($(this));
-            });
-
-            function formatRUT(rut) {
-                rut = rut.replace(/\./g, '').replace(/-/g, '');
-                var dv = rut.slice(-1);
-                var rutBody = rut.slice(0, -1);
-                var formattedRUT = '';
-                for (var i = rutBody.length - 1; i >= 0; i--) {
-                    formattedRUT = rutBody.charAt(i) + formattedRUT;
-                    if ((rutBody.length - i) % 3 === 0 && i !== 0) {
-                        formattedRUT = '.' + formattedRUT;
-                    }
-                }
-                return formattedRUT + '-' + dv;
+        function formatearRut(rut) {
+            // Eliminar caracteres no permitidos
+            var valor = rut.replace(/[^0-9kK\-\.]/g, '');
+            
+            // Aplicar formato
+            var resultado = valor.replace(/\./g, '').replace('-', '');
+            if(resultado.length > 1) {
+                resultado = resultado.substring(0, resultado.length - 1) + '-' + resultado.substring(resultado.length - 1);
             }
-
-            $('#rut').on('input', function() {
-                var input = $(this);
-                var rut = input.val().replace(/[^\d\-kK]/g, '');
-                if (rut.length > 0) {
-                    rut = formatRUT(rut);
-                    input.val(rut);
-                }
-                input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
-            });
-
-            $('#email').on('input', function() {
-                var input = $(this);
-                var email = input.val();
-
-                // Limitar a 50 caracteres
-                if (email.length > 60) {
-                    email = email.substring(0, 60);
-                    input.val(email);
-                }
-
-                // Validar formato de email
-                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                var isValidEmail = emailRegex.test(email);
-
-                input.toggleClass("is-valid", isValidEmail).toggleClass("is-invalid", !isValidEmail);
-
-            });
-
-            function formatPhoneNumber(phone) {
-                // Eliminar todos los caracteres no numéricos
-                phone = phone.replace(/\D/g, '');
-
-                // Asegurarse de que el número comience con 56 9
-                if (!phone.startsWith('569')) {
-                    phone = '569' + phone;
-                }
-
-                // Limitar a 11 dígitos (56 9 XXXX XXXX)
-                phone = phone.substring(0, 11);
-
-                // Aplicar el formato
-                if (phone.length > 0) {
-                    phone = '+' + phone.substring(0, 2) + ' ' + phone.substring(2, 3) + ' ' +
-                        phone.substring(3, 7) + ' ' + phone.substring(7);
-                }
-
-                return phone.trim();
+            if(resultado.length > 5) {
+                resultado = resultado.substring(0, resultado.length - 5) + '.' + resultado.substring(resultado.length - 5);
             }
-
-            $('#celular').on('input', function() {
-                var input = $(this);
-                var phoneNumber = input.val();
-
-                // Formatear el número
-                phoneNumber = formatPhoneNumber(phoneNumber);
-                input.val(phoneNumber);
-
-                // Validar
-                var isValidPhone = phoneNumber.length === 16; // +56 9 XXXX XXXX
-                input.toggleClass("is-valid", isValidPhone).toggleClass("is-invalid", !isValidPhone);
-            });
-            $('#nombre_empresa').on('input', function() {
-                var input = $(this);
-                var companyName = input.val();
-
-                // Limitar a 100 caracteres
-                if (companyName.length > 100) {
-                    companyName = companyName.substring(0, 100);
-                    input.val(companyName);
-                }
-
-                // Validar
-                var isValid = companyName.length > 0;
-                input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
-            });
-
-            function formatRUT(rut) {
-                rut = rut.replace(/\./g, '').replace(/-/g, '');
-                var dv = rut.slice(-1);
-                var rutBody = rut.slice(0, -1);
-                var formattedRUT = '';
-                for (var i = rutBody.length - 1; i >= 0; i--) {
-                    formattedRUT = rutBody.charAt(i) + formattedRUT;
-                    if ((rutBody.length - i) % 3 === 0 && i !== 0) {
-                        formattedRUT = '.' + formattedRUT;
-                    }
-                }
-                return formattedRUT + '-' + dv;
+            if(resultado.length > 9) {
+                resultado = resultado.substring(0, resultado.length - 9) + '.' + resultado.substring(resultado.length - 9);
             }
+            
+            return resultado;
+        }
 
-            function validateRUT(input) {
-                var rut = input.val().replace(/[^\d\-kK]/g, '');
-                if (rut.length > 0) {
-                    rut = formatRUT(rut);
-                    input.val(rut);
-                }
-                input.toggleClass("is-valid", rut.length > 0).toggleClass("is-invalid", rut.length === 0);
+        $('#rut').on('input', function(e) {
+            var start = this.selectionStart,
+                end = this.selectionEnd;
+            
+            var $this = $(this);
+            var valor = $this.val();
+            var valorFormateado = formatearRut(valor);
+            
+            $this.val(valorFormateado);
+            
+            // Ajustar la posición del cursor
+            if (valor !== valorFormateado) {
+                var diff = valorFormateado.length - valor.length;
+                start += diff;
+                end += diff;
             }
-
-            $('#rut, #rut_empresa').on('input', function() {
-                validateRUT($(this));
-            });
-            $('#direccion_empresa').on('input', function() {
-                var input = $(this);
-                var direccion = input.val();
-
-                // Limitar a 250 caracteres
-                if (direccion.length > 250) {
-                    direccion = direccion.substring(0, 250);
-                    input.val(direccion);
-                }
-
-                // Validar
-                var isValid = direccion.length > 0;
-                input.toggleClass("is-valid", isValid).toggleClass("is-invalid", !isValid);
-            });
-            // Función para limpiar el formulario
-            function limpiarFormulario() {
-                // Obtener todos los inputs del formulario
-                var inputs = $('form input');
-
-                // Limpiar cada input
-                inputs.each(function() {
-                    $(this).val('').removeClass('is-valid is-invalid');
-                });
-
-                // Restablecer el select de género si existe
-                $('#genero').val('').removeClass('is-valid is-invalid');
-            }
-
-            // Evento click para el botón Limpiar
-            $('#limpiarFormulario').on('click', function() {
-                limpiarFormulario();
-            });
+            
+            this.setSelectionRange(start, end);
+            
+            validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
         });
+
+        $('#clienteForm').on('submit', function(e) {
+            var nombreValido = validarCampo('#nombres', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+            var apellidoValido = validarCampo('#apellidos', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+            var rutValido = validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+
+            if (!nombreValido || !apellidoValido || !rutValido) {
+                e.preventDefault();
+            }
+        });
+
+        $('#nombres, #apellidos').on('input', function() {
+            var campo = '#' + $(this).attr('id');
+            validarCampo(campo, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+        });
+    });
     </script>
+
 </body>
 
 </html>

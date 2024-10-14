@@ -27,10 +27,10 @@ function active_class($page_name) {
         </div>
         <nav class="sidebar-nav">
             <ul id="side-menu">
-                <li <?php echo active_class('plantilla2.php'); ?>>
-                    <a class="waves-effect" href="plantilla2.php" aria-expanded="false">
+                <li <?php echo active_class('index.php'); ?>>
+                    <a class="waves-effect" href="index.php" aria-expanded="false">
                         <i class="icon-screen-desktop fa-fw"></i>
-                        <span class="hide-menu <?php echo is_active('plantilla2.php') ? 'font-bold' : ''; ?>"> Dashboard
+                        <span class="hide-menu <?php echo is_active('index.php') ? 'font-bold' : ''; ?>"> Dashboard
                             <span class="label label-rounded label-success pull-right"><?php echo $totalEventosActivos; ?></span>
                         </span>
                     </a>
