@@ -43,10 +43,10 @@ function active_class($page_name) {
                         </span>
                     </a>
                 </li>
-                <li <?php echo active_class('agenda.php'); ?>>
-                    <a href="agenda.php" aria-expanded="false">
+                <li <?php echo active_class('listar_agenda.php'); ?>>
+                    <a href="listar_agenda.php" aria-expanded="false">
                         <i class="icon-notebook fa-fw"></i>
-                        <span class="hide-menu <?php echo is_active('agenda.php') ? 'font-bold' : ''; ?>">Agenda
+                        <span class="hide-menu <?php echo is_active('listar_agenda.php') ? 'font-bold' : ''; ?>">Agenda
                             <span class="label label-rounded label-warning pull-right"><?php echo $totalEventosAnioActual; ?></span>
                         </span>
                     </a>
