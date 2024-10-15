@@ -202,7 +202,7 @@ $pageTitle = "Lista de Clientes";
                             </div>
                             <div class="row m-t-20">
                                 <div class="col-md-6 col-sm-6 col-xs-6">
-                                    <a href="Ingreso_cliente.php" class="btn btn-info btn-rounded">Nuevo Cliente</a>
+                                    <a href="ingreso_cliente.php" class="btn btn-info btn-rounded">Nuevo Cliente</a>
                                 </div>
                             </div>
                         </div>

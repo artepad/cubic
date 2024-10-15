@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if ($stmt->execute()) {
         $nueva_gira_id = $conn->insert_id;
-        header("Location: eventos.php?nueva_gira=$nueva_gira_id");
+        header("Location: ingreso_evento.php?nueva_gira=$nueva_gira_id");
         exit;
     } else {
         $mensaje = "Error al guardar la gira: " . $conn->error;

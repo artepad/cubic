@@ -61,7 +61,7 @@ function active_class($page_name) {
         </nav>
         <div class="p-30">
             <span class="hide-menu">
-                <a href="eventos.php" class="btn btn-success">Nuevo Evento</a>
+                <a href="ingreso_evento.php" class="btn btn-success">Nuevo Evento</a>
                 <a href="logout.php" class="btn btn-default m-t-15">Cerrar Sesión</a>
             </span>
         </div>
