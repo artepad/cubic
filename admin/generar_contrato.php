@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 header('Content-Type: text/html; charset=UTF-8');
 
 // Incluir archivos necesarios
-require_once 'config.php';
+require_once 'config/config.php';
 require_once 'vendor/autoload.php';
 
 use PhpOffice\PhpWord\PhpWord;

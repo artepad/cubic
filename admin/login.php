@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once 'config/config.php';
 
 // Definir constantes para mensajes de error
 define('ERR_USER_NOT_FOUND', 'Usuario no encontrado.');
@@ -8,6 +8,7 @@ define('ERR_INCORRECT_PASSWORD', 'Contraseña incorrecta.');
 define('ERR_GENERAL', 'Oops! Algo salió mal. Por favor, intenta nuevamente más tarde.');
 
 $login_err = '';
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validar y sanitizar entradas
