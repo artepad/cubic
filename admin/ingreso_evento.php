@@ -364,7 +364,7 @@ $pageTitle = "Generador de Eventos";
                 var formData = new FormData(document.getElementById('eventoForm'));
 
                 $.ajax({
-                    url: 'crear_evento.php',
+                    url: 'functions/crear_evento.php',
                     type: 'POST',
                     data: formData,
                     processData: false,
