@@ -3,7 +3,7 @@
 session_start();
 
 // Incluir el archivo de configuración
-require_once 'config.php';
+require_once 'config/config.php';
 
 // Verificar si el usuario está logueado
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
