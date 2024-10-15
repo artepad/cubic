@@ -233,7 +233,7 @@ try {
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3"></label>
                                                     <div class="col-md-9">
-                                                        <a href="ingreso-giras.php" class="btn btn-info btn-sm text-white">
+                                                        <a href="ingreso_giras.php" class="btn btn-info btn-sm text-white">
                                                             <i class="fa fa-plus"></i> Nueva Gira
                                                         </a>
                                                     </div>
