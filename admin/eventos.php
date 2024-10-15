@@ -534,7 +534,7 @@ try {
                 var clienteId = $(this).val();
                 if (clienteId) {
                     $.ajax({
-                        url: 'obtener_cliente.php',
+                        url: 'functions/obtener_cliente.php',
                         type: 'GET',
                         data: {
                             id: clienteId

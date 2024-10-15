@@ -21,6 +21,8 @@ $conn->close();
 // Definir el título de la página
 $pageTitle = "Listar Agenda";
 $contentFile = __FILE__;
+
+
 ?>
 
 <!DOCTYPE html>
@@ -99,21 +101,134 @@ $contentFile = __FILE__;
         </div>
     </div>
 
+    <!-- Modal para cambiar estado -->
+    <div class="modal fade" id="cambiarEstadoModal" tabindex="-1" role="dialog" aria-labelledby="cambiarEstadoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cambiarEstadoModalLabel">Cambiar Estado del Evento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="cambiarEstadoForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="eventoId" name="eventoId">
+                        <div class="form-group">
+                            <label for="nuevoEstado">Nuevo Estado:</label>
+                            <select class="form-control" id="nuevoEstado" name="nuevoEstado">
+                                <option value="Propuesta">Propuesta</option>
+                                <option value="Confirmado">Confirmado</option>
+                                <option value="Documentación">Documentación</option>
+                                <option value="En Producción">En Producción</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Reagendado">Reagendado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script>
         $(document).ready(function() {
-            $('#eventosTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
-                }
-            });
-
-            $(".cambiar-estado").click(function() {
-                var eventoId = $(this).data('id');
-                // Aquí iría la lógica para abrir un modal o redireccionar a una página de cambio de estado
-                console.log("Cambiar estado del evento: " + eventoId);
+            // Toggle para el menú de Clientes
+            $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
+                e.preventDefault();
+                $($(this).data('target')).toggleClass('in');
             });
         });
     </script>
+
+    <script>
+        $(document).ready(function() {
+            // Manejador para el botón de cambiar estado
+            $(".cambiar-estado").click(function() {
+                var eventoId = $(this).data('id');
+                $("#eventoId").val(eventoId);
+                $("#cambiarEstadoModal").modal('show');
+            });
+
+            // Manejador para el envío del formulario
+            $("#cambiarEstadoForm").submit(function(e) {
+                e.preventDefault();
+                var eventoId = $("#eventoId").val();
+                var nuevoEstado = $("#nuevoEstado").val();
+
+                $.ajax({
+                    url: 'functions/cambiar_estado_evento.php',
+                    type: 'POST',
+                    data: {
+                        eventoId: eventoId,
+                        nuevoEstado: nuevoEstado
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Actualizar la interfaz de usuario
+                            var $fila = $(".cambiar-estado[data-id='" + eventoId + "']").closest('tr');
+                            $fila.find('td:last').html(generarEstadoEvento(nuevoEstado));
+                            $("#cambiarEstadoModal").modal('hide');
+                            // La alerta de éxito ha sido removida
+                        } else {
+                            alert('Error al actualizar el estado: ' + response.message);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("Error AJAX:", textStatus, errorThrown);
+                        alert('Error de conexión al actualizar el estado');
+                    }
+                });
+            });
+
+            // Función para generar el HTML del estado del evento
+            function generarEstadoEvento(estado) {
+                var estadosInfo = {
+                    'Propuesta': {
+                        class: 'warning',
+                        icon: 'fa-clock-o'
+                    },
+                    'Confirmado': {
+                        class: 'success',
+                        icon: 'fa-check'
+                    },
+                    'Documentación': {
+                        class: 'info',
+                        icon: 'fa-file-text-o'
+                    },
+                    'En Producción': {
+                        class: 'primary',
+                        icon: 'fa-cogs'
+                    },
+                    'Finalizado': {
+                        class: 'default',
+                        icon: 'fa-flag-checkered'
+                    },
+                    'Reagendado': {
+                        class: 'warning',
+                        icon: 'fa-calendar'
+                    },
+                    'Cancelado': {
+                        class: 'danger',
+                        icon: 'fa-times'
+                    }
+                };
+
+                var info = estadosInfo[estado] || {
+                    class: 'default',
+                    icon: 'fa-question'
+                };
+                return '<span class="label label-' + info.class + '"><i class="fa ' + info.icon + '"></i> ' + estado + '</span>';
+            }
+        });
+    </script>
+
 </body>
 
 </html>

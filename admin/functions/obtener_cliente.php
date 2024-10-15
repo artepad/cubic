@@ -6,7 +6,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 }
 
 // Incluir el archivo de configuración de la base de datos
-require_once 'config.php';
+require_once '../config/config.php';
 
 // Verificar si se ha proporcionado un ID de cliente
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {

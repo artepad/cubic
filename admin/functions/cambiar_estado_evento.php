@@ -1,7 +1,7 @@
 <?php
 // cambiar_estado_evento.php
-require_once 'config.php';
-require_once 'utilities.php';
+require_once '../config/config.php';
+require_once '../utilities.php';
 
 header('Content-Type: application/json');
 

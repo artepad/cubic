@@ -51,10 +51,10 @@ function active_class($page_name) {
                         </span>
                     </a>
                 </li>
-                <li <?php echo active_class('calendario.php'); ?>>
-                    <a href="calendario.php" aria-expanded="false">
+                <li <?php echo active_class('listar_calendario.php'); ?>>
+                    <a href="listar_calendario.php" aria-expanded="false">
                         <i class="icon-calender fa-fw"></i>
-                        <span class="hide-menu <?php echo is_active('calendario.php') ? 'font-bold' : ''; ?>">Calendario</span>
+                        <span class="hide-menu <?php echo is_active('listar_calendario.php') ? 'font-bold' : ''; ?>">Calendario</span>
                     </a>
                 </li>
             </ul>
