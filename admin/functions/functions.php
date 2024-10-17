@@ -90,5 +90,30 @@ function getClientes($conn) {
     
     return $result;
 }
+function obtenerDetallesEvento($conn, $evento_id) {
+    $sql = "SELECT e.*, c.nombres, c.apellidos, c.correo, c.celular, 
+                   em.nombre as nombre_empresa, g.nombre as nombre_gira
+            FROM eventos e
+            LEFT JOIN clientes c ON e.cliente_id = c.id
+            LEFT JOIN empresas em ON c.id = em.cliente_id
+            LEFT JOIN giras g ON e.gira_id = g.id
+            WHERE e.id = ?";
+    
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        die("Error en la preparación de la consulta: " . $conn->error);
+    }
 
+    $stmt->bind_param("i", $evento_id);
+    if (!$stmt->execute()) {
+        die("Error en la ejecución de la consulta: " . $stmt->error);
+    }
+
+    $result = $stmt->get_result();
+    if ($result->num_rows === 0) {
+        return null; // No se encontró el evento
+    }
+
+    return $result->fetch_assoc();
+}
 ?>
