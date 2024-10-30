@@ -1,5 +1,28 @@
 <?php
-// Función para ejecutar consultas seguras
+
+/**
+ * Funciones de autenticación y seguridad
+ */
+function checkAuthentication() {
+    // Asegurarse que la sesión está iniciada
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    // Verificar si el usuario está logueado
+    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+        // Guardar la URL actual para redirigir después del login si es necesario
+        $_SESSION['redirect_url'] = $_SERVER['PHP_SELF'];
+        
+        // Redirigir al login
+        header("Location: login.php");
+        exit;
+    }
+}
+
+/**
+ * Funciones de consulta base
+ */
 function executeQuery($conn, $sql, $params = []) {
     $stmt = $conn->prepare($sql);
     if ($stmt === false) {
@@ -18,48 +41,65 @@ function executeQuery($conn, $sql, $params = []) {
     return $stmt->get_result();
 }
 
-// Función para verificar la autenticación
-function checkAuthentication() {
-    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-        header("location: login.php");
-        exit;
-    }
+/**
+ * Funciones para obtener eventos
+ */
+// Función para obtener todos los eventos (sin filtros)
+function getAllEventos($conn) {
+    $sql = "SELECT e.*, c.nombres, c.apellidos 
+            FROM eventos e 
+            LEFT JOIN clientes c ON e.cliente_id = c.id 
+            ORDER BY e.fecha_evento DESC";
+    
+    return executeQuery($conn, $sql);
 }
 
-// Función para obtener el total de clientes
+// Función para obtener solo eventos confirmados y activos
+function getEventosConfirmados($conn) {
+    $sql = "SELECT e.*, c.nombres, c.apellidos 
+            FROM eventos e 
+            LEFT JOIN clientes c ON e.cliente_id = c.id 
+            WHERE e.estado_evento = ? 
+            AND e.fecha_evento >= CURDATE()
+            ORDER BY e.fecha_evento ASC";
+    
+    return executeQuery($conn, $sql, ['Confirmado']);
+}
+
+/**
+ * Funciones para conteos y estadísticas
+ */
 function getTotalClientes($conn) {
     $sql = "SELECT COUNT(*) as total FROM clientes";
     $result = executeQuery($conn, $sql);
     return $result->fetch_assoc()['total'];
 }
 
-// Función para obtener el total de eventos activos
 function getTotalEventosActivos($conn) {
     $sql = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
     $result = executeQuery($conn, $sql);
     return $result->fetch_assoc()['total'];
 }
 
-// Nueva función para obtener el total de eventos del año actual
 function getTotalEventosAnioActual($conn) {
     $sql = "SELECT COUNT(*) as total FROM eventos WHERE YEAR(fecha_evento) = YEAR(CURDATE())";
     $result = executeQuery($conn, $sql);
     return $result->fetch_assoc()['total'];
 }
 
-// Otras funciones que puedas necesitar...
-// Funciones relacionadas con eventos
-function getEventos($conn) {
-    $sql = "SELECT e.*, c.nombres, c.apellidos 
-            FROM eventos e 
-            LEFT JOIN clientes c ON e.cliente_id = c.id 
-            ORDER BY e.fecha_creacion DESC";
+function getTotalEventosConfirmadosActivos($conn) {
+    $sql = "SELECT COUNT(*) as total 
+            FROM eventos 
+            WHERE estado_evento = ? 
+            AND fecha_evento >= CURDATE()";
     
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    return $stmt->get_result();
+    $result = executeQuery($conn, $sql, ['Confirmado']);
+    return $result->fetch_assoc()['total'];
 }
 
+/**
+ * Funciones de formato y presentación
+ */
 function generarEstadoEvento($estado) {
     $estadosInfo = [
         'Propuesta' => ['class' => 'warning', 'icon' => 'fa-clock-o'],
@@ -75,21 +115,17 @@ function generarEstadoEvento($estado) {
     return "<span class=\"label label-{$info['class']}\"><i class=\"fa {$info['icon']}\"></i> $estado</span>";
 }
 
-function getClientes($conn) {
-    $sql = "SELECT c.*, e.nombre as nombre_empresa 
-            FROM clientes c 
-            LEFT JOIN empresas e ON c.id = e.cliente_id 
-            ORDER BY c.id DESC";
-    $result = $conn->query($sql);
-    
-    if ($result === false) {
-        // Manejo de error
-        error_log("Error en la consulta: " . $conn->error);
-        return false;
-    }
-    
-    return $result;
+function formatearFecha($fecha, $formato = 'd/m/Y') {
+    return date($formato, strtotime($fecha));
 }
+
+function formatearHora($hora, $formato = 'H:i') {
+    return date($formato, strtotime($hora));
+}
+
+/**
+ * Funciones para detalles de eventos
+ */
 function obtenerDetallesEvento($conn, $evento_id) {
     $sql = "SELECT e.*, c.nombres, c.apellidos, c.correo, c.celular, 
                    em.nombre as nombre_empresa, g.nombre as nombre_gira
@@ -99,21 +135,6 @@ function obtenerDetallesEvento($conn, $evento_id) {
             LEFT JOIN giras g ON e.gira_id = g.id
             WHERE e.id = ?";
     
-    $stmt = $conn->prepare($sql);
-    if ($stmt === false) {
-        die("Error en la preparación de la consulta: " . $conn->error);
-    }
-
-    $stmt->bind_param("i", $evento_id);
-    if (!$stmt->execute()) {
-        die("Error en la ejecución de la consulta: " . $stmt->error);
-    }
-
-    $result = $stmt->get_result();
-    if ($result->num_rows === 0) {
-        return null; // No se encontró el evento
-    }
-
+    $result = executeQuery($conn, $sql, [$evento_id]);
     return $result->fetch_assoc();
 }
-?>

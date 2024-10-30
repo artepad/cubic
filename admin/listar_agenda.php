@@ -13,7 +13,7 @@ $totalEventosActivos = getTotalEventosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
 // Obtener datos de eventos
-$result_eventos = getEventos($conn);
+$result_eventos = getAllEventos($conn);
 
 // Cerrar la conexión después de obtener los datos necesarios
 $conn->close();
