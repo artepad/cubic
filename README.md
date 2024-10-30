@@ -3,7 +3,7 @@ Tareas Pendiente en Cubic
 Dashboard:
 1- Mejorar tabla con buscar y paginación. 
 2- Bajo la tabla crear el botón crear itinerario (opcional).
-3- Mostrar información de todos los eventos. 
+3- Mostrar información de todos los eventos. OK
 4- Arreglar contador de eventos. (Fácil).
 
 Clientes
