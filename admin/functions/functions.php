@@ -18,6 +18,42 @@ function checkAuthentication() {
         header("Location: login.php");
         exit;
     }
+
+    // Generar o renovar el token CSRF si no existe
+    initCSRFToken();
+}
+
+/**
+ * Inicializa o renueva el token CSRF
+ * Esta función debe ser llamada al inicio de cada sesión
+ */
+function initCSRFToken() {
+    if (!isset($_SESSION['csrf_token'])) {
+        // Generar un token aleatorio de 32 bytes y convertirlo a hexadecimal
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+}
+
+/**
+ * Valida el token CSRF
+ * @param string $token Token recibido para validar
+ * @return bool True si el token es válido, False si no lo es
+ */
+function validateCSRFToken($token) {
+    return isset($_SESSION['csrf_token']) && 
+           hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Genera un campo oculto con el token CSRF para formularios
+ * @return string HTML del campo oculto con el token CSRF
+ */
+function getCSRFTokenField() {
+    if (!isset($_SESSION['csrf_token'])) {
+        initCSRFToken();
+    }
+    return '<input type="hidden" name="csrf_token" value="' . 
+           htmlspecialchars($_SESSION['csrf_token']) . '">';
 }
 
 /**

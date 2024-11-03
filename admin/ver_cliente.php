@@ -27,7 +27,7 @@ if ($cliente_id > 0) {
             LEFT JOIN eventos ev ON c.id = ev.cliente_id
             WHERE c.id = ?
             GROUP BY c.id";
-            
+
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $cliente_id);
     $stmt->execute();
@@ -66,17 +66,20 @@ $pageTitle = "Detalles del Cliente";
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
         }
+
         .eventos-list {
             margin-top: 20px;
         }
+
         .evento-item {
             border-left: 3px solid #7ace4c;
             padding: 10px 15px;
             margin-bottom: 10px;
             background: #f9f9f9;
         }
+
         .stats-box {
             text-align: center;
             padding: 15px;
@@ -84,6 +87,7 @@ $pageTitle = "Detalles del Cliente";
             border-radius: 4px;
             margin-bottom: 20px;
         }
+
         .stats-number {
             font-size: 24px;
             font-weight: bold;
@@ -125,9 +129,9 @@ $pageTitle = "Detalles del Cliente";
                                             <div class="col-md-4">
                                                 <div class="stats-box">
                                                     <div class="stats-number">
-                                                        <?php 
-                                                            $antiguedad = floor((time() - strtotime($cliente['fecha_creacion'])) / (60 * 60 * 24 * 30));
-                                                            echo $antiguedad;
+                                                        <?php
+                                                        $antiguedad = floor((time() - strtotime($cliente['fecha_creacion'])) / (60 * 60 * 24 * 30));
+                                                        echo $antiguedad;
                                                         ?>
                                                     </div>
                                                     <div>Meses como Cliente</div>
@@ -164,27 +168,27 @@ $pageTitle = "Detalles del Cliente";
 
                                         <!-- Información de la Empresa -->
                                         <?php if (!empty($cliente['nombre_empresa'])): ?>
-                                        <div class="info-box">
-                                            <h3 class="box-title">Información de la Empresa</h3>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label">Nombre Empresa:</label>
-                                                        <p class="form-control-static"><strong><?php echo htmlspecialchars($cliente['nombre_empresa']); ?></strong></p>
+                                            <div class="info-box">
+                                                <h3 class="box-title">Información de la Empresa o Municipalidad</h3>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label">Nombre Empresa o Muni:</label>
+                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($cliente['nombre_empresa']); ?></strong></p>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="control-label">RUT Empresa o Muni:</label>
+                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($cliente['rut_empresa']); ?></strong></p>
+                                                        </div>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="control-label">RUT Empresa:</label>
-                                                        <p class="form-control-static"><strong><?php echo htmlspecialchars($cliente['rut_empresa']); ?></strong></p>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label">Dirección:</label>
-                                                        <p class="form-control-static"><strong><?php echo htmlspecialchars($cliente['direccion_empresa']); ?></strong></p>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            <label class="control-label">Dirección:</label>
+                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($cliente['direccion_empresa']); ?></strong></p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
                                         <?php endif; ?>
 
                                         <!-- Últimos Eventos -->
@@ -220,15 +224,15 @@ $pageTitle = "Detalles del Cliente";
                                         <div class="form-actions">
                                             <div class="row">
                                                 <div class="col-md-12 text-center">
-                                                    <a href="eventos.php?cliente_id=<?php echo $cliente_id; ?>" class="btn btn-info m-r-10">
-                                                        <i class="fa fa-calendar"></i> Nuevo Evento
-                                                    </a>
-                                                    <a href="editar_cliente.php?id=<?php echo $cliente_id; ?>" class="btn btn-warning m-r-10">
-                                                        <i class="fa fa-pencil"></i> Editar Cliente
-                                                    </a>
-                                                    <a href="listar_clientes.php" class="btn btn-default">
-                                                        <i class="fa fa-arrow-left"></i> Volver
-                                                    </a>
+                                                    <div class="btn-group dropup m-r-10">
+                                                        <button aria-expanded="false" data-toggle="dropdown" class="btn btn-warning dropdown-toggle waves-effect waves-light" type="button">Opciones <span class="caret"></span></button>
+                                                        <ul role="menu" class="dropdown-menu">
+                                                            <li><a href="editar_cliente.php?id=<?php echo $cliente_id; ?>">Editar</a></li>
+                                                            <li><a href="#" data-toggle="modal" data-target="#deleteModal">Eliminar</a></li>
+                                                            <li class="divider"></li>
+                                                            <li><a href="listar_clientes.php">Volver</a></li>
+                                                        </ul>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -248,8 +252,76 @@ $pageTitle = "Detalles del Cliente";
         </div>
     </div>
 
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Confirmar Eliminación</h4>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar al cliente <strong><?php echo htmlspecialchars($cliente['nombres'] . ' ' . $cliente['apellidos']); ?></strong>?</p>
+                    <?php if ($cliente['total_eventos'] > 0): ?>
+                        <div class="alert alert-warning">
+                            <i class="fa fa-warning"></i> Este cliente tiene <?php echo $cliente['total_eventos']; ?> evento(s) asociado(s).
+                            Al eliminarlo, también se eliminarán todos sus eventos y documentos relacionados.
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts básicos -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Inicializar los dropdowns de Bootstrap
+            $('.dropdown-toggle').dropdown();
+        });
+    </script>
+
+    <script>
+        // Definir el token CSRF como variable global
+        const csrfToken = '<?php echo $_SESSION['csrf_token']; ?>';
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#confirmDelete').on('click', function() {
+                $.ajax({
+                    url: 'eliminar_cliente.php',
+                    type: 'POST',
+                    data: {
+                        id: <?php echo $cliente_id; ?>,
+                        csrf_token: '<?php echo $_SESSION['csrf_token']; ?>'
+                    },
+                    dataType: 'json', // Especificar que esperamos JSON
+                    success: function(response) {
+                        if (response.success) {
+                            window.location.href = 'listar_clientes.php?mensaje=' + encodeURIComponent(response.message);
+                        } else {
+                            alert(response.message || 'Error al eliminar el cliente');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error Details:', {
+                            status: status,
+                            error: error,
+                            response: xhr.responseText
+                        });
+                        alert('Error al procesar la solicitud. Por favor, revisa la consola para más detalles.');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
+
 </html>
