@@ -171,7 +171,7 @@ $pageTitle = "Lista de Clientes";
                                                 echo "<tr>
                                                     <td>
                                                         <a href='ver_cliente.php?id=" . $row['id'] . "' class='btn btn-info btn-sm' title='Ver Cliente'><i class='fa fa-eye'></i></a>
-                                                        <a href='editar_cliente.php?id=" . $row['id'] . "' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
+                                                        <a href='ingreso_cliente.php?id=" . $row['id'] . "' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
                                                     </td>
                                                     <td>" . htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) . "</td>
                                                     <td>" . htmlspecialchars($row['correo']) . "</td>

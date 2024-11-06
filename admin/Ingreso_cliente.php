@@ -12,9 +12,45 @@ $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
+// Determinar si es edición o nuevo registro
+$esEdicion = isset($_GET['id']);
+$cliente = null;
+
 // Inicializar variables para mantener los valores del formulario
 $nombres = $apellidos = $rut = $email = $celular = $genero = $nombre_empresa = $rut_empresa = $direccion_empresa = '';
-$errores = [];
+
+if ($esEdicion) {
+    // Obtener datos del cliente para edición
+    $id = (int)$_GET['id'];
+    $sql = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa 
+            FROM clientes c 
+            LEFT JOIN empresas e ON c.id = e.cliente_id 
+            WHERE c.id = ?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $cliente = $result->fetch_assoc();
+    
+    if (!$cliente) {
+        $_SESSION['mensaje'] = "Cliente no encontrado.";
+        $_SESSION['mensaje_tipo'] = "danger";
+        header("Location: listar_clientes.php");
+        exit();
+    }
+
+    // Asignar valores existentes
+    $nombres = $cliente['nombres'];
+    $apellidos = $cliente['apellidos'];
+    $rut = formatearRut($cliente['rut']); // Función para formatear el RUT
+    $email = $cliente['correo'];
+    $celular = $cliente['celular'];
+    $genero = $cliente['genero'];
+    $nombre_empresa = $cliente['nombre_empresa'];
+    $rut_empresa = $cliente['rut_empresa'] ? formatearRut($cliente['rut_empresa']) : '';
+    $direccion_empresa = $cliente['direccion_empresa'];
+}
 
 // Función de validación general
 function validarCampo($valor, $longitud, $patron) {
@@ -27,10 +63,20 @@ function validarRut($rut) {
     return preg_match('/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/', $rut);
 }
 
-// Función para limpiar el RUT antes de guardarlo en la base de datos
+// Función para limpiar el RUT
 function limpiarRut($rut) {
     return str_replace(['.', '-'], '', $rut);
 }
+
+// Función para formatear el RUT
+function formatearRut($rut) {
+    $rutLimpio = limpiarRut($rut);
+    $dv = substr($rutLimpio, -1);
+    $numero = substr($rutLimpio, 0, -1);
+    return number_format($numero, 0, "", ".") . "-" . $dv;
+}
+
+$errores = [];
 
 // Procesar el formulario cuando se envía
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -45,13 +91,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $rut_empresa = $_POST['rut_empresa'] ?? '';
     $direccion_empresa = $_POST['direccion_empresa'] ?? '';
 
-    // Validaciones...
+    // Validaciones básicas
+    if (!validarCampo($nombres, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
+        $errores['nombres'] = "Nombre inválido. Solo letras, máximo 20 caracteres.";
+    }
+    if (!validarCampo($apellidos, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
+        $errores['apellidos'] = "Apellidos inválidos. Solo letras, máximo 20 caracteres.";
+    }
+    if (!validarRut($rut)) {
+        $errores['rut'] = "Formato de RUT inválido.";
+    }
 
     if (empty($errores)) {
-        // Verificar si el RUT ya existe
-        $check_rut_sql = "SELECT id FROM clientes WHERE rut = ?";
+        // Verificar si el RUT ya existe (solo para nuevos registros o si el RUT ha cambiado)
+        $rutLimpio = limpiarRut($rut);
+        $check_rut_sql = "SELECT id FROM clientes WHERE rut = ? AND id != ?";
         $check_stmt = $conn->prepare($check_rut_sql);
-        $check_stmt->bind_param("s", $rut);
+        $idCheck = $esEdicion ? $id : 0;
+        $check_stmt->bind_param("si", $rutLimpio, $idCheck);
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
 
@@ -62,53 +119,93 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $conn->begin_transaction();
 
             try {
-                // Insertar cliente
-                $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
-                $stmt_cliente = $conn->prepare($sql_cliente);
-                if ($stmt_cliente === false) {
-                    throw new Exception("Error en la preparación de la consulta de cliente: " . $conn->error);
-                }
-                $rut_limpio = limpiarRut($rut);
-                $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rut_limpio, $email, $celular, $genero);
-                if (!$stmt_cliente->execute()) {
-                    throw new Exception("Error al insertar cliente: " . $stmt_cliente->error);
-                }
-                $cliente_id = $conn->insert_id;
-
-                // Insertar empresa si se proporcionaron datos
-                if (!empty($nombre_empresa)) {
-                    $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
-                    $stmt_empresa = $conn->prepare($sql_empresa);
-                    if ($stmt_empresa === false) {
-                        throw new Exception("Error en la preparación de la consulta de empresa: " . $conn->error);
+                if ($esEdicion) {
+                    // Actualizar cliente existente
+                    $sql_cliente = "UPDATE clientes SET nombres=?, apellidos=?, rut=?, correo=?, celular=?, genero=? WHERE id=?";
+                    $stmt_cliente = $conn->prepare($sql_cliente);
+                    if ($stmt_cliente === false) {
+                        throw new Exception("Error en la preparación de la consulta de actualización: " . $conn->error);
                     }
-                    $rut_empresa_limpio = limpiarRut($rut_empresa);
-                    $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa_limpio, $direccion_empresa, $cliente_id);
-                    if (!$stmt_empresa->execute()) {
-                        throw new Exception("Error al insertar empresa: " . $stmt_empresa->error);
+                    $stmt_cliente->bind_param("ssssssi", $nombres, $apellidos, $rutLimpio, $email, $celular, $genero, $id);
+                    if (!$stmt_cliente->execute()) {
+                        throw new Exception("Error al actualizar cliente: " . $stmt_cliente->error);
+                    }
+
+                    // Actualizar o insertar empresa
+                    if (!empty($nombre_empresa)) {
+                        $rut_empresa_limpio = limpiarRut($rut_empresa);
+                        // Verificar si ya existe una empresa para este cliente
+                        $check_empresa_sql = "SELECT id FROM empresas WHERE cliente_id = ?";
+                        $check_empresa_stmt = $conn->prepare($check_empresa_sql);
+                        $check_empresa_stmt->bind_param("i", $id);
+                        $check_empresa_stmt->execute();
+                        $empresa_result = $check_empresa_stmt->get_result();
+
+                        if ($empresa_result->num_rows > 0) {
+                            // Actualizar empresa existente
+                            $sql_empresa = "UPDATE empresas SET nombre=?, rut=?, direccion=? WHERE cliente_id=?";
+                        } else {
+                            // Insertar nueva empresa
+                            $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
+                        }
+
+                        $stmt_empresa = $conn->prepare($sql_empresa);
+                        if ($stmt_empresa === false) {
+                            throw new Exception("Error en la preparación de la consulta de empresa: " . $conn->error);
+                        }
+                        $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa_limpio, $direccion_empresa, $id);
+                        if (!$stmt_empresa->execute()) {
+                            throw new Exception("Error al actualizar/insertar empresa: " . $stmt_empresa->error);
+                        }
+                    }
+                } else {
+                    // Insertar nuevo cliente
+                    $sql_cliente = "INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES (?, ?, ?, ?, ?, ?)";
+                    $stmt_cliente = $conn->prepare($sql_cliente);
+                    if ($stmt_cliente === false) {
+                        throw new Exception("Error en la preparación de la consulta de cliente: " . $conn->error);
+                    }
+                    $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rutLimpio, $email, $celular, $genero);
+                    if (!$stmt_cliente->execute()) {
+                        throw new Exception("Error al insertar cliente: " . $stmt_cliente->error);
+                    }
+                    $cliente_id = $conn->insert_id;
+
+                    // Insertar empresa si se proporcionaron datos
+                    if (!empty($nombre_empresa)) {
+                        $sql_empresa = "INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES (?, ?, ?, ?)";
+                        $stmt_empresa = $conn->prepare($sql_empresa);
+                        if ($stmt_empresa === false) {
+                            throw new Exception("Error en la preparación de la consulta de empresa: " . $conn->error);
+                        }
+                        $rut_empresa_limpio = limpiarRut($rut_empresa);
+                        $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa_limpio, $direccion_empresa, $cliente_id);
+                        if (!$stmt_empresa->execute()) {
+                            throw new Exception("Error al insertar empresa: " . $stmt_empresa->error);
+                        }
                     }
                 }
 
                 // Confirmar transacción
                 $conn->commit();
 
-                $_SESSION['mensaje'] = "Cliente agregado con éxito.";
+                $_SESSION['mensaje'] = $esEdicion ? "Cliente actualizado con éxito." : "Cliente agregado con éxito.";
                 $_SESSION['mensaje_tipo'] = "success";
                 header("Location: listar_clientes.php");
                 exit();
             } catch (Exception $e) {
                 // Revertir transacción en caso de error
                 $conn->rollback();
-                $mensaje = "Error al agregar el cliente: " . $e->getMessage();
+                $mensaje = "Error al " . ($esEdicion ? "actualizar" : "agregar") . " el cliente: " . $e->getMessage();
                 $mensaje_tipo = "danger";
-                error_log("Error en Ingreso-cliente.php: " . $e->getMessage());
+                error_log("Error en ingreso_cliente.php: " . $e->getMessage());
             }
         }
     }
 }
 
 // Cerrar la conexión después de obtener los datos necesarios
-$conn->close()
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -131,7 +228,7 @@ $conn->close()
 </head>
 
 <body class="mini-sidebar">
-    <!-- ===== Main-Wrapper ===== -->
+    <!-- Main-Wrapper -->
     <div id="wrapper">
         <div class="preloader">
             <div class="cssload-speeding-wheel"></div>
@@ -151,9 +248,9 @@ $conn->close()
                 <div class="row">
                     <div class="col-md-12">
                         <div class="white-box">
-                            <h3 class="box-title m-b-0">Ingresar Nuevo Cliente</h3>
+                            <h3 class="box-title m-b-0"><?php echo $esEdicion ? 'Editar Cliente' : 'Ingresar Nuevo Cliente'; ?></h3>
                             <p class="text-muted m-b-30 font-13">Información del Cliente y Empresa o Municipalidad</p>
-                            <form id="clienteForm" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form-horizontal">
+                            <form id="clienteForm" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . ($esEdicion ? "?id=" . $id : "")); ?>" class="form-horizontal">
                                 <div class="form-body">
                                     <h3 class="box-title">Información Personal</h3>
                                     <hr class="m-t-0 m-b-40">
@@ -162,8 +259,11 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Nombres</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombres" id="nombres" maxlength="20" required>
-                                                    <span class="error-message" id="nombresError"></span>
+                                                    <input type="text" class="form-control" name="nombres" id="nombres" 
+                                                           value="<?php echo htmlspecialchars($nombres); ?>" maxlength="20" required>
+                                                    <span class="error-message" id="nombresError">
+                                                        <?php echo isset($errores['nombres']) ? $errores['nombres'] : ''; ?>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -171,8 +271,11 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Apellidos</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="apellidos" id="apellidos" maxlength="20" required>
-                                                    <span class="error-message" id="apellidosError"></span>
+                                                    <input type="text" class="form-control" name="apellidos" id="apellidos" 
+                                                           value="<?php echo htmlspecialchars($apellidos); ?>" maxlength="20" required>
+                                                    <span class="error-message" id="apellidosError">
+                                                        <?php echo isset($errores['apellidos']) ? $errores['apellidos'] : ''; ?>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -182,8 +285,11 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">RUT</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut" id="rut" maxlength="12" required>
-                                                    <span class="error-message" id="rutError"></span>
+                                                    <input type="text" class="form-control" name="rut" id="rut" 
+                                                           value="<?php echo htmlspecialchars($rut); ?>" maxlength="12" required>
+                                                    <span class="error-message" id="rutError">
+                                                        <?php echo isset($errores['rut']) ? $errores['rut'] : ''; ?>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -191,8 +297,9 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Correo Electrónico</label>
                                                 <div class="col-md-9">
-                                                    <input type="email" class="form-control" name="email" maxlength="60" required>
-                                                </div>
+                                                    <input type="email" class="form-control" name="email" 
+                                                           value="<?php echo htmlspecialchars($email); ?>" maxlength="60" required>
+                                                           </div>
                                             </div>
                                         </div>
                                     </div>
@@ -201,7 +308,8 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Celular</label>
                                                 <div class="col-md-9">
-                                                    <input type="tel" class="form-control" name="celular" maxlength="16" required>
+                                                    <input type="tel" class="form-control" name="celular" 
+                                                           value="<?php echo htmlspecialchars($celular); ?>" maxlength="16" required>
                                                 </div>
                                             </div>
                                         </div>
@@ -211,8 +319,8 @@ $conn->close()
                                                 <div class="col-md-9">
                                                     <select class="form-control" name="genero" required>
                                                         <option value="">Seleccione un género</option>
-                                                        <option value="Masculino">Masculino</option>
-                                                        <option value="Femenino">Femenino</option>
+                                                        <option value="Masculino" <?php echo $genero === 'Masculino' ? 'selected' : ''; ?>>Masculino</option>
+                                                        <option value="Femenino" <?php echo $genero === 'Femenino' ? 'selected' : ''; ?>>Femenino</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -226,7 +334,8 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Nombre Empresa o Muni</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombre_empresa" maxlength="100">
+                                                    <input type="text" class="form-control" name="nombre_empresa" 
+                                                           value="<?php echo htmlspecialchars($nombre_empresa); ?>" maxlength="100">
                                                 </div>
                                             </div>
                                         </div>
@@ -234,7 +343,8 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">RUT Empresa o Muni</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut_empresa" maxlength="12">
+                                                    <input type="text" class="form-control" name="rut_empresa" id="rut_empresa" 
+                                                           value="<?php echo htmlspecialchars($rut_empresa); ?>" maxlength="12">
                                                 </div>
                                             </div>
                                         </div>
@@ -244,7 +354,8 @@ $conn->close()
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Dirección Empresa o Muni</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="direccion_empresa" maxlength="250">
+                                                    <input type="text" class="form-control" name="direccion_empresa" 
+                                                           value="<?php echo htmlspecialchars($direccion_empresa); ?>" maxlength="250">
                                                 </div>
                                             </div>
                                         </div>
@@ -254,9 +365,9 @@ $conn->close()
                                     <div class="row">
                                         <div class="col-md-12 text-center">
                                             <button type="submit" class="btn btn-success" id="submitBtn">
-                                                <i class="fa fa-check"></i> Guardar
+                                                <i class="fa fa-check"></i> <?php echo $esEdicion ? 'Actualizar' : 'Guardar'; ?>
                                             </button>
-                                            <a href="index.php" class="btn btn-default">Cancelar</a>
+                                            <a href="listar_clientes.php" class="btn btn-default">Cancelar</a>
                                         </div>
                                     </div>
                                 </div>
@@ -267,11 +378,7 @@ $conn->close()
             </div>
             <?php include 'includes/footer.php'; ?>
         </div>
-        <!-- Page-Content-End -->
     </div>
-    <!-- ===== Main-Wrapper-End ===== -->
-
-
 
     <script>
     $(document).ready(function() {
@@ -310,7 +417,8 @@ $conn->close()
             return resultado;
         }
 
-        $('#rut').on('input', function(e) {
+        // Formatear RUT al escribir
+        $('#rut, #rut_empresa').on('input', function(e) {
             var start = this.selectionStart,
                 end = this.selectionEnd;
             
@@ -329,9 +437,13 @@ $conn->close()
             
             this.setSelectionRange(start, end);
             
-            validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+            // Validar formato de RUT solo si es el campo principal de RUT
+            if ($this.attr('id') === 'rut') {
+                validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+            }
         });
 
+        // Validar formulario al enviar
         $('#clienteForm').on('submit', function(e) {
             var nombreValido = validarCampo('#nombres', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
             var apellidoValido = validarCampo('#apellidos', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
@@ -342,6 +454,7 @@ $conn->close()
             }
         });
 
+        // Validar nombres y apellidos mientras se escriben
         $('#nombres, #apellidos').on('input', function() {
             var campo = '#' + $(this).attr('id');
             validarCampo(campo, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
@@ -350,5 +463,4 @@ $conn->close()
     </script>
 
 </body>
-
 </html>

@@ -8,7 +8,7 @@
 
 ## 👤 Clientes
 - [x] 👁️ **Crear página "Ver Cliente"** y enlazar al botón "Ver" en la tabla.
-- [ ] 🔄 **Enlazar botón "Editar Cliente"** a la funcionalidad correspondiente.
+- [x] 🔄 **Enlazar botón "Editar Cliente"** a la funcionalidad correspondiente.
 - [x] ❗ **Enlazar botón "Eliminar Cliente"** a la funcionalidad correspondiente.
 - [ ] 📤 **Agregar botón "Exportar BD Clientes"** debajo de la tabla de clientes.
 
