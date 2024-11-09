@@ -57,7 +57,7 @@ $contentFile = __FILE__;
                 <div class="row">
                     <div class="col-md-12">
                         <div class="white-box">
-                            <h3 class="box-title">Lista de Eventos</h3>
+                            <h3 class="box-title">Agenda de Eventos</h3>
                             <div class="table-responsive">
                                 <table id="eventosTable" class="table table-striped">
                                     <thead>

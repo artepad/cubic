@@ -148,7 +148,7 @@ $pageTitle = "Lista de Clientes";
                     <div class="col-md-12">
                         <div class="white-box">
                             <div class="titulo-busqueda">
-                                <h3 class="box-title">Base de Datos de  Clientes</h3>
+                                <h3 class="box-title">Base de Datos de Clientes</h3>
                                 <div class="search-container">
                                     <input type="text" id="searchInput" placeholder="Buscar cliente...">
                                 </div>
@@ -190,7 +190,7 @@ $pageTitle = "Lista de Clientes";
                             <div class="custom-pagination">
                                 <?php
                                 $rango = 2; // Número de páginas a mostrar antes y después de la página actual
-                                
+
                                 for ($i = max(1, $paginaActual - $rango); $i <= min($totalPaginas, $paginaActual + $rango); $i++) {
                                     if ($i == $paginaActual) {
                                         echo "<span class='page-number active'>$i</span>";
@@ -204,6 +204,14 @@ $pageTitle = "Lista de Clientes";
                                 <div class="col-md-6 col-sm-6 col-xs-6">
                                     <a href="ingreso_cliente.php" class="btn btn-info btn-rounded">Nuevo Cliente</a>
                                 </div>
+                                <div class="col-md-6 col-sm-6 col-xs-6 text-right">
+                                    <form action="exportar_clientes.php" method="POST" style="display: inline;">
+                                        <?php echo getCSRFTokenField(); ?>
+                                        <button type="submit" class="btn btn-success btn-rounded">
+                                            <i class="fa fa-file-excel-o"></i> Exportar CSV
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -215,7 +223,7 @@ $pageTitle = "Lista de Clientes";
     </div>
     <!-- ===== Main-Wrapper-End ===== -->
 
-    
+
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>

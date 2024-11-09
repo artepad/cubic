@@ -10,7 +10,7 @@
 - [x] 👁️ **Crear página "Ver Cliente"** y enlazar al botón "Ver" en la tabla.
 - [x] 🔄 **Enlazar botón "Editar Cliente"** a la funcionalidad correspondiente.
 - [x] ❗ **Enlazar botón "Eliminar Cliente"** a la funcionalidad correspondiente.
-- [ ] 📤 **Agregar botón "Exportar BD Clientes"** debajo de la tabla de clientes.
+- [x] 📤 **Agregar botón "Exportar BD Clientes"** debajo de la tabla de clientes.
 
 ## 📅 Agenda
 - [ ] 📋 **Mejorar tabla** con búsqueda avanzada y paginación.
