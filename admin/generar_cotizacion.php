@@ -418,43 +418,43 @@ class QuoteGenerator
      * Agrega los items incluidos en la cotización
      */
     private function addIncludedItems($section)
-{
-    try {
-        $section->addText("La presente cotización incluye:", 'boldParagraphStyle');
+    {
+        try {
+            $section->addText("La presente cotización incluye:", 'boldParagraphStyle');
 
-        // Crear estilo de lista numerada
-        $bulletListStyle = array(
-            'spacing' => 100,
-            'spaceAfter' => 60,
-        );
+            // Crear estilo de lista numerada
+            $bulletListStyle = array(
+                'spacing' => 100,
+                'spaceAfter' => 60,
+            );
 
-        // Crear estilo de fuente para los items
-        $fontStyle = array(
-            'name' => FONT_LATO_LIGHT,
-            'size' => DEFAULT_FONT_SIZE,
-        );
+            // Crear estilo de fuente para los items
+            $fontStyle = array(
+                'name' => FONT_LATO_LIGHT,
+                'size' => DEFAULT_FONT_SIZE,
+            );
 
-        $items = array_merge(
-            $this->getIncludedRadioItems(),
-            [
-                "Ejecución de un Show en vivo: 1 vocalista + 4 músicos.",
-                "Duración aproximada de 60 minutos (incluido BIS)."
-            ]
-        );
+            $items = array_merge(
+                $this->getIncludedRadioItems(),
+                [
+                    "Ejecución de un Show en vivo: 1 vocalista + 4 músicos.",
+                    "Duración aproximada de 60 minutos (incluido BIS)."
+                ]
+            );
 
-        foreach ($items as $item) {
-            $listItem = $section->addListItem($item, 0);
-            $listItem->getTextObject()->setParagraphStyle($bulletListStyle);
-            $listItem->getTextObject()->getFontStyle()->setName($fontStyle['name']);
-            $listItem->getTextObject()->getFontStyle()->setSize($fontStyle['size']);
+            foreach ($items as $item) {
+                $listItem = $section->addListItem($item, 0);
+                $listItem->getTextObject()->setParagraphStyle($bulletListStyle);
+                $listItem->getTextObject()->getFontStyle()->setName($fontStyle['name']);
+                $listItem->getTextObject()->getFontStyle()->setSize($fontStyle['size']);
+            }
+
+            $section->addTextBreak(1);
+        } catch (Exception $e) {
+            $this->logger->log("Error al agregar items incluidos: " . $e->getMessage());
+            throw $e;
         }
-
-        $section->addTextBreak(1);
-    } catch (Exception $e) {
-        $this->logger->log("Error al agregar items incluidos: " . $e->getMessage());
-        throw $e;
     }
-}
 
 
     /**
@@ -485,19 +485,19 @@ class QuoteGenerator
                 "Costos Logísticos adicionales a cubrir por el Productor Local:",
                 'boldParagraphStyle'
             );
-    
+
             // Crear estilo de lista numerada
             $bulletListStyle = array(
                 'spacing' => 100,
                 'spaceAfter' => 60,
             );
-    
+
             // Crear estilo de fuente para los items
             $fontStyle = array(
                 'name' => FONT_LATO_LIGHT,
                 'size' => DEFAULT_FONT_SIZE,
             );
-    
+
             $items = array_merge(
                 $this->getAdditionalItems(),
                 [
@@ -506,7 +506,7 @@ class QuoteGenerator
                     "Prueba de sonido con un tiempo efectivo, mínimo de 1 hora sin acceso de público general."
                 ]
             );
-    
+
             foreach ($items as $item) {
                 $listItem = $section->addListItem($item, 0);
                 $listItem->getTextObject()->setParagraphStyle($bulletListStyle);
@@ -542,9 +542,17 @@ class QuoteGenerator
      */
     private function setFileName()
     {
-        $cleanName = preg_replace('/[^A-Za-z0-9]/', '_', $this->formData['encabezado']);
-        $cleanName = strtolower(trim($cleanName, '_'));
-        $this->fileName = 'cotizacion_' . $cleanName . '_' . date('Y-m-d') . '.docx';
+        // Usar solo nombres y apellidos del cliente
+        $clientName = trim($this->formData['nombres'] . ' ' . $this->formData['apellidos']);
+
+        // Limpia el nombre del cliente de caracteres especiales y espacios
+        $cleanName = preg_replace('/[^A-Za-z0-9\s]/', '', $clientName);
+        // Reemplaza espacios múltiples por uno solo y convierte a minúsculas
+        $cleanName = mb_strtolower(trim(preg_replace('/\s+/', ' ', $cleanName)));
+        // Reemplaza espacios por guiones bajos
+        $cleanName = str_replace(' ', '_', $cleanName);
+        // Construye el nombre final del archivo
+        $this->fileName = 'cotizacion_' . $cleanName . '.docx';
     }
     /**
      * Obtiene la configuración de página
@@ -952,6 +960,8 @@ try {
             'encabezado' => !empty($evento['encabezado_evento'])
                 ? $evento['encabezado_evento']
                 : ($evento['nombres'] . ' ' . $evento['apellidos']),
+            'nombres' => $evento['nombres'],
+            'apellidos' => $evento['apellidos'],
             'es_encabezado_evento' => !empty($evento['encabezado_evento']),
             'ciudad' => $evento['ciudad_evento'],
             'fecha' => $evento['fecha_evento'],
