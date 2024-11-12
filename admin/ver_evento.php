@@ -203,39 +203,63 @@ $pageTitle = "Detalles del Evento";
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
-        $(document).ready(function() {
-            // Inicializar los dropdowns de Bootstrap
-            $('.dropdown-toggle').dropdown();
+      $(document).ready(function() {
+    // Inicializar los dropdowns de Bootstrap
+    $('.dropdown-toggle').dropdown();
 
-            // Tu código existente para generar contrato
-            $('#generar-contrato').on('click', function(e) {
-                e.preventDefault();
-                var eventoId = <?php echo json_encode($evento_id); ?>;
-                $.ajax({
-                    url: 'generar_contrato.php',
-                    method: 'GET',
-                    data: {
-                        id: eventoId
-                    },
-                    xhrFields: {
-                        responseType: 'blob'
-                    },
-                    success: function(response) {
-                        var blob = new Blob([response], {
-                            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                        });
-                        var link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = "Contrato_Evento_" + eventoId + ".docx";
-                        link.click();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error al generar el contrato:', error);
-                        alert('Hubo un error al generar el contrato. Por favor, inténtelo de nuevo.');
-                    }
+    // Manejo de generación y descarga de contrato
+    $('#generar-contrato').on('click', function(e) {
+        e.preventDefault();
+        var eventoId = <?php echo json_encode($evento_id); ?>;
+        var clienteName = <?php echo json_encode(trim($evento['nombres'] . ' ' . $evento['apellidos'])); ?>;
+        
+        // Función para limpiar el nombre del cliente para el nombre del archivo
+        function sanitizeFileName(name) {
+            // Eliminar caracteres especiales y espacios extras
+            return name.trim()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "") // Eliminar acentos
+                      .replace(/[^a-zA-Z0-9\s]/g, "")  // Solo permitir letras, números y espacios
+                      .replace(/\s+/g, "_");           // Reemplazar espacios con guiones bajos
+        }
+
+        $.ajax({
+            url: 'generar_contrato.php',
+            method: 'GET',
+            data: {
+                id: eventoId
+            },
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(response) {
+                var blob = new Blob([response], {
+                    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                 });
-            });
+                
+                // Crear el nombre del archivo usando el nombre del cliente
+                var fileName = "Contrato_Evento_" + sanitizeFileName(clienteName) + ".docx";
+                
+                // Crear y activar el enlace de descarga
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = fileName;
+                
+                // Añadir temporalmente el enlace al documento y hacer clic
+                document.body.appendChild(link);
+                link.click();
+                
+                // Limpiar - remover el enlace y liberar el objeto URL
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(link.href);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al generar el contrato:', error);
+                alert('Hubo un error al generar el contrato. Por favor, inténtelo de nuevo.');
+            }
         });
+    });
+});
     </script>
 
 

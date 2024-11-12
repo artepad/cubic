@@ -105,7 +105,16 @@ class ContractGenerator
             throw new Exception("Error al generar el contrato: " . $e->getMessage());
         }
     }
-
+    // Función auxiliar para sanitizar el nombre del archivo
+    private function sanitizeFileName($name)
+    {
+        // Convertir caracteres especiales a sus equivalentes sin acentos
+        $name = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $name);
+        // Eliminar caracteres no alfanuméricos y reemplazar espacios con guiones bajos
+        $name = preg_replace('/[^a-zA-Z0-9\s]/', '', $name);
+        $name = preg_replace('/\s+/', '_', trim($name));
+        return $name;
+    }
     // Función para guardar el documento
     public function saveDocument()
     {
@@ -113,8 +122,11 @@ class ContractGenerator
             // Limpiar el buffer de salida
             if (ob_get_level()) ob_end_clean();
 
-            // Generar nombre del archivo con fecha actual
-            $fileName = "Contrato_Evento_" . date('Y-m-d') . ".docx";
+            // Obtener el nombre del cliente y sanitizarlo
+            $clientName = $this->sanitizeFileName($this->eventData['nombres'] . ' ' . $this->eventData['apellidos']);
+
+            // Generar nombre del archivo con el nombre del cliente
+            $fileName = "Contrato_Evento_" . $clientName . ".docx";
 
             // Configurar headers para la descarga
             header("Content-Description: File Transfer");
