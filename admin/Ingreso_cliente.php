@@ -9,7 +9,7 @@ checkAuthentication();
 
 // Obtener datos comunes
 $totalClientes = getTotalClientes($conn);
-$totalEventosActivos = getTotalEventosActivos($conn);
+$totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
 // Determinar si es edición o nuevo registro
