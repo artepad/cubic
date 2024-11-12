@@ -9,7 +9,7 @@ checkAuthentication();
 
 // Obtener datos comunes
 $totalClientes = getTotalClientes($conn);
-$totalEventosActivos = getTotalEventosActivos($conn);
+$totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
 // Configuración de la paginación
@@ -121,7 +121,25 @@ $pageTitle = "Lista de Clientes";
             }
         }
     </style>
+    <style>
+        .alert {
+            padding: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #31708f;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+        .alert i {
+            margin-right: 8px;
+        }
+    </style>
 </head>
+
 
 <body class="mini-sidebar">
     <!-- ===== Main-Wrapper ===== -->
@@ -154,37 +172,37 @@ $pageTitle = "Lista de Clientes";
                                 </div>
                             </div>
                             <div class="table-responsive">
-                                <table id="clientesTable" class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Acción</th>
-                                            <th>Nombre Completo</th>
-                                            <th>Correo</th>
-                                            <th>Celular</th>
-                                            <th>Empresa</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        if ($result_clientes && $result_clientes->num_rows > 0) {
-                                            while ($row = $result_clientes->fetch_assoc()) {
-                                                echo "<tr>
+                                <?php if ($result_clientes && $result_clientes->num_rows > 0): ?>
+                                    <table id="clientesTable" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Acción</th>
+                                                <th>Nombre Completo</th>
+                                                <th>Correo</th>
+                                                <th>Celular</th>
+                                                <th>Empresa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php while ($row = $result_clientes->fetch_assoc()): ?>
+                                                <tr>
                                                     <td>
-                                                        <a href='ver_cliente.php?id=" . $row['id'] . "' class='btn btn-info btn-sm' title='Ver Cliente'><i class='fa fa-eye'></i></a>
-                                                        <a href='ingreso_cliente.php?id=" . $row['id'] . "' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
+                                                        <a href='ver_cliente.php?id=<?php echo $row['id']; ?>' class='btn btn-info btn-sm' title='Ver Cliente'><i class='fa fa-eye'></i></a>
+                                                        <a href='ingreso_cliente.php?id=<?php echo $row['id']; ?>' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
                                                     </td>
-                                                    <td>" . htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']) . "</td>
-                                                    <td>" . htmlspecialchars($row['correo']) . "</td>
-                                                    <td>" . htmlspecialchars($row['celular']) . "</td>
-                                                    <td>" . htmlspecialchars($row['nombre_empresa']) . "</td>
-                                                </tr>";
-                                            }
-                                        } else {
-                                            echo "<tr><td colspan='5'>No se encontraron clientes.</td></tr>";
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
+                                                    <td><?php echo htmlspecialchars($row['nombres'] . ' ' . $row['apellidos']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['correo']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['celular']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['nombre_empresa']); ?></td>
+                                                </tr>
+                                            <?php endwhile; ?>
+                                        </tbody>
+                                    </table>
+                                <?php else: ?>
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-info-circle"></i> No se encontraron clientes.
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <!-- Añadir paginación personalizada -->
                             <div class="custom-pagination">
