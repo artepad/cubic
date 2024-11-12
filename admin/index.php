@@ -12,8 +12,30 @@ $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
-// Obtener eventos
-$result_eventos = getEventosConfirmados($conn);
+// Configuración de la paginación
+$registrosPorPagina = 8;
+$paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$offset = ($paginaActual - 1) * $registrosPorPagina;
+
+// Obtener el total de registros de eventos activos
+$sqlTotal = "SELECT COUNT(*) as total FROM eventos e 
+             WHERE e.estado_evento IN ('confirmado', 'en_proceso')";
+$resultTotal = $conn->query($sqlTotal);
+$fila = $resultTotal->fetch_assoc();
+$totalRegistros = $fila['total'];
+
+// Calcular el total de páginas
+$totalPaginas = ceil($totalRegistros / $registrosPorPagina);
+
+// Consulta principal con paginación
+$sql = "SELECT e.*, c.nombres, c.apellidos 
+        FROM eventos e 
+        LEFT JOIN clientes c ON e.cliente_id = c.id 
+        WHERE e.estado_evento IN ('confirmado', 'en_proceso') 
+        ORDER BY e.fecha_evento ASC 
+        LIMIT $registrosPorPagina OFFSET $offset";
+
+$result_eventos = $conn->query($sql);
 
 // Cerrar la conexión después de obtener los datos necesarios
 $conn->close();
@@ -24,9 +46,9 @@ $pageTitle = "Lista de Eventos";
 
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <?php include 'includes/head.php'; ?>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
     <style>
         .titulo-busqueda {
             display: flex;
@@ -62,21 +84,29 @@ $pageTitle = "Lista de Eventos";
             outline: 0 none;
         }
 
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid transparent;
-            border-radius: 4px;
+        .custom-pagination {
+            text-align: center;
+            margin-top: 20px;
         }
 
-        .alert-info {
-            color: #31708f;
-            background-color: #d9edf7;
-            border-color: #bce8f1;
+        .custom-pagination .page-number {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 3px;
         }
 
-        .alert i {
-            margin-right: 8px;
+        .custom-pagination .page-number.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .custom-pagination .page-number:hover:not(.active) {
+            background-color: #f8f9fa;
         }
 
         @media (max-width: 767px) {
@@ -89,7 +119,29 @@ $pageTitle = "Lista de Eventos";
                 margin-left: 0;
                 margin-top: 10px;
                 max-width: none;
+                width: 100%;
             }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+        }
+    </style>
+     <style>
+        .alert {
+            padding: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #31708f;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+        .alert i {
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -114,7 +166,7 @@ $pageTitle = "Lista de Eventos";
                                     <input type="text" id="searchInput" placeholder="Buscar evento...">
                                 </div>
                             </div>
-                            
+
                             <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
                                 <div class="alert alert-info">
                                     <i class="fa fa-info-circle"></i> No se encontraron eventos activos.
@@ -137,10 +189,17 @@ $pageTitle = "Lista de Eventos";
                                             <?php while ($evento = $result_eventos->fetch_assoc()): ?>
                                                 <tr>
                                                     <td>
-                                                        <a href="ver_evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-sm btn-info" data-toggle="tooltip" title="Ver Evento">
+                                                        <a href="ver_evento.php?id=<?php echo $evento['id']; ?>" 
+                                                           class="btn btn-sm btn-info" 
+                                                           data-toggle="tooltip" 
+                                                           title="Ver Evento">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-warning cambiar-estado" data-id="<?php echo $evento['id']; ?>" data-toggle="tooltip" title="Cambiar Estado">
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-warning cambiar-estado" 
+                                                                data-id="<?php echo $evento['id']; ?>" 
+                                                                data-toggle="tooltip" 
+                                                                title="Cambiar Estado">
                                                             <i class="fa fa-exchange"></i>
                                                         </button>
                                                     </td>
@@ -155,6 +214,37 @@ $pageTitle = "Lista de Eventos";
                                         </tbody>
                                     </table>
                                 </div>
+                                <!-- Paginación personalizada -->
+                                <div class="custom-pagination">
+                                    <?php
+                                    $rango = 2; // Número de páginas a mostrar antes y después de la página actual
+                                    
+                                    // Mostrar primera página si estamos lejos de ella
+                                    if ($paginaActual - $rango > 1) {
+                                        echo "<a href='?pagina=1' class='page-number'>1</a>";
+                                        if ($paginaActual - $rango > 2) {
+                                            echo "<span class='page-number'>...</span>";
+                                        }
+                                    }
+
+                                    // Mostrar páginas alrededor de la página actual
+                                    for ($i = max(1, $paginaActual - $rango); $i <= min($totalPaginas, $paginaActual + $rango); $i++) {
+                                        if ($i == $paginaActual) {
+                                            echo "<span class='page-number active'>$i</span>";
+                                        } else {
+                                            echo "<a href='?pagina=$i' class='page-number'>$i</a>";
+                                        }
+                                    }
+
+                                    // Mostrar última página si estamos lejos de ella
+                                    if ($paginaActual + $rango < $totalPaginas) {
+                                        if ($paginaActual + $rango < $totalPaginas - 1) {
+                                            echo "<span class='page-number'>...</span>";
+                                        }
+                                        echo "<a href='?pagina=$totalPaginas' class='page-number'>$totalPaginas</a>";
+                                    }
+                                    ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -164,21 +254,23 @@ $pageTitle = "Lista de Eventos";
         </div>
     </div>
 
-    <!-- Modal para cambiar estado -->
-    <div class="modal fade" id="cambiarEstadoModal" tabindex="-1" role="dialog" aria-labelledby="cambiarEstadoModalLabel">
-        <!-- ... (código del modal) ... -->
-    </div>
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
 
     <script>
         $(document).ready(function() {
-            // Inicializar DataTables con configuración en español
+            // Inicializar DataTables con configuración personalizada
             var table = $('#eventosTable').DataTable({
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json",
-                    "zeroRecords": "No se encontraron registros coincidentes",
-                    "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+                    "zeroRecords": "No se encontraron eventos coincidentes",
+                    "infoEmpty": "No hay eventos disponibles",
                     "infoFiltered": ""
                 },
+                "pageLength": <?php echo $registrosPorPagina; ?>,
+                "ordering": true,
+                "responsive": true,
                 "dom": 'rt<"bottom"<"custom-pagination">><"clear">',
                 "lengthChange": false,
                 "info": false,
@@ -186,25 +278,34 @@ $pageTitle = "Lista de Eventos";
                 "paging": false
             });
 
-            // Implementar búsqueda personalizada
+            // Implementar búsqueda en tiempo real
+            var searchTimeout;
             $('#searchInput').on('keyup', function() {
-                table.search(this.value).draw();
+                clearTimeout(searchTimeout);
+                var searchTerm = this.value;
+                
+                searchTimeout = setTimeout(function() {
+                    table.search(searchTerm).draw();
+                }, 300); // Esperar 300ms después de que el usuario deje de escribir
             });
 
             // Ocultar la búsqueda predeterminada de DataTables
             $('.dataTables_filter').hide();
 
+            // Inicializar tooltips de Bootstrap
+            $('[data-toggle="tooltip"]').tooltip();
+
             // Manejador para el botón de cambiar estado
             $(".cambiar-estado").click(function() {
                 var eventoId = $(this).data('id');
-                $("#eventoId").val(eventoId);
                 $("#cambiarEstadoModal").modal('show');
             });
 
-            // Inicializar tooltips
-            $('[data-toggle="tooltip"]').tooltip();
+            // Mejorar la responsividad de la tabla
+            $(window).resize(function() {
+                table.columns.adjust().responsive.recalc();
+            });
         });
     </script>
 </body>
-
 </html>

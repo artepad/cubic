@@ -12,19 +12,49 @@ $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventosAnioActual($conn);
 
-// Obtener datos de eventos
-$result_eventos = getAllEventos($conn);
+// Configuración de la paginación
+$registrosPorPagina = 8;
+$paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$busqueda = isset($_GET['search']) ? $_GET['search'] : '';
+$offset = ($paginaActual - 1) * $registrosPorPagina;
+
+// Construir la consulta base
+$baseQuery = "
+    SELECT e.*, c.nombres, c.apellidos 
+    FROM eventos e
+    LEFT JOIN clientes c ON e.cliente_id = c.id
+    WHERE 1=1
+";
+
+// Agregar condiciones de búsqueda si existe
+if (!empty($busqueda)) {
+    $busqueda = $conn->real_escape_string($busqueda);
+    $baseQuery .= " AND (
+        e.nombre_evento LIKE '%$busqueda%' OR 
+        e.ciudad_evento LIKE '%$busqueda%' OR 
+        c.nombres LIKE '%$busqueda%' OR 
+        c.apellidos LIKE '%$busqueda%' OR
+        e.estado_evento LIKE '%$busqueda%'
+    )";
+}
+
+// Obtener total de registros para la paginación
+$sqlTotal = str_replace('e.*, c.nombres, c.apellidos', 'COUNT(*) as total', $baseQuery);
+$resultTotal = $conn->query($sqlTotal);
+$fila = $resultTotal->fetch_assoc();
+$totalRegistros = $fila['total'];
+$totalPaginas = ceil($totalRegistros / $registrosPorPagina);
+
+// Agregar límites a la consulta principal
+$baseQuery .= " ORDER BY e.fecha_evento DESC LIMIT $registrosPorPagina OFFSET $offset";
+$result_eventos = $conn->query($baseQuery);
 
 // Cerrar la conexión después de obtener los datos necesarios
 $conn->close();
 
 // Definir el título de la página
 $pageTitle = "Listar Agenda";
-$contentFile = __FILE__;
-
-
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -65,35 +95,29 @@ $contentFile = __FILE__;
             outline: 0 none;
         }
 
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid transparent;
-            border-radius: 4px;
+        .custom-pagination {
+            text-align: center;
+            margin-top: 20px;
         }
 
-        .alert-info {
-            color: #31708f;
-            background-color: #d9edf7;
-            border-color: #bce8f1;
+        .custom-pagination .page-number {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 3px;
         }
 
-        .alert i {
-            margin-right: 8px;
+        .custom-pagination .page-number.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
         }
 
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        #eventosTable {
-            width: 100%;
-            white-space: nowrap;
-        }
-
-        #eventosTable th,
-        #eventosTable td {
-            padding: 10px;
+        .custom-pagination .page-number:hover:not(.active) {
+            background-color: #f8f9fa;
         }
 
         @media (max-width: 767px) {
@@ -107,6 +131,23 @@ $contentFile = __FILE__;
                 margin-top: 10px;
                 max-width: none;
             }
+        }
+    </style>
+    <style>
+        .alert {
+            padding: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #31708f;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+        .alert i {
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -124,12 +165,14 @@ $contentFile = __FILE__;
                             <div class="titulo-busqueda">
                                 <h3 class="box-title">Agenda de Eventos</h3>
                                 <div class="search-container">
-                                    <input type="text" id="searchInput" placeholder="Buscar evento...">
+                                    <input type="text" id="searchInput" placeholder="Buscar evento..."
+                                        value="<?php echo htmlspecialchars($busqueda); ?>">
                                 </div>
                             </div>
+
                             <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
                                 <div class="alert alert-info">
-                                    <i class="fa fa-info-circle"></i> No se encontraron eventos.
+                                    <i class="fa fa-info-circle"></i> No se encontraron Eventos.
                                 </div>
                             <?php else: ?>
                                 <div class="table-responsive">
@@ -149,10 +192,17 @@ $contentFile = __FILE__;
                                             <?php while ($evento = $result_eventos->fetch_assoc()): ?>
                                                 <tr>
                                                     <td>
-                                                        <a href="ver_evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-sm btn-info" data-toggle="tooltip" title="Ver Evento">
+                                                        <a href="ver_evento.php?id=<?php echo $evento['id']; ?>"
+                                                            class="btn btn-sm btn-info"
+                                                            data-toggle="tooltip"
+                                                            title="Ver Evento">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-warning cambiar-estado" data-id="<?php echo $evento['id']; ?>" data-toggle="tooltip" title="Cambiar Estado">
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-warning cambiar-estado"
+                                                            data-id="<?php echo $evento['id']; ?>"
+                                                            data-toggle="tooltip"
+                                                            title="Cambiar Estado">
                                                             <i class="fa fa-exchange"></i>
                                                         </button>
                                                     </td>
@@ -167,6 +217,46 @@ $contentFile = __FILE__;
                                         </tbody>
                                     </table>
                                 </div>
+
+                                <!-- Paginación -->
+                                <div class="custom-pagination">
+                                    <?php
+                                    $rango = 2; // Número de páginas a mostrar antes y después de la página actual
+
+                                    // Mostrar primera página si estamos lejos de ella
+                                    if ($paginaActual > $rango + 1) {
+                                        echo "<a href='?pagina=1" . ($busqueda ? "&search=" . urlencode($busqueda) : "") .
+                                            "' class='page-number'>1</a>";
+                                        if ($paginaActual > $rango + 2) {
+                                            echo "<span class='page-number'>...</span>";
+                                        }
+                                    }
+
+                                    // Mostrar páginas alrededor de la página actual
+                                    for (
+                                        $i = max(1, $paginaActual - $rango);
+                                        $i <= min($totalPaginas, $paginaActual + $rango);
+                                        $i++
+                                    ) {
+                                        if ($i == $paginaActual) {
+                                            echo "<span class='page-number active'>$i</span>";
+                                        } else {
+                                            echo "<a href='?pagina=$i" . ($busqueda ? "&search=" . urlencode($busqueda) : "") .
+                                                "' class='page-number'>$i</a>";
+                                        }
+                                    }
+
+                                    // Mostrar última página si estamos lejos de ella
+                                    if ($paginaActual < $totalPaginas - $rango) {
+                                        if ($paginaActual < $totalPaginas - $rango - 1) {
+                                            echo "<span class='page-number'>...</span>";
+                                        }
+                                        echo "<a href='?pagina=$totalPaginas" .
+                                            ($busqueda ? "&search=" . urlencode($busqueda) : "") .
+                                            "' class='page-number'>$totalPaginas</a>";
+                                    }
+                                    ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -176,134 +266,37 @@ $contentFile = __FILE__;
         </div>
     </div>
 
-    <!-- Modal para cambiar estado -->
-    <div class="modal fade" id="cambiarEstadoModal" tabindex="-1" role="dialog" aria-labelledby="cambiarEstadoModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cambiarEstadoModalLabel">Cambiar Estado del Evento</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form id="cambiarEstadoForm">
-                    <div class="modal-body">
-                        <input type="hidden" id="eventoId" name="eventoId">
-                        <div class="form-group">
-                            <label for="nuevoEstado">Nuevo Estado:</label>
-                            <select class="form-control" id="nuevoEstado" name="nuevoEstado">
-                                <option value="Propuesta">Propuesta</option>
-                                <option value="Confirmado">Confirmado</option>
-                                <option value="Documentación">Documentación</option>
-                                <option value="En Producción">En Producción</option>
-                                <option value="Finalizado">Finalizado</option>
-                                <option value="Reagendado">Reagendado</option>
-                                <option value="Cancelado">Cancelado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
+    <!-- Scripts existentes... -->
     <script>
         $(document).ready(function() {
-            // Toggle para el menú de Clientes
-            $('#side-menu').on('click', 'a[data-toggle="collapse"]', function(e) {
-                e.preventDefault();
-                $($(this).data('target')).toggleClass('in');
-            });
-        });
-    </script>
+            var searchTimeout;
 
-    <script>
-        $(document).ready(function() {
-            // Manejador para el botón de cambiar estado
-            $(".cambiar-estado").click(function() {
-                var eventoId = $(this).data('id');
-                $("#eventoId").val(eventoId);
-                $("#cambiarEstadoModal").modal('show');
+            $('#searchInput').on('keyup', function() {
+                clearTimeout(searchTimeout);
+                var searchValue = $(this).val();
+
+                // Esperar 500ms después de que el usuario deje de escribir
+                searchTimeout = setTimeout(function() {
+                    // Actualizar la URL con el término de búsqueda y recargar la página
+                    var newUrl = updateQueryStringParameter(window.location.href, 'search', searchValue);
+                    newUrl = updateQueryStringParameter(newUrl, 'pagina', '1'); // Volver a la primera página
+                    window.location.href = newUrl;
+                }, 500);
             });
 
-            // Manejador para el envío del formulario
-            $("#cambiarEstadoForm").submit(function(e) {
-                e.preventDefault();
-                var eventoId = $("#eventoId").val();
-                var nuevoEstado = $("#nuevoEstado").val();
+            // Función para actualizar parámetros en la URL
+            function updateQueryStringParameter(uri, key, value) {
+                var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+                var separator = uri.indexOf('?') !== -1 ? "&" : "?";
 
-                $.ajax({
-                    url: 'functions/cambiar_estado_evento.php',
-                    type: 'POST',
-                    data: {
-                        eventoId: eventoId,
-                        nuevoEstado: nuevoEstado
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            // Actualizar la interfaz de usuario
-                            var $fila = $(".cambiar-estado[data-id='" + eventoId + "']").closest('tr');
-                            $fila.find('td:last').html(generarEstadoEvento(nuevoEstado));
-                            $("#cambiarEstadoModal").modal('hide');
-                            // La alerta de éxito ha sido removida
-                        } else {
-                            alert('Error al actualizar el estado: ' + response.message);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("Error AJAX:", textStatus, errorThrown);
-                        alert('Error de conexión al actualizar el estado');
-                    }
-                });
-            });
-
-            // Función para generar el HTML del estado del evento
-            function generarEstadoEvento(estado) {
-                var estadosInfo = {
-                    'Propuesta': {
-                        class: 'warning',
-                        icon: 'fa-clock-o'
-                    },
-                    'Confirmado': {
-                        class: 'success',
-                        icon: 'fa-check'
-                    },
-                    'Documentación': {
-                        class: 'info',
-                        icon: 'fa-file-text-o'
-                    },
-                    'En Producción': {
-                        class: 'primary',
-                        icon: 'fa-cogs'
-                    },
-                    'Finalizado': {
-                        class: 'default',
-                        icon: 'fa-flag-checkered'
-                    },
-                    'Reagendado': {
-                        class: 'warning',
-                        icon: 'fa-calendar'
-                    },
-                    'Cancelado': {
-                        class: 'danger',
-                        icon: 'fa-times'
-                    }
-                };
-
-                var info = estadosInfo[estado] || {
-                    class: 'default',
-                    icon: 'fa-question'
-                };
-                return '<span class="label label-' + info.class + '"><i class="fa ' + info.icon + '"></i> ' + estado + '</span>';
+                if (uri.match(re)) {
+                    return uri.replace(re, '$1' + key + "=" + encodeURIComponent(value) + '$2');
+                } else {
+                    return uri + separator + key + "=" + encodeURIComponent(value);
+                }
             }
         });
     </script>
-
 </body>
 
 </html>

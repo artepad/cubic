@@ -18,6 +18,6 @@
 
 ## 🎉 Eventos
 - [x] ❗ **Arreglar Creacion de Contrato** Sacar error".
-- [ ] ❗ **Arreglar Creacion de Cotizacion** Sacar error".
+- [x] ❗ **Arreglar Creacion de Cotizacion** Sacar error".
 - [ ] 📋 **Agregar campo "Seleccionar Artista"** en la creación de eventos, con un menú desplegable de artistas.
 - [ ] ➕ **Agregar botón "Nuevo Cliente"** al lado del campo "Seleccionar Cliente".
