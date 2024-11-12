@@ -55,11 +55,12 @@ $conn->close();
 // Definir el título de la página
 $pageTitle = "Listar Agenda";
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <?php include 'includes/head.php'; ?>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
     <style>
         .titulo-busqueda {
             display: flex;
@@ -120,20 +121,6 @@ $pageTitle = "Listar Agenda";
             background-color: #f8f9fa;
         }
 
-        @media (max-width: 767px) {
-            .titulo-busqueda {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .search-container {
-                margin-left: 0;
-                margin-top: 10px;
-                max-width: none;
-            }
-        }
-    </style>
-    <style>
         .alert {
             padding: 15px;
             border: 1px solid transparent;
@@ -149,16 +136,41 @@ $pageTitle = "Listar Agenda";
         .alert i {
             margin-right: 8px;
         }
+
+        @media (max-width: 767px) {
+            .titulo-busqueda {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-container {
+                margin-left: 0;
+                margin-top: 10px;
+                max-width: none;
+            }
+        }
     </style>
 </head>
-
 <body class="mini-sidebar">
     <div id="wrapper">
+        <div class="preloader">
+            <div class="cssload-speeding-wheel"></div>
+        </div>
+
         <?php include 'includes/nav.php'; ?>
         <?php include 'includes/sidebar.php'; ?>
 
+        <!-- Page Content -->
         <div class="page-wrapper">
             <div class="container-fluid">
+                <?php
+                // Mostrar mensaje de éxito si existe
+                if (isset($_SESSION['mensaje'])) {
+                    echo "<div class='alert alert-" . $_SESSION['mensaje_tipo'] . "'>" . $_SESSION['mensaje'] . "</div>";
+                    unset($_SESSION['mensaje']);
+                    unset($_SESSION['mensaje_tipo']);
+                }
+                ?>
                 <div class="row">
                     <div class="col-md-12">
                         <div class="white-box">
@@ -170,12 +182,12 @@ $pageTitle = "Listar Agenda";
                                 </div>
                             </div>
 
-                            <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
-                                <div class="alert alert-info">
-                                    <i class="fa fa-info-circle"></i> No se encontraron Eventos.
-                                </div>
-                            <?php else: ?>
-                                <div class="table-responsive">
+                            <div class="table-responsive">
+                                <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-info-circle"></i> No se encontraron Eventos.
+                                    </div>
+                                <?php else: ?>
                                     <table id="eventosTable" class="table table-striped">
                                         <thead>
                                             <tr>
@@ -216,48 +228,36 @@ $pageTitle = "Listar Agenda";
                                             <?php endwhile; ?>
                                         </tbody>
                                     </table>
-                                </div>
 
-                                <!-- Paginación -->
-                                <div class="custom-pagination">
-                                    <?php
-                                    $rango = 2; // Número de páginas a mostrar antes y después de la página actual
-
-                                    // Mostrar primera página si estamos lejos de ella
-                                    if ($paginaActual > $rango + 1) {
-                                        echo "<a href='?pagina=1" . ($busqueda ? "&search=" . urlencode($busqueda) : "") .
-                                            "' class='page-number'>1</a>";
-                                        if ($paginaActual > $rango + 2) {
-                                            echo "<span class='page-number'>...</span>";
+                                    <!-- Paginación -->
+                                    <div class="custom-pagination">
+                                        <?php
+                                        $rango = 2;
+                                        if ($paginaActual > $rango + 1) {
+                                            echo "<a href='?pagina=1" . ($busqueda ? "&search=" . urlencode($busqueda) : "") . "' class='page-number'>1</a>";
+                                            if ($paginaActual > $rango + 2) {
+                                                echo "<span class='page-number'>...</span>";
+                                            }
                                         }
-                                    }
 
-                                    // Mostrar páginas alrededor de la página actual
-                                    for (
-                                        $i = max(1, $paginaActual - $rango);
-                                        $i <= min($totalPaginas, $paginaActual + $rango);
-                                        $i++
-                                    ) {
-                                        if ($i == $paginaActual) {
-                                            echo "<span class='page-number active'>$i</span>";
-                                        } else {
-                                            echo "<a href='?pagina=$i" . ($busqueda ? "&search=" . urlencode($busqueda) : "") .
-                                                "' class='page-number'>$i</a>";
+                                        for ($i = max(1, $paginaActual - $rango); $i <= min($totalPaginas, $paginaActual + $rango); $i++) {
+                                            if ($i == $paginaActual) {
+                                                echo "<span class='page-number active'>$i</span>";
+                                            } else {
+                                                echo "<a href='?pagina=$i" . ($busqueda ? "&search=" . urlencode($busqueda) : "") . "' class='page-number'>$i</a>";
+                                            }
                                         }
-                                    }
 
-                                    // Mostrar última página si estamos lejos de ella
-                                    if ($paginaActual < $totalPaginas - $rango) {
-                                        if ($paginaActual < $totalPaginas - $rango - 1) {
-                                            echo "<span class='page-number'>...</span>";
+                                        if ($paginaActual < $totalPaginas - $rango) {
+                                            if ($paginaActual < $totalPaginas - $rango - 1) {
+                                                echo "<span class='page-number'>...</span>";
+                                            }
+                                            echo "<a href='?pagina=$totalPaginas" . ($busqueda ? "&search=" . urlencode($busqueda) : "") . "' class='page-number'>$totalPaginas</a>";
                                         }
-                                        echo "<a href='?pagina=$totalPaginas" .
-                                            ($busqueda ? "&search=" . urlencode($busqueda) : "") .
-                                            "' class='page-number'>$totalPaginas</a>";
-                                    }
-                                    ?>
-                                </div>
-                            <?php endif; ?>
+                                        ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -266,22 +266,66 @@ $pageTitle = "Listar Agenda";
         </div>
     </div>
 
-    <!-- Scripts existentes... -->
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+
     <script>
         $(document).ready(function() {
-            var searchTimeout;
+            // Inicialización de DataTables
+            var table = $('#eventosTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json",
+                    "zeroRecords": "No se encontraron registros coincidentes",
+                    "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+                    "infoFiltered": ""
+                },
+                "pageLength": <?php echo $registrosPorPagina; ?>,
+                "ordering": true,
+                "responsive": true,
+                "dom": 'rt<"bottom"<"custom-pagination">><"clear">',
+                "lengthChange": false,
+                "info": false,
+                "searching": true,
+                "paging": false,
+                "columnDefs": [
+                    {
+                        "targets": 0,
+                        "orderable": false
+                    },
+                    {
+                        "targets": 2,
+                        "type": "date-eu"
+                    }
+                ],
+                "order": [[2, 'desc']]
+            });
 
+            // Implementación de búsqueda personalizada
             $('#searchInput').on('keyup', function() {
-                clearTimeout(searchTimeout);
+                clearTimeout(window.searchTimeout);
                 var searchValue = $(this).val();
 
-                // Esperar 500ms después de que el usuario deje de escribir
-                searchTimeout = setTimeout(function() {
-                    // Actualizar la URL con el término de búsqueda y recargar la página
-                    var newUrl = updateQueryStringParameter(window.location.href, 'search', searchValue);
-                    newUrl = updateQueryStringParameter(newUrl, 'pagina', '1'); // Volver a la primera página
-                    window.location.href = newUrl;
-                }, 500);
+                window.searchTimeout = setTimeout(function() {
+                    if (table) {
+                        table.search(searchValue).draw();
+                    }
+                }, 300);
+            });
+
+            // Ocultar búsqueda predeterminada de DataTables
+            $('.dataTables_filter').hide();
+            $('#searchInput').attr('type', 'search');
+
+            // Inicializar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // Manejador para el botón de cambiar estado
+            $('.cambiar-estado').on('click', function() {
+                var eventoId = $(this).data('id');
+                // Aquí puedes implementar la lógica para cambiar el estado
+                // Por ejemplo, abrir un modal o hacer una petición AJAX
+                console.log('Cambiar estado del evento:', eventoId);
             });
 
             // Función para actualizar parámetros en la URL
@@ -295,8 +339,22 @@ $pageTitle = "Listar Agenda";
                     return uri + separator + key + "=" + encodeURIComponent(value);
                 }
             }
+
+            // Manejo de errores AJAX
+            $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
+                console.error("Error en la petición AJAX:", thrownError);
+                // Aquí puedes implementar un manejo de errores más específico
+            });
+
+            // Limpieza al destruir la página
+            $(window).on('unload', function() {
+                if (table) {
+                    table.destroy();
+                }
+                // Destruir todos los tooltips
+                $('[data-toggle="tooltip"]').tooltip('dispose');
+            });
         });
     </script>
 </body>
-
 </html>
