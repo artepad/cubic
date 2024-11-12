@@ -5,19 +5,14 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 header('Content-Type: text/html; charset=UTF-8');
 
-// Incluir archivos necesarios
 require_once 'config/config.php';
 require_once 'vendor/autoload.php';
 
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\Element\Shape;
+use PhpOffice\PhpWord\Settings;
+use PhpOffice\PhpWord\Shared\ZipArchive;
 
-/**
- * Clase ContractGenerator
- * 
- * Maneja la generación de contratos en formato Word
- */
 class ContractGenerator
 {
     private $conn;
@@ -25,44 +20,47 @@ class ContractGenerator
     private $section;
     private $eventData;
 
-    /**
-     * Constructor de la clase
-     * 
-     * @param mysqli $conn Conexión a la base de datos
-     */
+    // Configuración de estilos del documento
+    private const DOCUMENT_STYLES = [
+        'default_font' => [
+            'name' => 'Lato Light',
+            'size' => 10
+        ],
+        'margins' => [
+            'left' => 800,
+            'right' => 800,
+            'top' => 800,
+            'bottom' => 800
+        ]
+    ];
+
     public function __construct($conn)
     {
         $this->conn = $conn;
-        $this->phpWord = new PhpWord();
-        $this->setupDocument();
+        $this->initializePhpWord();
     }
 
-    /**
-     * Configura el documento Word
-     */
-    private function setupDocument()
+    // Inicializa la configuración de PhpWord
+    private function initializePhpWord()
     {
-        $this->phpWord->setDefaultFontName('Lato Light');
-        $this->phpWord->setDefaultFontSize(10);
+        Settings::setZipClass(ZipArchive::class);
+        Settings::setOutputEscapingEnabled(true);
+
+        $this->phpWord = new PhpWord();
+        $this->phpWord->setDefaultFontName(self::DOCUMENT_STYLES['default_font']['name']);
+        $this->phpWord->setDefaultFontSize(self::DOCUMENT_STYLES['default_font']['size']);
         $this->phpWord->getSettings()->setThemeFontLang(new \PhpOffice\PhpWord\Style\Language('ES_ES'));
 
-        $sectionStyle = [
-            'marginLeft' => 800,
-            'marginRight' => 800,
-            'marginTop' => 800,
-            'marginBottom' => 800
-        ];
-        $this->section = $this->phpWord->addSection($sectionStyle);
+        $this->section = $this->phpWord->addSection(self::DOCUMENT_STYLES['margins']);
     }
 
-     /**
-     * Obtiene los datos del evento de la base de datos y los convierte a mayúsculas
-     * 
-     * @param int $eventoId ID del evento
-     * @throws Exception Si no se encuentran datos del evento
-     */
+    // Obtiene los datos del evento desde la base de datos
     public function getEventData($eventoId)
     {
+        if (!is_numeric($eventoId) || $eventoId <= 0) {
+            throw new InvalidArgumentException("ID de evento inválido");
+        }
+
         $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut, c.correo, c.celular, c.genero, 
                 em.nombre as nombre_empresa, em.rut as rut_empresa, em.direccion as direccion_empresa
                 FROM eventos e
@@ -70,345 +68,171 @@ class ContractGenerator
                 LEFT JOIN empresas em ON c.id = em.cliente_id
                 WHERE e.id = ?";
 
-        $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
-            throw new Exception("Error en la preparación de la consulta: " . $this->conn->error);
-        }
-
-        $stmt->bind_param("i", $eventoId);
-        if (!$stmt->execute()) {
-            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
-        }
-
-        $result = $stmt->get_result();
-        if ($result->num_rows === 0) {
-            throw new Exception("No se encontraron datos del evento.");
-        }
-
-        $this->eventData = $result->fetch_assoc();
-
-        // Convertir campos relevantes a mayúsculas
-        $fieldsToUppercase = ['nombres', 'apellidos', 'rut', 'correo', 'celular', 'nombre_empresa', 'rut_empresa', 'direccion_empresa', 'lugar_evento', 'nombre_evento'];
-        foreach ($fieldsToUppercase as $field) {
-            if (isset($this->eventData[$field])) {
-                $this->eventData[$field] = mb_strtoupper($this->eventData[$field], 'UTF-8');
+        try {
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Error en la preparación de la consulta: " . $this->conn->error);
             }
+
+            $stmt->bind_param("i", $eventoId);
+            if (!$stmt->execute()) {
+                throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+            }
+
+            $result = $stmt->get_result();
+            if ($result->num_rows === 0) {
+                throw new Exception("No se encontraron datos del evento.");
+            }
+
+            $this->eventData = $result->fetch_assoc();
+            return true;
+        } catch (Exception $e) {
+            error_log("Error en getEventData: " . $e->getMessage());
+            throw $e;
         }
     }
-
-    /**
-     * Genera el contenido del contrato
-     */
+    // Función principal para generar el contrato
     public function generateContract()
     {
-        $this->addLogo();
-        $this->addTitle();
-        $this->addIntroduction();
-        $this->addClauses();
-        $this->addSignatures();
+        try {
+            $this->addLogo();
+            $this->addTitle();
+            $this->addIntroduction();
+            $this->addClauses();
+            $this->addSignatures();
+        } catch (Exception $e) {
+            error_log("Error en generateContract: " . $e->getMessage());
+            throw new Exception("Error al generar el contrato: " . $e->getMessage());
+        }
     }
 
-    /**
-     * Añade el logo al documento
-     */
+    // Función para guardar el documento
+    public function saveDocument()
+    {
+        try {
+            // Limpiar el buffer de salida
+            if (ob_get_level()) ob_end_clean();
+
+            // Generar nombre del archivo con fecha actual
+            $fileName = "Contrato_Evento_" . date('Y-m-d') . ".docx";
+
+            // Configurar headers para la descarga
+            header("Content-Description: File Transfer");
+            header('Content-Disposition: attachment; filename="' . $fileName . '"');
+            header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            header("Content-Transfer-Encoding: binary");
+            header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+            header("Expires: 0");
+            header("Pragma: public");
+
+            // Guardar y enviar el archivo
+            $tempFile = tempnam(sys_get_temp_dir(), 'contract_');
+            $objWriter = IOFactory::createWriter($this->phpWord, 'Word2007');
+            $objWriter->save($tempFile);
+
+            readfile($tempFile);
+            unlink($tempFile);
+            exit();
+        } catch (Exception $e) {
+            error_log("Error en saveDocument: " . $e->getMessage());
+            throw new Exception("Error al guardar el documento: " . $e->getMessage());
+        }
+    }
+
+    // Añade el logo al documento
     private function addLogo()
     {
         $imagePath = __DIR__ . '/assets/img/logo-negro.png';
         if (!file_exists($imagePath)) {
-            throw new Exception("La imagen no se encuentra en la ruta especificada: $imagePath");
+            throw new Exception("Logo no encontrado en: $imagePath");
         }
 
-        $imageStyle = [
-            'width' => 100,
-            'height' => 49,
-            'positioning' => 'absolute',
-            'posHorizontal' => \PhpOffice\PhpWord\Style\Image::POSITION_HORIZONTAL_RIGHT,
-            'posHorizontalRel' => 'page',
-            'posVertical' => \PhpOffice\PhpWord\Style\Image::POSITION_VERTICAL_BOTTOM,
-            'posVerticalRel' => 'page',
-            'wrappingStyle' => 'behind',
-            'marginRight' => 40,
-            'marginBottom' => 20
-        ];
-        $this->section->addImage($imagePath, $imageStyle);
+        try {
+            $imageStyle = [
+                'width' => 100,
+                'height' => 49,
+                'positioning' => 'absolute',
+                'posHorizontal' => \PhpOffice\PhpWord\Style\Image::POSITION_HORIZONTAL_RIGHT,
+                'posHorizontalRel' => 'page',
+                'posVertical' => \PhpOffice\PhpWord\Style\Image::POSITION_VERTICAL_BOTTOM,
+                'posVerticalRel' => 'page',
+                'wrappingStyle' => 'behind',
+                'marginRight' => 40,
+                'marginBottom' => 20
+            ];
+            $this->section->addImage($imagePath, $imageStyle);
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir el logo: " . $e->getMessage());
+        }
     }
 
-    /**
-     * Añade el título al documento
-     */
+    // Añade el título del contrato
     private function addTitle()
     {
-        $titleFontStyle = ['name' => 'Lato', 'size' => 15, 'bold' => true, 'color' => '1F4E79'];
-        $titleParagraphStyle = ['alignment' => 'center', 'spaceAfter' => 500];
-        $this->section->addText("CONTRATO DE ACTUACION DE ARTISTAS", $titleFontStyle, $titleParagraphStyle);
-       
-        // Añadir saltos de línea después del párrafo
-        $this->addMultipleLineBreaks(1);
-    }
+        $titleStyle = [
+            'font' => ['name' => 'Lato', 'size' => 15, 'bold' => true, 'color' => '1F4E79'],
+            'paragraph' => ['alignment' => 'center', 'spaceAfter' => 500]
+        ];
 
-    /**
-     * Añade la introducción al contrato
-     */
-    private function addIntroduction()
-    {
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
-
-        $textRun->addText("Entre la ", null);
-        $textRun->addText("PRODUCTORA", $boldStyle);
-        $textRun->addText(" de eventos artísticos y representante legal de este, la señorita ", null);
-        $textRun->addText("OLGA XIMENA SCHAAF GODOY", $boldStyle);
-        $textRun->addText(", Rut: ", null);
-        $textRun->addText("11.704.321-5", $boldStyle);
-        $textRun->addText(", con domicilio: El Castaño N°01976, Alto del Maitén, Provincia de Melipilla, Región Metropolitana, en adelante denominada ", null);
-        $textRun->addText("SCHAAFPRODUCCIONES SpA", ['bold' => true, 'allCaps' => true]);
-        $textRun->addText(", Rut: ", null);
-        $textRun->addText("76.748.346-5", $boldStyle);
-        $textRun->addText(" por una parte, y por la otra ", null);
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" Rut: ", null);
-        $textRun->addText("{$this->eventData['rut']}", $boldStyle);
-        $textRun->addText(", en adelante, en representación de ", null);
-        $textRun->addText("{$this->eventData['nombre_empresa']}", ['bold' => true, 'allCaps' => true]);
-        $textRun->addText(", Rol Único Tributario Rut: ", null);
-        $textRun->addText("{$this->eventData['rut_empresa']}", $boldStyle);
-        $textRun->addText(" con domicilio en: ", null);
-        $textRun->addText("{$this->eventData['direccion_empresa']}", $boldStyle);
-        $textRun->addText(", se conviene en celebrar el presente contrato de actuación de artistas, contenido en las cláusulas siguientes:");
-
-        // Añadir saltos de línea después del párrafo
-        $this->addMultipleLineBreaks(1);
-    }
-
-     /**
-     * Añade las cláusulas al contrato
-     */
-    private function addClauses()
-    {
-        $this->addClause1();
-        $this->addClause2();
-        $this->addClause3();
-        $this->addClause4();
-        $this->addClause5();
-        $this->addPageBreak();
-        $this->addClause6();
-        $this->addClause7();
-    }
-    
-    /**
-    * Añade un salto de página al documento
-    */
-    private function addPageBreak()
-    {
-        $this->section->addPageBreak();
-    }
-
-    /**
-     * Añade la Cláusula 1: Objeto del contrato
-     */
-    private function addClause1()
-    {
-        $this->section->addText("Cláusula 1: OBJETO DEL CONTRATO", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
-
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" contrata los servicios del siguiente artista: ");
-        $textRun->addText("AGRUPACIÓN MARILYN", $boldStyle);
-        $textRun->addText(" el mencionado, en adelante y a los efectos del presente contrato denominado, el artista, efectuará una (1) presentación de aproximadamente 60 minutos, a realizarse en el marco de presentación pública, el día ");
-        $textRun->addText($this->convertirFecha($this->eventData['fecha_evento']), $boldStyle);
-        $textRun->addText(" a las ");
-        $textRun->addText(mb_strtoupper(date('H:i', strtotime($this->eventData['hora_evento'])), 'UTF-8'), $boldStyle);
-        $textRun->addText(" en ");
-        $textRun->addText($this->eventData['lugar_evento'], $boldStyle);
-        $textRun->addText(" para el evento ");
-        $textRun->addText($this->eventData['nombre_evento'], $boldStyle);
-    }
-
-    /**
-     * Añade la Cláusula 2: Remuneración
-     */
-    private function addClause2()
-    {
-        $this->section->addText("Cláusula 2: REMUNERACIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
-
-        $valor_evento = intval($this->eventData['valor_evento']);
-        $valor_en_palabras = $this->numberToWords($valor_evento);
-        $valor_formateado = number_format($valor_evento, 0, ',', '.');
-
-        $textRun->addText(" 2.1 Por la presentación mencionada en la Cláusula 1, ");
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" Pagará a ");
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(" la cantidad de ");
-        $textRun->addText("$" . $valor_formateado . " (" . $valor_en_palabras . " PESOS)", $boldStyle);
-
-        $mitad_valor = $valor_evento / 2;
-        $mitad_valor_palabras = $this->numberToWords($mitad_valor);
-        $mitad_valor_formateado = number_format($mitad_valor, 0, ',', '.');
-
-        $textRun->addText(" La cantidad de ");
-        $textRun->addText("$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " PESOS)", $boldStyle);
-        $textRun->addText(", correspondiente en parte a un 50% que será pagado a la firma del presente contrato en dinero en efectivo y solo moneda nacional o transferencia Bancaria.");
-        $textRun->addText(" La cantidad de ");
-        $textRun->addText("$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " PESOS)", $boldStyle);
-        $textRun->addText(", correspondiente al 50% restante, por concepto de término de honorarios, deberá ser cancelado antes de subir al escenario el día ");
-        $textRun->addText($this->convertirFecha($this->eventData['fecha_evento']), $boldStyle);
-        $textRun->addText(", dinero en efectivo o transferencia Bancaria.");
-        $textRun->addText(" BANCO SANTANDER, CUENTA CORRIENTE N° 71760359, RUT:76.748.346-5, NOMBRE: SCHAAFPRODUCCIONES SPA, CORREO: SCHAAFPRODUCCIONES@GMAIL.COM", $boldStyle);
-    }
-    /**
-     * Añade la Cláusula 3: Alojamiento, traslados y viáticos
-     */
-    private function addClause3()
-    {
-        $this->section->addText("Cláusula 3: ALOJAMIENTO, TRASLADOS Y VIÁTICOS", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
-
-        $servicios_productora = [];
-        $servicios_cliente = [];
-
-        if ($this->eventData['hotel'] == 'Si') $servicios_productora[] = 'alojamiento';
-        else $servicios_cliente[] = 'alojamiento';
-
-        if ($this->eventData['traslados'] == 'Si') $servicios_productora[] = 'traslados (ida y vuelta)';
-        else $servicios_cliente[] = 'traslados (ida y vuelta)';
-
-        if ($this->eventData['viaticos'] == 'Si') $servicios_productora[] = 'viáticos';
-        else $servicios_cliente[] = 'viáticos';
-
-        if (count($servicios_productora) == 3) {
-            $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
-            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-            $textRun->addText(". El pago de los servicios de sonido y catering se hará cargo ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-            $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
-        } elseif (count($servicios_cliente) == 3) {
-            $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-            $textRun->addText(". El pago de los servicios de sonido y catering también será responsabilidad de ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-            $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
-        } else {
-            $servicios_productora_str = implode(', ', $servicios_productora);
-            $servicios_cliente_str = implode(', ', $servicios_cliente);
-            
-            $textRun->addText("La responsabilidad de $servicios_productora_str estará a cargo de ");
-            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-            $textRun->addText(". La responsabilidad de $servicios_cliente_str y el pago de los servicios de sonido y catering estará a cargo de ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-            $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+        try {
+            $this->section->addText(
+                "CONTRATO DE ACTUACION DE ARTISTAS",
+                $titleStyle['font'],
+                $titleStyle['paragraph']
+            );
+            $this->addMultipleLineBreaks(1);
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir el título: " . $e->getMessage());
         }
     }
 
-    /**
-     * Añade la Cláusula 4: Suspensión
-     */
-    private function addClause4()
+    // Añade la introducción del contrato
+    private function addIntroduction()
     {
-        $this->section->addText("Cláusula 4: SUSPENSIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
+        try {
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
 
-        $textRun->addText("4.1 Salvo acuerdo entre ambas partes, ");
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" no podrá rescindir el presente contrato unilateralmente.");
-        $textRun->addText(" Pero podrá solicitar la suspensión de la actuación del artista solamente con las siguientes causales:");
-        $textRun->addText(" 4.2 Si ");
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" cancelara unilateralmente la presentación deberá pagar a ");
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(" el 100% (cien por ciento) del monto establecido como Remuneración en la Cláusula 2 de este contrato por concepto de indemnización, haciéndose cargo también de los gastos en que ");
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(" haya incurrido producto de la presentación que fuese cancelada.");
+            $this->addIntroductionText($textRun, $boldStyle);
+            $this->addMultipleLineBreaks(1);
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la introducción: " . $e->getMessage());
+        }
     }
 
-    /**
-     * Añade la Cláusula 5: Promoción
-     */
-    private function addClause5()
+    // Agrega el texto de introducción
+    private function addIntroductionText($textRun, $boldStyle)
     {
-        $this->section->addText("Cláusula 5: PROMOCIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
+        $introText = [
+            ["Entre la ", null],
+            ["PRODUCTORA", $boldStyle],
+            [" de eventos artísticos y representante legal de este, la señorita ", null],
+            ["OLGA XIMENA SCHAAF GODOY", $boldStyle],
+            [", Rut: ", null],
+            ["11.704.321-5", $boldStyle],
+            [", con domicilio: El Castaño N°01976, Alto del Maitén, Provincia de Melipilla, Región Metropolitana, en adelante denominada ", null],
+            ["SCHAAFPRODUCCIONES SpA", ['bold' => true, 'allCaps' => true]],
+            [", Rut: ", null],
+            ["76.748.346-5", $boldStyle],
+            [" por una parte, y por la otra ", null],
+            ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
+            [" Rut: ", null],
+            ["{$this->eventData['rut']}", $boldStyle],
+            [", en adelante, en representación de ", null],
+            ["{$this->eventData['nombre_empresa']}", ['bold' => true, 'allCaps' => true]],
+            [", Rol Único Tributario Rut: ", null],
+            ["{$this->eventData['rut_empresa']}", $boldStyle],
+            [" con domicilio en: ", null],
+            ["{$this->eventData['direccion_empresa']}", $boldStyle],
+            [", se conviene en celebrar el presente contrato de actuación de artistas, contenido en las cláusulas siguientes:", null]
+        ];
 
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(" autoriza expresamente a ");
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" para utilizar el nombre del artista, biografía e imagen en la comunicación relativa a la promoción del espectáculo, pero en ningún caso ");
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" quedará facultad" . (strtoupper($this->eventData['genero']) == 'FEMENINO' ? "a" : "o") . " para relacionar directa o indirectamente la imagen del artista con marcas comerciales que puedan auspiciar el espectáculo. En caso de divergencias respecto a la forma en que la imagen del artista es utilizada, primará la opinión de ");
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(".");
+        foreach ($introText as $text) {
+            $textRun->addText($text[0], $text[1]);
+        }
     }
 
-    /**
-     * Añade la Cláusula 6: Seguridad
-     */
-    private function addClause6()
-    {
-        $this->section->addText("Cláusula 6: SEGURIDAD", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $boldStyle = ['bold' => true];
-
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-        $textRun->addText(" tiene la obligación de proveer la adecuada seguridad para el artista, los miembros de la delegación y el público que asiste al espectáculo.");
-        $textRun->addText(" El acceso a camarines estará restringido exclusivamente a las personas que ");
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(" identifique con sus propias identificaciones y debidamente custodiado por guardias profesionales.");
-        $textRun->addText(" El escenario deberá tener barreras de contención adecuadas para mantener al público a una distancia no menor a los dos metros del borde del mismo, y deberán ubicarse guardias en el pasillo de seguridad entre el escenario y las barreras.");
-        $textRun->addText(" Ningún guardia puede estar armado, aun teniendo los respectivos permisos que lo autoricen a ello. ");
-        $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
-        $textRun->addText(" tendrá la facultad de remover del lugar al personal de seguridad que estime, bajo su solo criterio, que no resulta adecuado para las funciones que debe cumplir.");
-        
-        // Añadir saltos de línea después del párrafo
-        $this->addMultipleLineBreaks(1);
-    }
-
-    /**
-     * Añade la información de coordinación
-     */
-    private function addClause7()
-    {
-        $this->section->addText("Cláusula 7: COORDINACIÓN", ['bold' => true], ['spaceAfter' => 100]);
-        $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
-        $textRun->addText("para los efectos de la realización del evento, las partes designan a las siguientes personas con sus respectivos datos: ");
-
-        $this->section->addTextBreak();
-
-        $leftAlignedStyle = ['alignment' => 'left'];
-        $boldStyle = ['bold' => true];
-        $this->section->addText("SCHAAFPRODUCCIONES SPA", $boldStyle, $leftAlignedStyle);
-        $this->section->addText("SEÑORITA:   OLGA XIMENA SCHAAF GODOY", $boldStyle, $leftAlignedStyle);
-        $this->section->addText("CELULAR:    +569995699801", $boldStyle, $leftAlignedStyle);
-        $this->section->addText("CORREO:     ARTISTAS@SCHAAFPRODUCCIONES.CL", $boldStyle, $leftAlignedStyle);
-
-        $tratamiento = (strtoupper($this->eventData['genero']) == 'FEMENINO') ? "SEÑORA:" : "SEÑOR:";
-
-        $textRun = $this->section->addTextRun($leftAlignedStyle);
-        $textRun->addText($tratamiento . "       ", $boldStyle, $leftAlignedStyle);
-        $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
-
-        $textRun = $this->section->addTextRun($leftAlignedStyle);
-        $textRun->addText("CELULAR:     ", $boldStyle, $leftAlignedStyle);
-        $textRun->addText($this->eventData['celular'], $boldStyle);
-
-        $textRun = $this->section->addTextRun($leftAlignedStyle);
-        $textRun->addText("CORREO:     ", $boldStyle, $leftAlignedStyle);
-        $textRun->addText($this->eventData['correo'], $boldStyle);
-
-        // Añadir saltos de línea después del párrafo
-        $this->addMultipleLineBreaks(5);
-    }
-
-     /**
-     * Añade múltiples saltos de línea al documento
-     *
-     * @param int $count Número de saltos de línea a añadir
-     */
+    // Funciones auxiliares
     private function addMultipleLineBreaks($count = 1)
     {
         for ($i = 0; $i < $count; $i++) {
@@ -416,89 +240,158 @@ class ContractGenerator
         }
     }
 
-    /**
-     * Añade las firmas al final del documento
-     */
-    private function addSignatures()
+    private function addPageBreak()
     {
-        for ($i = 0; $i < 1; $i++) {
-            $this->section->addTextBreak();
+        $this->section->addPageBreak();
+    }
+    // Función para agregar todas las cláusulas
+    private function addClauses()
+    {
+        try {
+            $this->addClause1();
+            $this->addClause2();
+            $this->addClause3();
+            $this->addClause4();
+            $this->addClause5();
+            $this->addPageBreak();
+            $this->addClause6();
+            $this->addClause7();
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir las cláusulas: " . $e->getMessage());
         }
-
-        $table = $this->section->addTable();
-        $table->addRow();
-        $cell1 = $table->addCell(6000);
-        $cell2 = $table->addCell(3000);
-
-        $firmaPath = __DIR__ . '/assets/img/firma.png';
-        if (!file_exists($firmaPath)) {
-            throw new Exception("La imagen de la firma no se encuentra en la ruta especificada: $firmaPath");
-        }
-        $firmaStyle = [
-            'width' => 100,
-            'height' => 74,
-            'alignment' => 'center',
-            'marginBottom' => 5
-        ];
-        $cell1->addImage($firmaPath, $firmaStyle);
-
-       
-        $boldStyle = ['bold' => true];
-        $cell1->addText("___________________________", $boldStyle, ['alignment' => 'center']);
-        $cell1->addText("OLGA XIMENA SCHAAF", $boldStyle, ['alignment' => 'center']);
-        $cell1->addText("76.748.346-5", $boldStyle, ['alignment' => 'center']);
-        $cell1->addText("SCHAAFPRODUCCIONES SpA", $boldStyle, ['alignment' => 'center']);
-
-        $firma2Path = __DIR__ . '/assets/img/firma-2.png';
-        $cell2->addImage($firma2Path, $firmaStyle);
-
-        $cell2->addText("___________________________", $boldStyle, ['alignment' => 'center']);
-        $cell2->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle, ['alignment' => 'center']);
-        $cell2->addText($this->eventData['rut_empresa'], $boldStyle, ['alignment' => 'center']);
-        $cell2->addText($this->eventData['nombre_empresa'], $boldStyle, ['alignment' => 'center']);
     }
 
-    /**
-     * Guarda el documento generado
-     * 
-     * @param string $clienteNombre Nombre del cliente para el nombre del archivo
-     */
-    public function saveDocument($clienteNombre)
+    // Cláusula 1: Objeto del Contrato
+    private function addClause1()
     {
-        // Asegurarse de que tenemos un nombre de cliente válido
-        if (empty($clienteNombre)) {
-            // Si no se proporciona un nombre de cliente, usamos los datos del evento
-            $clienteNombre = trim("{$this->eventData['nombres']} {$this->eventData['apellidos']}");
+        try {
+            $this->section->addText(
+                "Cláusula 1: OBJETO DEL CONTRATO",
+                ['bold' => true],
+                ['spaceAfter' => 100, 'spaceBefore' => 100]
+            );
+
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
+
+            $clause1Text = [
+                ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
+                [" contrata los servicios del siguiente artista: ", null],
+                ["AGRUPACIÓN MARILYN", $boldStyle],
+                [" el mencionado, en adelante y a los efectos del presente contrato denominado, el artista, efectuará una (1) presentación de aproximadamente 60 minutos, a realizarse en el marco de presentación pública, el día ", null],
+                [$this->convertirFecha($this->eventData['fecha_evento']), $boldStyle],
+                [" a las ", null],
+                [mb_strtoupper(date('H:i', strtotime($this->eventData['hora_evento'])), 'UTF-8'), $boldStyle],
+                [" en ", null],
+                [$this->eventData['lugar_evento'], $boldStyle],
+                [" para el evento ", null],
+                [$this->eventData['nombre_evento'], $boldStyle]
+            ];
+
+            foreach ($clause1Text as $text) {
+                $textRun->addText($text[0], $text[1]);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 1: " . $e->getMessage());
         }
-
-        // Limpiar el nombre del cliente para usarlo en el nombre del archivo
-        $clienteNombreLimpio = preg_replace('/[^a-zA-Z0-9_]/', '', $clienteNombre);
-
-        // Si después de limpiar el nombre sigue vacío, usar un nombre genérico
-        if (empty($clienteNombreLimpio)) {
-            $clienteNombreLimpio = "Cliente";
-        }
-
-        $fileName = "CONTRATO_" . $clienteNombreLimpio . ".docx";
-
-        header("Content-Description: File Transfer");
-        header("Content-Disposition: attachment; filename=$fileName");
-        header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-        header("Content-Transfer-Encoding: binary");
-        header("Expires: 0");
-        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-        header("Pragma: public");
-
-        $objWriter = IOFactory::createWriter($this->phpWord, 'Word2007');
-        $objWriter->save('php://output');
     }
 
-    /**
-     * Convierte un número a palabras
-     * 
-     * @param int $number Número a convertir
-     * @return string Número en palabras
-     */
+    // Cláusula 2: Remuneración
+    private function addClause2()
+    {
+        try {
+            $this->section->addText(
+                "Cláusula 2: REMUNERACIÓN",
+                ['bold' => true],
+                ['spaceAfter' => 100, 'spaceBefore' => 100]
+            );
+
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
+
+            $valor_evento = intval($this->eventData['valor_evento']);
+            $valor_en_palabras = $this->numberToWords($valor_evento);
+            $valor_formateado = number_format($valor_evento, 0, ',', '.');
+
+            $mitad_valor = $valor_evento / 2;
+            $mitad_valor_palabras = $this->numberToWords($mitad_valor);
+            $mitad_valor_formateado = number_format($mitad_valor, 0, ',', '.');
+
+            // Construir el texto de la cláusula 2
+            $clause2Text = [
+                ["2.1 Por la presentación mencionada en la Cláusula 1, ", null],
+                ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
+                [" Pagará a ", null],
+                ["SCHAAFPRODUCCIONES SPA", $boldStyle],
+                [" la cantidad de ", null],
+                ["$" . $valor_formateado . " (" . $valor_en_palabras . " PESOS)", $boldStyle],
+                [" La cantidad de ", null],
+                ["$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " PESOS)", $boldStyle],
+                [", correspondiente en parte a un 50% que será pagado a la firma del presente contrato en dinero en efectivo y solo moneda nacional o transferencia Bancaria.", null],
+                [" La cantidad de ", null],
+                ["$" . $mitad_valor_formateado . " (" . $mitad_valor_palabras . " PESOS)", $boldStyle],
+                [", correspondiente al 50% restante, por concepto de término de honorarios, deberá ser cancelado antes de subir al escenario el día ", null],
+                [$this->convertirFecha($this->eventData['fecha_evento']), $boldStyle],
+                [", dinero en efectivo o transferencia Bancaria.", null],
+                [" BANCO SANTANDER, CUENTA CORRIENTE N° 71760359, RUT:76.748.346-5, NOMBRE: SCHAAFPRODUCCIONES SPA, CORREO: SCHAAFPRODUCCIONES@GMAIL.COM", $boldStyle]
+            ];
+
+            foreach ($clause2Text as $text) {
+                $textRun->addText($text[0], $text[1]);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 2: " . $e->getMessage());
+        }
+    }
+
+    // Cláusula 3: Alojamiento, Traslados y Viáticos
+    private function addClause3()
+    {
+        try {
+            $this->section->addText("Cláusula 3: ALOJAMIENTO, TRASLADOS Y VIÁTICOS", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
+
+            $servicios_productora = [];
+            $servicios_cliente = [];
+
+            if ($this->eventData['hotel'] == 'Si') $servicios_productora[] = 'alojamiento';
+            else $servicios_cliente[] = 'alojamiento';
+
+            if ($this->eventData['traslados'] == 'Si') $servicios_productora[] = 'traslados (ida y vuelta)';
+            else $servicios_cliente[] = 'traslados (ida y vuelta)';
+
+            if ($this->eventData['viaticos'] == 'Si') $servicios_productora[] = 'viáticos';
+            else $servicios_cliente[] = 'viáticos';
+
+            if (count($servicios_productora) == 3) {
+                $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
+                $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+                $textRun->addText(". El pago de los servicios de sonido y catering se hará cargo ");
+                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+            } elseif (count($servicios_cliente) == 3) {
+                $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
+                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText(". El pago de los servicios de sonido y catering también será responsabilidad de ");
+                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+            } else {
+                $servicios_productora_str = implode(', ', $servicios_productora);
+                $servicios_cliente_str = implode(', ', $servicios_cliente);
+
+                $textRun->addText("La responsabilidad de $servicios_productora_str estará a cargo de ");
+                $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+                $textRun->addText(". La responsabilidad de $servicios_cliente_str y el pago de los servicios de sonido y catering estará a cargo de ");
+                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 3: " . $e->getMessage());
+        }
+    }
+
+    // Función para convertir números a palabras
     private function numberToWords($number)
     {
         $units = ["", "un", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve"];
@@ -506,13 +399,8 @@ class ContractGenerator
         $teens = ["diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve"];
         $hundreds = ["", "ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos", "seiscientos", "setecientos", "ochocientos", "novecientos"];
 
-        if ($number == 0) {
-            return "cero";
-        }
-
-        if ($number < 0) {
-            return "menos " . $this->numberToWords(abs($number));
-        }
+        if ($number == 0) return "cero";
+        if ($number < 0) return "menos " . $this->numberToWords(abs($number));
 
         $words = [];
 
@@ -546,51 +434,217 @@ class ContractGenerator
             $words[] = $units[$number];
         }
 
-        $result = implode(" ", $words);
-
-        return mb_strtoupper($result, 'UTF-8');
+        return mb_strtoupper(implode(" ", $words), 'UTF-8');
     }
 
-    /**
-     * Convierte una fecha a formato largo
-     * 
-     * @param string $fecha Fecha en formato Y-m-d
-     * @return string Fecha en formato largo
-     */
+    // Función para convertir fecha a formato texto
     private function convertirFecha($fecha)
     {
-        $meses = array("ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE");
-        $fecha = new DateTime($fecha);
-        $dia = $fecha->format('j');
-        $mes = $meses[$fecha->format('n') - 1];
-        $anio = $fecha->format('Y');
-        return mb_strtoupper("$dia DE $mes DEL $anio", 'UTF-8');
+        try {
+            $meses = [
+                "ENERO",
+                "FEBRERO",
+                "MARZO",
+                "ABRIL",
+                "MAYO",
+                "JUNIO",
+                "JULIO",
+                "AGOSTO",
+                "SEPTIEMBRE",
+                "OCTUBRE",
+                "NOVIEMBRE",
+                "DICIEMBRE"
+            ];
+
+            $fecha = new DateTime($fecha);
+            $dia = $fecha->format('j');
+            $mes = $meses[$fecha->format('n') - 1];
+            $anio = $fecha->format('Y');
+
+            return mb_strtoupper("$dia DE $mes DEL $anio", 'UTF-8');
+        } catch (Exception $e) {
+            throw new Exception("Error al convertir la fecha: " . $e->getMessage());
+        }
+    }
+    // Cláusula 4: Suspensión
+    private function addClause4()
+    {
+        try {
+            $this->section->addText("Cláusula 4: SUSPENSIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
+
+            $textRun->addText("4.1 Salvo acuerdo entre ambas partes, ");
+            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText(" no podrá rescindir el presente contrato unilateralmente.");
+            $textRun->addText(" Pero podrá solicitar la suspensión de la actuación del artista solamente con las siguientes causales:");
+            $textRun->addText(" 4.2 Si ");
+            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText(" cancelara unilateralmente la presentación deberá pagar a ");
+            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+            $textRun->addText(" el 100% (cien por ciento) del monto establecido como Remuneración en la Cláusula 2 de este contrato por concepto de indemnización, haciéndose cargo también de los gastos en que ");
+            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+            $textRun->addText(" haya incurrido producto de la presentación que fuese cancelada.");
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 4: " . $e->getMessage());
+        }
+    }
+
+    // Cláusula 5: Promoción
+    private function addClause5()
+    {
+        try {
+            $this->section->addText("Cláusula 5: PROMOCIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
+
+            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+            $textRun->addText(" autoriza expresamente a ");
+            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText(" para utilizar el nombre del artista, biografía e imagen en la comunicación relativa a la promoción del espectáculo, pero en ningún caso ");
+            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText(" quedará facultad" . (strtoupper($this->eventData['genero']) == 'FEMENINO' ? "a" : "o") . " para relacionar directa o indirectamente la imagen del artista con marcas comerciales que puedan auspiciar el espectáculo. En caso de divergencias respecto a la forma en que la imagen del artista es utilizada, primará la opinión de ");
+            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+            $textRun->addText(".");
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 5: " . $e->getMessage());
+        }
+    }
+
+    // Cláusula 6: Seguridad
+    private function addClause6()
+    {
+        try {
+            $this->section->addText("Cláusula 6: SEGURIDAD", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $boldStyle = ['bold' => true];
+
+            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText(" tiene la obligación de proveer la adecuada seguridad para el artista, los miembros de la delegación y el público que asiste al espectáculo.");
+            $textRun->addText(" El acceso a camarines estará restringido exclusivamente a las personas que ");
+            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+            $textRun->addText(" identifique con sus propias identificaciones y debidamente custodiado por guardias profesionales.");
+            $textRun->addText(" El escenario deberá tener barreras de contención adecuadas para mantener al público a una distancia no menor a los dos metros del borde del mismo, y deberán ubicarse guardias en el pasillo de seguridad entre el escenario y las barreras.");
+            $textRun->addText(" Ningún guardia puede estar armado, aun teniendo los respectivos permisos que lo autoricen a ello. ");
+            $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
+            $textRun->addText(" tendrá la facultad de remover del lugar al personal de seguridad que estime, bajo su solo criterio, que no resulta adecuado para las funciones que debe cumplir.");
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 6: " . $e->getMessage());
+        }
+    }
+
+    // Cláusula 7: Coordinación
+    private function addClause7()
+    {
+        try {
+            $this->section->addText("Cláusula 7: COORDINACIÓN", ['bold' => true], ['spaceAfter' => 100]);
+            $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
+            $textRun->addText("para los efectos de la realización del evento, las partes designan a las siguientes personas con sus respectivos datos: ");
+
+            $this->section->addTextBreak();
+
+            $leftAlignedStyle = ['alignment' => 'left'];
+            $boldStyle = ['bold' => true];
+
+            $this->section->addText("SCHAAFPRODUCCIONES SPA", $boldStyle, $leftAlignedStyle);
+            $this->section->addText("SEÑORITA:   OLGA XIMENA SCHAAF GODOY", $boldStyle, $leftAlignedStyle);
+            $this->section->addText("CELULAR:    +569995699801", $boldStyle, $leftAlignedStyle);
+            $this->section->addText("CORREO:     ARTISTAS@SCHAAFPRODUCCIONES.CL", $boldStyle, $leftAlignedStyle);
+
+            $tratamiento = (strtoupper($this->eventData['genero']) == 'FEMENINO') ? "SEÑORA:" : "SEÑOR:";
+            $textRun = $this->section->addTextRun($leftAlignedStyle);
+            $textRun->addText($tratamiento . "       ", $boldStyle);
+            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+
+            $textRun = $this->section->addTextRun($leftAlignedStyle);
+            $textRun->addText("CELULAR:     ", $boldStyle);
+            $textRun->addText($this->eventData['celular'], $boldStyle);
+
+            $textRun = $this->section->addTextRun($leftAlignedStyle);
+            $textRun->addText("CORREO:     ", $boldStyle);
+            $textRun->addText($this->eventData['correo'], $boldStyle);
+
+            $this->addMultipleLineBreaks(5);
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir la cláusula 7: " . $e->getMessage());
+        }
+    }
+
+    // Agregar firmas al documento
+    private function addSignatures()
+    {
+        try {
+            $this->addMultipleLineBreaks(1);
+            $table = $this->section->addTable(['alignment' => 'center']);
+            $table->addRow();
+
+            // Primera firma
+            $cell1 = $table->addCell(6000);
+            $this->addSignatureContent(
+                $cell1,
+                'firma.png',
+                "OLGA XIMENA SCHAAF",
+                "76.748.346-5",
+                "SCHAAFPRODUCCIONES SpA"
+            );
+
+            // Segunda firma
+            $cell2 = $table->addCell(3000);
+            $this->addSignatureContent(
+                $cell2,
+                'firma-2.png',
+                "{$this->eventData['nombres']} {$this->eventData['apellidos']}",
+                $this->eventData['rut_empresa'],
+                $this->eventData['nombre_empresa']
+            );
+        } catch (Exception $e) {
+            throw new Exception("Error al añadir las firmas: " . $e->getMessage());
+        }
+    }
+
+    // Agregar contenido de firma
+    private function addSignatureContent($cell, $imageName, $nombre, $rut, $empresa)
+    {
+        $firmaPath = __DIR__ . '/assets/img/' . $imageName;
+        if (!file_exists($firmaPath)) {
+            throw new Exception("Imagen de firma no encontrada: $firmaPath");
+        }
+
+        $firmaStyle = [
+            'width' => 100,
+            'height' => 74,
+            'alignment' => 'center',
+            'marginBottom' => 5
+        ];
+
+        $cell->addImage($firmaPath, $firmaStyle);
+
+        $boldStyle = ['bold' => true];
+        $centerStyle = ['alignment' => 'center'];
+
+        $cell->addText("___________________________", $boldStyle, $centerStyle);
+        $cell->addText($nombre, $boldStyle, $centerStyle);
+        $cell->addText($rut, $boldStyle, $centerStyle);
+        $cell->addText($empresa, $boldStyle, $centerStyle);
     }
 }
 
-// Uso de la clase
+// Código de ejecución principal
 try {
-    // Obtener el ID del evento y el nombre del cliente
-    $evento_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-    $cliente_nombre = isset($_GET['nombre']) ? $_GET['nombre'] : '';
-
-    if ($evento_id <= 0) {
-        throw new Exception("ID de evento no válido");
+    // Validar ID del evento
+    $evento_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+    if (!$evento_id) {
+        throw new InvalidArgumentException("ID de evento no válido");
     }
 
-    // Crear instancia de ContractGenerator
+    // Crear el generador de contratos y procesar
     $contractGenerator = new ContractGenerator($conn);
-    // Obtener datos del evento
     $contractGenerator->getEventData($evento_id);
-
-    // Generar el contrato
     $contractGenerator->generateContract();
-
-    // Guardar el documento
-    $contractGenerator->saveDocument($cliente_nombre);
-
+    $contractGenerator->saveDocument();
 } catch (Exception $e) {
     error_log("Error en generar_contrato.php: " . $e->getMessage());
-    echo "Error: " . $e->getMessage();
+    http_response_code(500);
+    echo json_encode(['error' => $e->getMessage()]);
     exit();
 }
