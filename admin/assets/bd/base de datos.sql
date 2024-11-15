@@ -107,8 +107,8 @@ CREATE TABLE eventos (
     estado_evento ENUM(
         'Propuesta', 
         'Confirmado', 
-        'Documentación', 
-        'En Producción', 
+        'Documentacion', 
+        'En Produccion', 
         'Finalizado', 
         'Reagendado', 
         'Cancelado'
@@ -141,4 +141,4 @@ CREATE TABLE eventos (
 -- Este script crea una base de datos para un sistema de gestión de eventos artísticos
 -- que maneja clientes, empresas, artistas, giras y eventos.
 -- Incluye relaciones entre todas las entidades y manejo de archivos binarios para imágenes.
--- Última actualización: 13/11/2024
+-- Última actualización: 15/11/2024
