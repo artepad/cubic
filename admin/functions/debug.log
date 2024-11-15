@@ -284,3 +284,189 @@ Data: Array
 
 --------------------------------------------------
 
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - === Nueva solicitud de creación de evento ===
+--------------------------------------------------
+
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - POST Data
+Data: Array
+(
+    [gira_id] => 1
+    [artista_id] => 1
+    [cliente_id] => 13
+    [evento_id] => 0
+    [nombre_evento] => Evento de la Fruta
+    [encabezado_evento] => 
+    [fecha_evento] => 2024-11-17
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - Campos requeridos procesados
+Data: Array
+(
+    [cliente_id] => 13
+    [artista_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-17
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - Campos opcionales procesados
+Data: Array
+(
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+    [gira_id] => 1
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - SQL Query
+Data: INSERT INTO eventos (
+            cliente_id, artista_id, gira_id, nombre_evento, 
+            fecha_evento, hora_evento, ciudad_evento, lugar_evento, 
+            valor_evento, tipo_evento, encabezado_evento, estado_evento, 
+            hotel, traslados, viaticos
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+--------------------------------------------------
+
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - Parámetros para insert
+Data: Array
+(
+    [cliente_id] => 13
+    [artista_id] => 1
+    [gira_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-17
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:14:21 Europe/Berlin] 2024-11-15 06:14:21 - Error en crear_evento.php
+Data: Array
+(
+    [error] => Data truncated for column 'estado_evento' at row 1
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - === Nueva solicitud de creación de evento ===
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - POST Data
+Data: Array
+(
+    [gira_id] => 1
+    [artista_id] => 1
+    [cliente_id] => 15
+    [evento_id] => 0
+    [nombre_evento] => Evento de la Fruta
+    [encabezado_evento] => 
+    [fecha_evento] => 2024-11-30
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - Campos requeridos procesados
+Data: Array
+(
+    [cliente_id] => 15
+    [artista_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-30
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - Campos opcionales procesados
+Data: Array
+(
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+    [gira_id] => 1
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - SQL Query
+Data: INSERT INTO eventos (
+            cliente_id, artista_id, gira_id, nombre_evento, 
+            fecha_evento, hora_evento, ciudad_evento, lugar_evento, 
+            valor_evento, tipo_evento, encabezado_evento, estado_evento, 
+            hotel, traslados, viaticos
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - Parámetros para insert
+Data: Array
+(
+    [cliente_id] => 15
+    [artista_id] => 1
+    [gira_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-30
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:19:20 Europe/Berlin] 2024-11-15 06:19:20 - Error en crear_evento.php
+Data: Array
+(
+    [error] => Data truncated for column 'estado_evento' at row 1
+)
+
+--------------------------------------------------
+

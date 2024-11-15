@@ -11,6 +11,7 @@ require_once '../functions/functions.php';
 $logFile = __DIR__ . '/debug.log';
 ini_set('error_log', $logFile);
 
+// Función para logging
 function debug_log($message, $data = null) {
     $log = date('Y-m-d H:i:s') . " - " . $message;
     if ($data !== null) {
@@ -24,19 +25,26 @@ function debug_log($message, $data = null) {
 debug_log("=== Nueva solicitud de creación de evento ===");
 debug_log("POST Data", $_POST);
 
+// Asegurar que la conexión use UTF-8
+if (!$conn->set_charset("utf8mb4")) {
+    debug_log("Error al establecer charset", ["error" => $conn->error]);
+    die("Error al establecer charset: " . $conn->error);
+}
+
 header('Content-Type: application/json');
 
 // Función para enviar respuestas JSON
 function sendJsonResponse($success, $message, $data = null) {
-    echo json_encode([
+    $response = [
         "success" => $success,
         "message" => $message,
         "data" => $data
-    ]);
+    ];
+    echo json_encode($response, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-// Función de sanitización para reemplazar FILTER_SANITIZE_STRING
+// Función de sanitización
 function sanitizeString($str) {
     if ($str === null) {
         return '';
@@ -93,10 +101,38 @@ function validateEventStatus($status) {
         'Cancelado'
     ];
     
-    if (empty($status) || !in_array($status, $validStatus)) {
-        return 'Propuesta'; // Valor por defecto
+    // Si está vacío o no es válido, retornar el valor por defecto
+    if (empty($status)) {
+        debug_log("Estado vacío, usando valor por defecto 'Propuesta'");
+        return 'Propuesta';
     }
-    return $status;
+    
+    // Limpieza y normalización del estado
+    $status = trim($status);
+    
+    debug_log("Validando estado del evento", [
+        'valor_original' => $status,
+        'estados_validos' => $validStatus
+    ]);
+    
+    // Buscar coincidencia exacta
+    if (in_array($status, $validStatus, true)) {
+        debug_log("Estado válido encontrado", ['estado' => $status]);
+        return $status;
+    }
+    
+    debug_log("Estado no válido, usando valor por defecto", [
+        'estado_invalido' => $status,
+        'usando_default' => 'Propuesta'
+    ]);
+    
+    return 'Propuesta';
+}
+
+// Función para validar opciones Si/No
+function validateYesNo($value) {
+    $value = trim($value);
+    return ($value === 'Si' || $value === 'No') ? $value : 'No';
 }
 
 // Función para obtener o crear gira predeterminada
@@ -111,7 +147,10 @@ function obtenerGiraPredeterminada($conn) {
         }
 
         $stmt->bind_param("s", $nombreGiraPredeterminada);
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar consulta de gira: " . $stmt->error);
+        }
+        
         $result = $stmt->get_result();
         
         if ($result->num_rows > 0) {
@@ -130,6 +169,7 @@ function obtenerGiraPredeterminada($conn) {
         if (!$stmt->execute()) {
             throw new Exception("Error creando gira predeterminada: " . $stmt->error);
         }
+        
         return $conn->insert_id;
     } catch (Exception $e) {
         throw new Exception("Error al gestionar la gira predeterminada: " . $e->getMessage());
@@ -165,12 +205,12 @@ try {
     validateTime($required_fields['hora_evento']);
     validateEventValue($required_fields['valor_evento']);
 
-    // Campos opcionales con validación de estado
+    // Validar y sanitizar campos opcionales
     $encabezado_evento = sanitizeString($_POST['encabezado_evento'] ?? '');
     $estado_evento = validateEventStatus(sanitizeString($_POST['estado_evento'] ?? ''));
-    $hotel = sanitizeString($_POST['hotel'] ?? 'No');
-    $traslados = sanitizeString($_POST['traslados'] ?? 'No');
-    $viaticos = sanitizeString($_POST['viaticos'] ?? 'No');
+    $hotel = validateYesNo(sanitizeString($_POST['hotel'] ?? 'No'));
+    $traslados = validateYesNo(sanitizeString($_POST['traslados'] ?? 'No'));
+    $viaticos = validateYesNo(sanitizeString($_POST['viaticos'] ?? 'No'));
     $gira_id = filter_input(INPUT_POST, 'gira_id', FILTER_VALIDATE_INT);
 
     debug_log("Campos opcionales procesados", [
@@ -229,7 +269,8 @@ try {
             throw new Exception("Error en la preparación de la consulta: " . $conn->error);
         }
 
-        $stmt->bind_param("iiisssssississs",
+        // Bind de parámetros con validación adicional
+        if (!$stmt->bind_param("iiisssssississs",
             $required_fields['cliente_id'],
             $required_fields['artista_id'],
             $gira_id,
@@ -245,7 +286,9 @@ try {
             $hotel,
             $traslados,
             $viaticos
-        );
+        )) {
+            throw new Exception("Error en el binding de parámetros: " . $stmt->error);
+        }
 
         debug_log("Parámetros para insert", [
             'cliente_id' => $required_fields['cliente_id'],
@@ -266,7 +309,7 @@ try {
         ]);
 
         if (!$stmt->execute()) {
-            throw new Exception("Error al ejecutar la consulta: " . $stmt->error . " (Código: " . $stmt->errno . ")");
+            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
         }
 
         // Confirmar la transacción

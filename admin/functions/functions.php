@@ -1,176 +1,137 @@
 <?php
+// functions/functions.php
 
-/**
- * Funciones de autenticación y seguridad
- */
+// Verificar autenticación
 function checkAuthentication() {
-    // Asegurarse que la sesión está iniciada
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-    
-    // Verificar si el usuario está logueado
-    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-        // Guardar la URL actual para redirigir después del login si es necesario
-        $_SESSION['redirect_url'] = $_SERVER['PHP_SELF'];
-        
-        // Redirigir al login
-        header("Location: login.php");
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: login.php');
         exit;
     }
-
-    // Generar o renovar el token CSRF si no existe
-    initCSRFToken();
 }
 
-/**
- * Inicializa o renueva el token CSRF
- * Esta función debe ser llamada al inicio de cada sesión
- */
-function initCSRFToken() {
-    if (!isset($_SESSION['csrf_token'])) {
-        // Generar un token aleatorio de 32 bytes y convertirlo a hexadecimal
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-}
-
-/**
- * Valida el token CSRF
- * @param string $token Token recibido para validar
- * @return bool True si el token es válido, False si no lo es
- */
-function validateCSRFToken($token) {
-    return isset($_SESSION['csrf_token']) && 
-           hash_equals($_SESSION['csrf_token'], $token);
-}
-
-/**
- * Genera un campo oculto con el token CSRF para formularios
- * @return string HTML del campo oculto con el token CSRF
- */
-function getCSRFTokenField() {
-    if (!isset($_SESSION['csrf_token'])) {
-        initCSRFToken();
-    }
-    return '<input type="hidden" name="csrf_token" value="' . 
-           htmlspecialchars($_SESSION['csrf_token']) . '">';
-}
-
-/**
- * Funciones de consulta base
- */
-function executeQuery($conn, $sql, $params = []) {
-    $stmt = $conn->prepare($sql);
-    if ($stmt === false) {
-        die("Error en la preparación de la consulta: " . $conn->error);
-    }
-    
-    if (!empty($params)) {
-        $types = str_repeat('s', count($params));
-        $stmt->bind_param($types, ...$params);
-    }
-    
-    if (!$stmt->execute()) {
-        die("Error en la ejecución de la consulta: " . $stmt->error);
-    }
-    
-    return $stmt->get_result();
-}
-
-/**
- * Funciones para obtener eventos
- */
-// Función para obtener todos los eventos (sin filtros)
-function getAllEventos($conn) {
-    $sql = "SELECT e.*, c.nombres, c.apellidos 
-            FROM eventos e 
-            LEFT JOIN clientes c ON e.cliente_id = c.id 
-            ORDER BY e.fecha_evento DESC";
-    
-    return executeQuery($conn, $sql);
-}
-
-// Función para obtener solo eventos confirmados y activos
-function getEventosConfirmados($conn) {
-    $sql = "SELECT e.*, c.nombres, c.apellidos 
-            FROM eventos e 
-            LEFT JOIN clientes c ON e.cliente_id = c.id 
-            WHERE e.estado_evento = ? 
-            AND e.fecha_evento >= CURDATE()
-            ORDER BY e.fecha_evento ASC";
-    
-    return executeQuery($conn, $sql, ['Confirmado']);
-}
-
-/**
- * Funciones para conteos y estadísticas
- */
+// Obtener total de clientes
 function getTotalClientes($conn) {
-    $sql = "SELECT COUNT(*) as total FROM clientes";
-    $result = executeQuery($conn, $sql);
-    return $result->fetch_assoc()['total'];
+    try {
+        $sql = "SELECT COUNT(*) as total FROM clientes";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+        $result = $stmt->get_result();
+        return $result->fetch_assoc()['total'];
+    } catch (Exception $e) {
+        error_log("Error en getTotalClientes: " . $e->getMessage());
+        return 0;
+    }
 }
 
-function getTotalEventosActivos($conn) {
-    $sql = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
-    $result = executeQuery($conn, $sql);
-    return $result->fetch_assoc()['total'];
-}
-
-function getTotalEventosAnioActual($conn) {
-    $sql = "SELECT COUNT(*) as total FROM eventos WHERE YEAR(fecha_evento) = YEAR(CURDATE())";
-    $result = executeQuery($conn, $sql);
-    return $result->fetch_assoc()['total'];
-}
-
+// Obtener total de eventos confirmados activos
 function getTotalEventosConfirmadosActivos($conn) {
-    $sql = "SELECT COUNT(*) as total 
-            FROM eventos 
-            WHERE estado_evento = ? 
-            AND fecha_evento >= CURDATE()";
-    
-    $result = executeQuery($conn, $sql, ['Confirmado']);
-    return $result->fetch_assoc()['total'];
+    try {
+        $sql = "SELECT COUNT(*) as total FROM eventos 
+                WHERE estado_evento = 'Confirmado' 
+                AND fecha_evento >= CURDATE()";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+        $result = $stmt->get_result();
+        return $result->fetch_assoc()['total'];
+    } catch (Exception $e) {
+        error_log("Error en getTotalEventosConfirmadosActivos: " . $e->getMessage());
+        return 0;
+    }
 }
 
-/**
- * Funciones de formato y presentación
- */
-function generarEstadoEvento($estado) {
-    $estadosInfo = [
-        'Propuesta' => ['class' => 'warning', 'icon' => 'fa-clock-o'],
-        'Confirmado' => ['class' => 'success', 'icon' => 'fa-check'],
-        'Documentación' => ['class' => 'info', 'icon' => 'fa-file-text-o'],
-        'En Producción' => ['class' => 'primary', 'icon' => 'fa-cogs'],
-        'Finalizado' => ['class' => 'default', 'icon' => 'fa-flag-checkered'],
-        'Reagendado' => ['class' => 'warning', 'icon' => 'fa-calendar'],
-        'Cancelado' => ['class' => 'danger', 'icon' => 'fa-times']
-    ];
-
-    $info = $estadosInfo[$estado] ?? ['class' => 'default', 'icon' => 'fa-question'];
-    return "<span class=\"label label-{$info['class']}\"><i class=\"fa {$info['icon']}\"></i> $estado</span>";
+// Obtener total de eventos del año actual
+function getTotalEventosAnioActual($conn) {
+    try {
+        $sql = "SELECT COUNT(*) as total FROM eventos 
+                WHERE YEAR(fecha_evento) = YEAR(CURDATE())";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+        $result = $stmt->get_result();
+        return $result->fetch_assoc()['total'];
+    } catch (Exception $e) {
+        error_log("Error en getTotalEventosAnioActual: " . $e->getMessage());
+        return 0;
+    }
 }
 
-function formatearFecha($fecha, $formato = 'd/m/Y') {
-    return date($formato, strtotime($fecha));
+// Obtener datos de un cliente específico
+function obtenerDatosCliente($conn, $cliente_id) {
+    try {
+        $sql = "SELECT c.*, e.nombre as nombre_empresa, 
+                       e.rut as rut_empresa, 
+                       e.direccion as direccion_empresa
+                FROM clientes c 
+                LEFT JOIN empresas e ON c.id = e.cliente_id 
+                WHERE c.id = ?";
+
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Error en la preparación de la consulta");
+        }
+
+        $stmt->bind_param("i", $cliente_id);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+
+        $result = $stmt->get_result();
+        return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
+    } catch (Exception $e) {
+        error_log("Error en obtenerDatosCliente: " . $e->getMessage());
+        return null;
+    }
 }
 
-function formatearHora($hora, $formato = 'H:i') {
-    return date($formato, strtotime($hora));
+// Obtener lista de clientes
+function obtenerListaClientes($conn) {
+    try {
+        $sql = "SELECT id, nombres, apellidos FROM clientes ORDER BY nombres, apellidos";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } catch (Exception $e) {
+        error_log("Error en obtenerListaClientes: " . $e->getMessage());
+        return [];
+    }
 }
 
-/**
- * Funciones para detalles de eventos
- */
-function obtenerDetallesEvento($conn, $evento_id) {
-    $sql = "SELECT e.*, c.nombres, c.apellidos, c.correo, c.celular, 
-                   em.nombre as nombre_empresa, g.nombre as nombre_gira
-            FROM eventos e
-            LEFT JOIN clientes c ON e.cliente_id = c.id
-            LEFT JOIN empresas em ON c.id = em.cliente_id
-            LEFT JOIN giras g ON e.gira_id = g.id
-            WHERE e.id = ?";
-    
-    $result = executeQuery($conn, $sql, [$evento_id]);
-    return $result->fetch_assoc();
+// Obtener giras recientes
+function obtenerGirasRecientes($conn) {
+    try {
+        $sql = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 5";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } catch (Exception $e) {
+        error_log("Error en obtenerGirasRecientes: " . $e->getMessage());
+        return [];
+    }
+}
+
+// Obtener lista de artistas
+function obtenerArtistas($conn) {
+    try {
+        $sql = "SELECT id, nombre, genero_musical FROM artistas ORDER BY nombre";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al ejecutar la consulta");
+        }
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } catch (Exception $e) {
+        error_log("Error en obtenerArtistas: " . $e->getMessage());
+        return [];
+    }
 }

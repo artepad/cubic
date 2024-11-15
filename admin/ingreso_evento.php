@@ -7,71 +7,35 @@ require_once 'functions/functions.php';
 // Verificar autenticación
 checkAuthentication();
 
-// Obtener datos comunes
-$totalClientes = getTotalClientes($conn);
-$totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
-$totalEventosAnioActual = getTotalEventosAnioActual($conn);
+// Configurar manejo de errores y charset
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Funciones específicas para obtener datos
-function obtenerDatosCliente($conn, $cliente_id)
-{
-    $sql = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
-            FROM clientes c 
-            LEFT JOIN empresas e ON c.id = e.cliente_id 
-            WHERE c.id = ?";
-
-    $stmt = $conn->prepare($sql);
-    if ($stmt === false) {
-        throw new Exception("Error en la preparación de la consulta: " . $conn->error);
-    }
-
-    $stmt->bind_param("i", $cliente_id);
-    if (!$stmt->execute()) {
-        throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
-    }
-
-    $result = $stmt->get_result();
-    return ($result->num_rows > 0) ? $result->fetch_assoc() : null;
-}
-
-function obtenerListaClientes($conn)
-{
-    $sql = "SELECT id, nombres, apellidos FROM clientes ORDER BY nombres, apellidos";
-    $result = $conn->query($sql);
-    if ($result === false) {
-        throw new Exception("Error al obtener la lista de clientes: " . $conn->error);
-    }
-    return $result->fetch_all(MYSQLI_ASSOC);
-}
-
-function obtenerGirasRecientes($conn)
-{
-    $sql = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC LIMIT 5";
-    $result = $conn->query($sql);
-    if ($result === false) {
-        throw new Exception("Error al obtener las giras: " . $conn->error);
-    }
-    return $result->fetch_all(MYSQLI_ASSOC);
-}
-
-function obtenerArtistas($conn)
-{
-    $sql = "SELECT id, nombre, genero_musical FROM artistas ORDER BY nombre";
-    $result = $conn->query($sql);
-    if ($result === false) {
-        throw new Exception("Error al obtener la lista de artistas: " . $conn->error);
-    }
-    return $result->fetch_all(MYSQLI_ASSOC);
+// Asegurar la codificación UTF-8 para la conexión
+if (!$conn->set_charset("utf8mb4")) {
+    die("Error cargando el conjunto de caracteres utf8mb4: " . $conn->error);
 }
 
 // Obtener datos iniciales
 try {
-    $cliente_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+    // Obtener estadísticas generales
+    $totalClientes = getTotalClientes($conn);
+    $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
+    $totalEventosAnioActual = getTotalEventosAnioActual($conn);
+    
+    // Obtener ID del cliente si se proporciona
+    $cliente_id = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : 0;
+    
+    // Inicializar variables
     $cliente = null;
     $clientes = [];
+    
+    // Obtener datos necesarios
     $giras = obtenerGirasRecientes($conn);
     $artistas = obtenerArtistas($conn);
 
+    // Obtener información del cliente específico o lista de clientes
     if ($cliente_id > 0) {
         $cliente = obtenerDatosCliente($conn, $cliente_id);
         if (!$cliente) {
@@ -81,26 +45,38 @@ try {
         $clientes = obtenerListaClientes($conn);
     }
 } catch (Exception $e) {
+    error_log("Error en la obtención de datos iniciales: " . $e->getMessage());
     die("Error: " . $e->getMessage());
+} finally {
+    // Cerrar la conexión después de obtener los datos necesarios
+    if (isset($conn)) {
+        $conn->close();
+    }
 }
-
-// Cerrar la conexión después de obtener los datos necesarios
-$conn->close();
 
 // Definir el título de la página
 $pageTitle = "Generador de Eventos";
 ?>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <?php include 'includes/head.php'; ?>
-    <!-- Estilos específicos para eventos -->
     <link href="assets/css/eventos.css" rel="stylesheet">
+    <style>
+        .help-block {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .text-danger {
+            color: #dc3545;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+    </style>
 </head>
-
 <body class="mini-sidebar">
-    <!-- Main-Wrapper -->
     <div id="wrapper">
         <div class="preloader">
             <div class="cssload-speeding-wheel"></div>
@@ -109,7 +85,6 @@ $pageTitle = "Generador de Eventos";
         <?php include 'includes/nav.php'; ?>
         <?php include 'includes/sidebar.php'; ?>
 
-        <!-- Page-Content -->
         <div class="page-wrapper">
             <div class="container-fluid">
                 <div class="row">
@@ -129,7 +104,7 @@ $pageTitle = "Generador de Eventos";
                                                             <select class="form-control" id="gira_id" name="gira_id">
                                                                 <option value="">Seleccione una gira</option>
                                                                 <?php foreach ($giras as $gira): ?>
-                                                                    <option value="<?php echo $gira['id']; ?>">
+                                                                    <option value="<?php echo htmlspecialchars($gira['id']); ?>">
                                                                         <?php echo htmlspecialchars($gira['nombre']); ?>
                                                                     </option>
                                                                 <?php endforeach; ?>
@@ -142,7 +117,6 @@ $pageTitle = "Generador de Eventos";
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3"></label>
                                                     <div class="col-md-9">
                                                         <a href="ingreso_giras.php" class="btn btn-info btn-sm text-white">
                                                             <i class="fa fa-plus"></i> Nueva Gira
@@ -162,8 +136,8 @@ $pageTitle = "Generador de Eventos";
                                                             <select class="form-control" id="artista_id" name="artista_id" required>
                                                                 <option value="">Seleccione un artista</option>
                                                                 <?php foreach ($artistas as $artista): ?>
-                                                                    <option value="<?php echo $artista['id']; ?>"
-                                                                        data-genero="<?php echo htmlspecialchars($artista['genero_musical']); ?>">
+                                                                    <option value="<?php echo htmlspecialchars($artista['id']); ?>"
+                                                                            data-genero="<?php echo htmlspecialchars($artista['genero_musical']); ?>">
                                                                         <?php echo htmlspecialchars($artista['nombre']); ?>
                                                                     </option>
                                                                 <?php endforeach; ?>
@@ -177,7 +151,6 @@ $pageTitle = "Generador de Eventos";
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3"></label>
                                                     <div class="col-md-9">
                                                         <a href="ingreso_artista.php" class="btn btn-info btn-sm text-white">
                                                             <i class="fa fa-plus"></i> Nuevo Artista
@@ -197,7 +170,7 @@ $pageTitle = "Generador de Eventos";
                                                             <select class="form-control" id="cliente_id" name="cliente_id" required>
                                                                 <option value="">Seleccione un cliente</option>
                                                                 <?php foreach ($clientes as $c): ?>
-                                                                    <option value="<?php echo $c['id']; ?>">
+                                                                    <option value="<?php echo htmlspecialchars($c['id']); ?>">
                                                                         <?php echo htmlspecialchars($c['nombres'] . ' ' . $c['apellidos']); ?>
                                                                     </option>
                                                                 <?php endforeach; ?>
@@ -207,7 +180,6 @@ $pageTitle = "Generador de Eventos";
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label class="control-label col-md-3"></label>
                                                         <div class="col-md-9">
                                                             <a href="ingreso_cliente.php" class="btn btn-info btn-sm text-white">
                                                                 <i class="fa fa-plus"></i> Nuevo Cliente
@@ -319,7 +291,7 @@ $pageTitle = "Generador de Eventos";
                                                 'required' => true,
                                                 'maxlength' => 100,
                                                 'help' => 'Categoría o tipo de evento (ej: Concierto, Festival, etc.)'
-                                            ],
+                                            ]
                                         ];
 
                                         foreach (array_chunk($event_fields, 2) as $row): ?>
@@ -366,6 +338,7 @@ $pageTitle = "Generador de Eventos";
                                             'traslados' => 'Incluir servicio de traslados',
                                             'viaticos' => 'Incluir viáticos'
                                         ];
+
                                         foreach (array_chunk($additional_options, 2, true) as $row): ?>
                                             <div class="row">
                                                 <?php foreach ($row as $key => $description): ?>
@@ -414,11 +387,11 @@ $pageTitle = "Generador de Eventos";
     </div>
 
     <!-- Modal de Confirmación -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="confirmationModalLabel">Confirmar Creación de Evento</h5>
+                    <h5 class="modal-title">Confirmar Creación de Evento</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -468,11 +441,11 @@ $pageTitle = "Generador de Eventos";
     </div>
 
     <!-- Modal de Error -->
-    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                    <h5 class="modal-title">Error</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -519,30 +492,7 @@ $pageTitle = "Generador de Eventos";
             $('#artista_id').on('change', function() {
                 const selectedOption = $(this).find('option:selected');
                 const generoMusical = selectedOption.data('genero');
-                $('#genero_musical_info').text(generoMusical ? `Género musical: ${generoMusical}` : 'Género no especificado');
-
-                if ($(this).val()) {
-                    // Obtener información adicional del artista mediante AJAX
-                    $.ajax({
-                        url: 'functions/obtener_artista.php',
-                        type: 'GET',
-                        data: {
-                            id: $(this).val()
-                        },
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.success && response.artista) {
-                                $('#presentacion_artista').text(response.artista.presentacion || 'Presentación no especificada');
-                            }
-                        },
-                        error: function() {
-                            $('#presentacion_artista').text('Error al cargar la información');
-                        }
-                    });
-                } else {
-                    $('#presentacion_artista').text('');
-                    $('#genero_musical_info').text('');
-                }
+                $('#genero_musical_info').text(generoMusical ? `Género musical: ${generoMusical}` : '');
             });
 
             // Manejar cambio en la selección del cliente
@@ -552,20 +502,23 @@ $pageTitle = "Generador de Eventos";
                     $.ajax({
                         url: 'functions/obtener_cliente.php',
                         type: 'GET',
-                        data: {
-                            id: clienteId
-                        },
+                        data: { id: clienteId },
                         dataType: 'json',
                         success: function(response) {
-                            if (response.success) {
-                                $('#nombre_cliente').text(response.cliente.nombres + ' ' + response.cliente.apellidos);
+                            if (response.success && response.cliente) {
+                                const nombreCompleto = response.cliente.nombres + ' ' + response.cliente.apellidos;
+                                $('#nombre_cliente').text(nombreCompleto);
                                 $('#empresa_cliente').text(response.cliente.nombre_empresa || 'N/A');
                             } else {
-                                showErrorMessage('Error: ' + response.message);
+                                showErrorMessage('Error: ' + (response.message || 'No se pudo obtener la información del cliente'));
                             }
                         },
                         error: function(xhr, status, error) {
-                            console.error('AJAX error:', status, error);
+                            console.error('Error AJAX:', {
+                                status: status,
+                                error: error,
+                                response: xhr.responseText
+                            });
                             showErrorMessage('Error en la conexión: ' + error);
                         }
                     });
@@ -578,7 +531,10 @@ $pageTitle = "Generador de Eventos";
             // Validación del formulario
             function validateForm() {
                 let isValid = true;
-                const errors = [];
+                $('.is-invalid').removeClass('is-invalid');
+                $('.text-danger').text('');
+
+                // Validar campos requeridos
                 const requiredFields = {
                     'artista_id': 'Artista',
                     'cliente_id': 'Cliente',
@@ -591,18 +547,10 @@ $pageTitle = "Generador de Eventos";
                     'tipo_evento': 'Tipo de Evento'
                 };
 
-                // Limpiar validaciones previas
-                $('.is-invalid').removeClass('is-invalid');
-                $('.text-danger').text('');
-
-                // Validar campos requeridos
                 Object.entries(requiredFields).forEach(([fieldId, fieldName]) => {
                     const field = $(`#${fieldId}`);
-                    const value = field.val();
-
-                    if (!value || value.trim() === '') {
+                    if (!field.val()) {
                         isValid = false;
-                        errors.push(`El campo "${fieldName}" es requerido`);
                         field.addClass('is-invalid');
                         $(`#${fieldId}_error`).text(`El campo ${fieldName} es requerido`);
                     }
@@ -614,7 +562,6 @@ $pageTitle = "Generador de Eventos";
                     const valor = parseInt(valorEvento);
                     if (valor < 1000000 || valor > 100000000) {
                         isValid = false;
-                        errors.push('El valor del evento debe estar entre $1.000.000 y $100.000.000');
                         $('#valor_evento').addClass('is-invalid');
                         $('#valor_evento_error').text('El valor debe estar entre $1.000.000 y $100.000.000');
                     }
@@ -629,56 +576,13 @@ $pageTitle = "Generador de Eventos";
 
                     if (fecha < hoy) {
                         isValid = false;
-                        errors.push('La fecha del evento no puede ser anterior a hoy');
                         $('#fecha_evento').addClass('is-invalid');
                         $('#fecha_evento_error').text('La fecha no puede ser anterior a hoy');
                     }
                 }
 
-                // Validar formato de hora
-                const horaEvento = $('#hora_evento').val();
-                if (horaEvento) {
-                    const horaRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-                    if (!horaRegex.test(horaEvento)) {
-                        isValid = false;
-                        errors.push('El formato de hora no es válido');
-                        $('#hora_evento').addClass('is-invalid');
-                        $('#hora_evento_error').text('Formato de hora inválido');
-                    }
-                }
-
-                // Validar longitud de campos
-                const validaciones = {
-                    'nombre_evento': {
-                        max: 60,
-                        mensaje: 'El nombre del evento'
-                    },
-                    'ciudad_evento': {
-                        max: 100,
-                        mensaje: 'La ciudad'
-                    },
-                    'lugar_evento': {
-                        max: 150,
-                        mensaje: 'El lugar'
-                    },
-                    'tipo_evento': {
-                        max: 100,
-                        mensaje: 'El tipo de evento'
-                    }
-                };
-
-                Object.entries(validaciones).forEach(([fieldId, config]) => {
-                    const value = $(`#${fieldId}`).val();
-                    if (value && value.length > config.max) {
-                        isValid = false;
-                        errors.push(`${config.mensaje} no puede exceder los ${config.max} caracteres`);
-                        $(`#${fieldId}`).addClass('is-invalid');
-                        $(`#${fieldId}_error`).text(`Máximo ${config.max} caracteres`);
-                    }
-                });
-
                 if (!isValid) {
-                    showErrorMessage(errors.join('<br>'));
+                    showErrorMessage('Por favor, corrija los errores en el formulario antes de continuar.');
                 }
 
                 return isValid;
@@ -698,7 +602,6 @@ $pageTitle = "Generador de Eventos";
                 );
                 $('#resumen_valor').text(formatMoney($('#valor_evento').val()));
 
-                // Servicios adicionales
                 const servicios = [];
                 ['hotel', 'traslados', 'viaticos'].forEach(function(servicio) {
                     if ($(`input[name="${servicio}"][value="Si"]`).is(':checked')) {
@@ -706,6 +609,17 @@ $pageTitle = "Generador de Eventos";
                     }
                 });
                 $('#resumen_servicios').text(servicios.length ? servicios.join(', ') : 'Ninguno');
+            }
+
+            // Función para mostrar mensajes de error
+            function showErrorMessage(message) {
+                $('#errorModalBody').html(`
+                    <div class="alert alert-danger">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        ${message}
+                    </div>
+                `);
+                $('#errorModal').modal('show');
             }
 
             // Manejar envío del formulario
@@ -726,14 +640,9 @@ $pageTitle = "Generador de Eventos";
                 }
             });
 
-            // Crear evento
+            // Función para crear el evento
             function crearEvento() {
-                var formData = new FormData(document.getElementById('eventoForm'));
-
-                // Debug: Mostrar datos que se enviarán
-                for (var pair of formData.entries()) {
-                    console.log(pair[0] + ': ' + pair[1]);
-                }
+                const formData = new FormData(document.getElementById('eventoForm'));
 
                 $.ajax({
                     url: 'functions/crear_evento.php',
@@ -748,7 +657,6 @@ $pageTitle = "Generador de Eventos";
                         } else {
                             $('#confirmationModal').modal('hide');
                             showErrorMessage(response.message || 'Error desconocido al crear el evento');
-                            console.error('Error en la respuesta:', response);
                         }
                     },
                     error: function(xhr, status, error) {
@@ -756,22 +664,18 @@ $pageTitle = "Generador de Eventos";
                         console.error('Error AJAX:', {
                             status: status,
                             error: error,
-                            response: xhr.responseText,
-                            state: xhr.state(),
-                            statusText: xhr.statusText
+                            response: xhr.responseText
                         });
 
-                        // Intentar parsear la respuesta
                         let errorMessage = 'Error en la conexión';
                         try {
-                            const responseText = xhr.responseText;
-                            console.log('Respuesta completa:', responseText);
-                            const response = JSON.parse(responseText);
+                            const response = JSON.parse(xhr.responseText);
                             errorMessage = response.message || errorMessage;
                         } catch (e) {
-                            console.error('Error al parsear respuesta:', e);
+                            console.error('Error al parsear respuesta:', xhr.responseText);
                             errorMessage += ': ' + error;
                         }
+                        
                         showErrorMessage(errorMessage);
                     },
                     complete: function() {
@@ -782,18 +686,7 @@ $pageTitle = "Generador de Eventos";
                 });
             }
 
-            // Mostrar mensaje de error
-            function showErrorMessage(message) {
-                $('#errorModalBody').html(`
-            <div class="alert alert-danger">
-                <i class="fa fa-exclamation-triangle"></i>
-                ${message}
-            </div>
-        `);
-                $('#errorModal').modal('show');
-            }
-
-            // Formatear automáticamente el valor del evento
+            // Formatear valor del evento
             $('#valor_evento').on('input', function() {
                 let valor = $(this).val().replace(/\D/g, '');
                 if (valor.length > 0) {
@@ -802,7 +695,7 @@ $pageTitle = "Generador de Eventos";
                 }
             });
 
-            // Inicializar campos de fecha y hora con valores por defecto
+            // Inicializar campos de fecha con valores por defecto
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             $('#fecha_evento').attr('min', formattedDate);
@@ -820,5 +713,4 @@ $pageTitle = "Generador de Eventos";
         });
     </script>
 </body>
-
 </html>
