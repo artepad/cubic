@@ -1,0 +1,286 @@
+[15-Nov-2024 05:39:15 Europe/Berlin] 2024-11-15 05:39:15 - === Nueva solicitud de creación de evento ===
+--------------------------------------------------
+
+[15-Nov-2024 05:39:15 Europe/Berlin] 2024-11-15 05:39:15 - POST Data
+Data: Array
+(
+    [gira_id] => 1
+    [artista_id] => 1
+    [cliente_id] => 13
+    [evento_id] => 0
+    [nombre_evento] => Evento de la Fruta
+    [encabezado_evento] => 
+    [fecha_evento] => 2024-11-24
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 05:39:15 Europe/Berlin] 2024-11-15 05:39:15 - Server Info
+Data: Array
+(
+    [MIBDIRS] => C:/xampp/php/extras/mibs
+    [MYSQL_HOME] => \xampp\mysql\bin
+    [OPENSSL_CONF] => C:/xampp/apache/bin/openssl.cnf
+    [PHP_PEAR_SYSCONF_DIR] => \xampp\php
+    [PHPRC] => \xampp\php
+    [TMP] => \xampp\tmp
+    [HTTP_HOST] => localhost
+    [HTTP_CONNECTION] => keep-alive
+    [CONTENT_LENGTH] => 1588
+    [HTTP_SEC_CH_UA_PLATFORM] => "Windows"
+    [HTTP_X_REQUESTED_WITH] => XMLHttpRequest
+    [HTTP_USER_AGENT] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+    [HTTP_ACCEPT] => application/json, text/javascript, */*; q=0.01
+    [HTTP_SEC_CH_UA] => "Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"
+    [CONTENT_TYPE] => multipart/form-data; boundary=----WebKitFormBoundarye2wKPuOkmU15OCz7
+    [HTTP_SEC_CH_UA_MOBILE] => ?0
+    [HTTP_ORIGIN] => http://localhost
+    [HTTP_SEC_FETCH_SITE] => same-origin
+    [HTTP_SEC_FETCH_MODE] => cors
+    [HTTP_SEC_FETCH_DEST] => empty
+    [HTTP_REFERER] => http://localhost/cubic/admin/ingreso_evento.php
+    [HTTP_ACCEPT_ENCODING] => gzip, deflate, br, zstd
+    [HTTP_ACCEPT_LANGUAGE] => es-ES,es;q=0.9,la;q=0.8,en;q=0.7
+    [HTTP_COOKIE] => PHPSESSID=et5k8lg4psorkcet6psh8vtncb
+    [PATH] => C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\xampp\php;C:\ProgramData\ComposerSetup\bin;C:\Program Files\PuTTY\;C:\Program Files\Git\cmd;C:\Program Files (x86)\HP\Common\HPDestPlgIn\;C:\Users\del_a\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\del_a\AppData\Local\Programs\Python\Python312\;C:\Users\del_a\AppData\Local\Microsoft\WindowsApps;;C:\Users\del_a\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\del_a\AppData\Roaming\Composer\vendor\bin;C:\Program Files (x86)\HP\Common\HPDestPlgIn\
+    [SystemRoot] => C:\WINDOWS
+    [COMSPEC] => C:\WINDOWS\system32\cmd.exe
+    [PATHEXT] => .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
+    [WINDIR] => C:\WINDOWS
+    [SERVER_SIGNATURE] => <address>Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.2.12 Server at localhost Port 80</address>
+
+    [SERVER_SOFTWARE] => Apache/2.4.58 (Win64) OpenSSL/3.1.3 PHP/8.2.12
+    [SERVER_NAME] => localhost
+    [SERVER_ADDR] => ::1
+    [SERVER_PORT] => 80
+    [REMOTE_ADDR] => ::1
+    [DOCUMENT_ROOT] => C:/xampp/htdocs
+    [REQUEST_SCHEME] => http
+    [CONTEXT_PREFIX] => 
+    [CONTEXT_DOCUMENT_ROOT] => C:/xampp/htdocs
+    [SERVER_ADMIN] => postmaster@localhost
+    [SCRIPT_FILENAME] => C:/xampp/htdocs/cubic/admin/functions/crear_evento.php
+    [REMOTE_PORT] => 57530
+    [GATEWAY_INTERFACE] => CGI/1.1
+    [SERVER_PROTOCOL] => HTTP/1.1
+    [REQUEST_METHOD] => POST
+    [QUERY_STRING] => 
+    [REQUEST_URI] => /cubic/admin/functions/crear_evento.php
+    [SCRIPT_NAME] => /cubic/admin/functions/crear_evento.php
+    [PHP_SELF] => /cubic/admin/functions/crear_evento.php
+    [REQUEST_TIME_FLOAT] => 1731645555.4834
+    [REQUEST_TIME] => 1731645555
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 128
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 129
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 130
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 131
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 132
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 134
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 146
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 147
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 148
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 149
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 150
+[15-Nov-2024 05:39:15 Europe/Berlin] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php:192
+Stack trace:
+#0 C:\xampp\htdocs\cubic\admin\functions\crear_evento.php(192): mysqli_stmt->bind_param('iiisssssisssss', 13, 1, 1, 'Evento de la Fr...', '2024-11-24', '15:00', 'Melipilla', 'Feijoa 102', 15000000, 'Municipal', '', 'Propuesta', 'Si', 'Si', 'Si')
+#1 {main}
+  thrown in C:\xampp\htdocs\cubic\admin\functions\crear_evento.php on line 192
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - === Nueva solicitud de creación de evento ===
+--------------------------------------------------
+
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - POST Data
+Data: Array
+(
+    [gira_id] => 1
+    [artista_id] => 1
+    [cliente_id] => 15
+    [evento_id] => 0
+    [nombre_evento] => Evento de la Fruta
+    [encabezado_evento] => 
+    [fecha_evento] => 2024-11-24
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - Campos requeridos procesados
+Data: Array
+(
+    [cliente_id] => 15
+    [artista_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-24
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - Campos opcionales procesados
+Data: Array
+(
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+    [gira_id] => 1
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - SQL Query
+Data: INSERT INTO eventos (
+            cliente_id, artista_id, gira_id, nombre_evento, 
+            fecha_evento, hora_evento, ciudad_evento, lugar_evento, 
+            valor_evento, tipo_evento, encabezado_evento, estado_evento, 
+            hotel, traslados, viaticos
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+--------------------------------------------------
+
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - Parámetros para insert
+Data: Array
+(
+    [cliente_id] => 15
+    [artista_id] => 1
+    [gira_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-24
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:07:01 Europe/Berlin] 2024-11-15 06:07:01 - Error en crear_evento.php
+Data: Array
+(
+    [error] => Data truncated for column 'estado_evento' at row 1
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - === Nueva solicitud de creación de evento ===
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - POST Data
+Data: Array
+(
+    [gira_id] => 1
+    [artista_id] => 1
+    [cliente_id] => 15
+    [evento_id] => 0
+    [nombre_evento] => Evento de la Fruta
+    [encabezado_evento] => 
+    [fecha_evento] => 2024-11-30
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - Campos requeridos procesados
+Data: Array
+(
+    [cliente_id] => 15
+    [artista_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-30
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - Campos opcionales procesados
+Data: Array
+(
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+    [gira_id] => 1
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - SQL Query
+Data: INSERT INTO eventos (
+            cliente_id, artista_id, gira_id, nombre_evento, 
+            fecha_evento, hora_evento, ciudad_evento, lugar_evento, 
+            valor_evento, tipo_evento, encabezado_evento, estado_evento, 
+            hotel, traslados, viaticos
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - Parámetros para insert
+Data: Array
+(
+    [cliente_id] => 15
+    [artista_id] => 1
+    [gira_id] => 1
+    [nombre_evento] => Evento de la Fruta
+    [fecha_evento] => 2024-11-30
+    [hora_evento] => 15:00
+    [ciudad_evento] => Melipilla
+    [lugar_evento] => Feijoa 102
+    [valor_evento] => 15000000
+    [tipo_evento] => Municipal
+    [encabezado_evento] => 
+    [estado_evento] => Propuesta
+    [hotel] => Si
+    [traslados] => Si
+    [viaticos] => Si
+)
+
+--------------------------------------------------
+
+[15-Nov-2024 06:10:55 Europe/Berlin] 2024-11-15 06:10:55 - Error en crear_evento.php
+Data: Array
+(
+    [error] => Data truncated for column 'estado_evento' at row 1
+)
+
+--------------------------------------------------
+
