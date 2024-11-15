@@ -162,8 +162,8 @@ $pageTitle = "Generador de Eventos";
                                                             <select class="form-control" id="artista_id" name="artista_id" required>
                                                                 <option value="">Seleccione un artista</option>
                                                                 <?php foreach ($artistas as $artista): ?>
-                                                                    <option value="<?php echo $artista['id']; ?>" 
-                                                                            data-genero="<?php echo htmlspecialchars($artista['genero_musical']); ?>">
+                                                                    <option value="<?php echo $artista['id']; ?>"
+                                                                        data-genero="<?php echo htmlspecialchars($artista['genero_musical']); ?>">
                                                                         <?php echo htmlspecialchars($artista['nombre']); ?>
                                                                     </option>
                                                                 <?php endforeach; ?>
@@ -256,25 +256,70 @@ $pageTitle = "Generador de Eventos";
                                         <!-- Campos del evento -->
                                         <?php
                                         $event_fields = [
-                                            ['name' => 'nombre_evento', 'label' => 'Nombre Evento', 'type' => 'text', 'required' => true, 'maxlength' => 60, 
-                                             'help' => 'Ingrese un nombre descriptivo para el evento'],
-                                            ['name' => 'encabezado_evento', 'label' => 'Encabezado', 'type' => 'text', 'maxlength' => 100,
-                                             'help' => 'Texto que aparecerá como título en los documentos'],
-                                            ['name' => 'fecha_evento', 'label' => 'Fecha', 'type' => 'date', 'required' => true,
-                                             'help' => 'Fecha en que se realizará el evento',
-                                             'min' => date('Y-m-d')],
-                                            ['name' => 'hora_evento', 'label' => 'Hora', 'type' => 'time', 'required' => true, 'step' => 1800,
-                                             'help' => 'Hora de inicio del evento'],
-                                            ['name' => 'ciudad_evento', 'label' => 'Ciudad', 'type' => 'text', 'required' => true, 'maxlength' => 100,
-                                             'help' => 'Ciudad donde se realizará el evento'],
-                                            ['name' => 'lugar_evento', 'label' => 'Lugar', 'type' => 'text', 'required' => true, 'maxlength' => 150,
-                                             'help' => 'Ubicación específica del evento'],
-                                             ['name' => 'valor_evento', 'label' => 'Valor', 'type' => 'number', 'required' => true, 
-                                             'min' => 1000000, 'max' => 100000000,
-                                             'help' => 'Valor en pesos (entre 1.000.000 y 100.000.000)'],
-                                            ['name' => 'tipo_evento', 'label' => 'Tipo de Evento', 'type' => 'text', 'required' => true, 
-                                             'maxlength' => 100,
-                                             'help' => 'Categoría o tipo de evento (ej: Concierto, Festival, etc.)'],
+                                            [
+                                                'name' => 'nombre_evento',
+                                                'label' => 'Nombre Evento',
+                                                'type' => 'text',
+                                                'required' => true,
+                                                'maxlength' => 60,
+                                                'help' => 'Ingrese un nombre descriptivo para el evento'
+                                            ],
+                                            [
+                                                'name' => 'encabezado_evento',
+                                                'label' => 'Encabezado',
+                                                'type' => 'text',
+                                                'maxlength' => 100,
+                                                'help' => 'Texto que aparecerá como título en los documentos'
+                                            ],
+                                            [
+                                                'name' => 'fecha_evento',
+                                                'label' => 'Fecha',
+                                                'type' => 'date',
+                                                'required' => true,
+                                                'help' => 'Fecha en que se realizará el evento',
+                                                'min' => date('Y-m-d')
+                                            ],
+                                            [
+                                                'name' => 'hora_evento',
+                                                'label' => 'Hora',
+                                                'type' => 'time',
+                                                'required' => true,
+                                                'step' => 1800,
+                                                'help' => 'Hora de inicio del evento'
+                                            ],
+                                            [
+                                                'name' => 'ciudad_evento',
+                                                'label' => 'Ciudad',
+                                                'type' => 'text',
+                                                'required' => true,
+                                                'maxlength' => 100,
+                                                'help' => 'Ciudad donde se realizará el evento'
+                                            ],
+                                            [
+                                                'name' => 'lugar_evento',
+                                                'label' => 'Lugar',
+                                                'type' => 'text',
+                                                'required' => true,
+                                                'maxlength' => 150,
+                                                'help' => 'Ubicación específica del evento'
+                                            ],
+                                            [
+                                                'name' => 'valor_evento',
+                                                'label' => 'Valor',
+                                                'type' => 'number',
+                                                'required' => true,
+                                                'min' => 1000000,
+                                                'max' => 100000000,
+                                                'help' => 'Valor en pesos (entre 1.000.000 y 100.000.000)'
+                                            ],
+                                            [
+                                                'name' => 'tipo_evento',
+                                                'label' => 'Tipo de Evento',
+                                                'type' => 'text',
+                                                'required' => true,
+                                                'maxlength' => 100,
+                                                'help' => 'Categoría o tipo de evento (ej: Concierto, Festival, etc.)'
+                                            ],
                                         ];
 
                                         foreach (array_chunk($event_fields, 2) as $row): ?>
@@ -314,7 +359,7 @@ $pageTitle = "Generador de Eventos";
                                         <!-- Opciones adicionales -->
                                         <h3 class="box-title">Servicios Adicionales</h3>
                                         <hr class="m-t-0 m-b-40">
-                                        
+
                                         <?php
                                         $additional_options = [
                                             'hotel' => 'Incluir servicio de hotel para el artista',
@@ -385,25 +430,25 @@ $pageTitle = "Generador de Eventos";
                         <dl class="row">
                             <dt class="col-sm-4">Gira:</dt>
                             <dd class="col-sm-8" id="resumen_gira"></dd>
-                            
+
                             <dt class="col-sm-4">Artista:</dt>
                             <dd class="col-sm-8" id="resumen_artista"></dd>
-                            
+
                             <dt class="col-sm-4">Cliente:</dt>
                             <dd class="col-sm-8" id="resumen_cliente"></dd>
-                            
+
                             <dt class="col-sm-4">Evento:</dt>
                             <dd class="col-sm-8" id="resumen_nombre_evento"></dd>
-                            
+
                             <dt class="col-sm-4">Fecha y Hora:</dt>
                             <dd class="col-sm-8" id="resumen_fecha_hora"></dd>
-                            
+
                             <dt class="col-sm-4">Lugar:</dt>
                             <dd class="col-sm-8" id="resumen_lugar"></dd>
-                            
+
                             <dt class="col-sm-4">Valor:</dt>
                             <dd class="col-sm-8" id="resumen_valor"></dd>
-                            
+
                             <dt class="col-sm-4">Servicios:</dt>
                             <dd class="col-sm-8" id="resumen_servicios"></dd>
                         </dl>
@@ -445,7 +490,7 @@ $pageTitle = "Generador de Eventos";
 
     <!-- Scripts -->
     <?php include 'includes/scripts.php'; ?>
-    
+
     <script>
         $(document).ready(function() {
             let isSubmitting = false;
@@ -460,7 +505,12 @@ $pageTitle = "Generador de Eventos";
 
             // Formatear fecha y hora
             function formatDateTime(date, time) {
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
                 const formattedDate = new Date(date).toLocaleDateString('es-CL', options);
                 return `${formattedDate} a las ${time} hrs.`;
             }
@@ -469,34 +519,42 @@ $pageTitle = "Generador de Eventos";
             $('#artista_id').on('change', function() {
                 const selectedOption = $(this).find('option:selected');
                 const generoMusical = selectedOption.data('genero');
-                $('#genero_musical').text(generoMusical || 'No especificado');
-                
+                $('#genero_musical_info').text(generoMusical ? `Género musical: ${generoMusical}` : 'Género no especificado');
+
                 if ($(this).val()) {
                     // Obtener información adicional del artista mediante AJAX
                     $.ajax({
                         url: 'functions/obtener_artista.php',
                         type: 'GET',
-                        data: { id: $(this).val() },
+                        data: {
+                            id: $(this).val()
+                        },
                         dataType: 'json',
                         success: function(response) {
-                            if (response.success) {
-                                $('#presentacion_artista').text(response.artista.presentacion || 'No especificada');
+                            if (response.success && response.artista) {
+                                $('#presentacion_artista').text(response.artista.presentacion || 'Presentación no especificada');
                             }
+                        },
+                        error: function() {
+                            $('#presentacion_artista').text('Error al cargar la información');
                         }
                     });
                 } else {
                     $('#presentacion_artista').text('');
+                    $('#genero_musical_info').text('');
                 }
             });
 
             // Manejar cambio en la selección del cliente
             $('#cliente_id').on('change', function() {
-                var clienteId = $(this).val();
+                const clienteId = $(this).val();
                 if (clienteId) {
                     $.ajax({
                         url: 'functions/obtener_cliente.php',
                         type: 'GET',
-                        data: { id: clienteId },
+                        data: {
+                            id: clienteId
+                        },
                         dataType: 'json',
                         success: function(response) {
                             if (response.success) {
@@ -521,37 +579,103 @@ $pageTitle = "Generador de Eventos";
             function validateForm() {
                 let isValid = true;
                 const errors = [];
+                const requiredFields = {
+                    'artista_id': 'Artista',
+                    'cliente_id': 'Cliente',
+                    'nombre_evento': 'Nombre del Evento',
+                    'fecha_evento': 'Fecha',
+                    'hora_evento': 'Hora',
+                    'ciudad_evento': 'Ciudad',
+                    'lugar_evento': 'Lugar',
+                    'valor_evento': 'Valor',
+                    'tipo_evento': 'Tipo de Evento'
+                };
+
+                // Limpiar validaciones previas
+                $('.is-invalid').removeClass('is-invalid');
+                $('.text-danger').text('');
 
                 // Validar campos requeridos
-                $('input[required], select[required]').each(function() {
-                    if (!$(this).val()) {
+                Object.entries(requiredFields).forEach(([fieldId, fieldName]) => {
+                    const field = $(`#${fieldId}`);
+                    const value = field.val();
+
+                    if (!value || value.trim() === '') {
                         isValid = false;
-                        const fieldName = $(this).closest('.form-group').find('label').text().replace('*', '').trim();
                         errors.push(`El campo "${fieldName}" es requerido`);
-                        $(this).addClass('is-invalid');
-                    } else {
-                        $(this).removeClass('is-invalid');
+                        field.addClass('is-invalid');
+                        $(`#${fieldId}_error`).text(`El campo ${fieldName} es requerido`);
                     }
                 });
 
                 // Validar valor del evento
-                const valor = $('#valor_evento').val();
-                if (valor && (isNaN(valor) || parseFloat(valor) < 1000000 || parseFloat(valor) > 100000000)) {
-                    isValid = false;
-                    errors.push('El valor debe estar entre $1.000.000 y $100.000.000');
-                    $('#valor_evento').addClass('is-invalid');
+                const valorEvento = $('#valor_evento').val();
+                if (valorEvento) {
+                    const valor = parseInt(valorEvento);
+                    if (valor < 1000000 || valor > 100000000) {
+                        isValid = false;
+                        errors.push('El valor del evento debe estar entre $1.000.000 y $100.000.000');
+                        $('#valor_evento').addClass('is-invalid');
+                        $('#valor_evento_error').text('El valor debe estar entre $1.000.000 y $100.000.000');
+                    }
                 }
 
-                // Validar fecha (no puede ser anterior a hoy)
-                const fechaEvento = new Date($('#fecha_evento').val());
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0);
-                
-                if (fechaEvento < hoy) {
-                    isValid = false;
-                    errors.push('La fecha del evento no puede ser anterior a hoy');
-                    $('#fecha_evento').addClass('is-invalid');
+                // Validar fecha
+                const fechaEvento = $('#fecha_evento').val();
+                if (fechaEvento) {
+                    const fecha = new Date(fechaEvento);
+                    const hoy = new Date();
+                    hoy.setHours(0, 0, 0, 0);
+
+                    if (fecha < hoy) {
+                        isValid = false;
+                        errors.push('La fecha del evento no puede ser anterior a hoy');
+                        $('#fecha_evento').addClass('is-invalid');
+                        $('#fecha_evento_error').text('La fecha no puede ser anterior a hoy');
+                    }
                 }
+
+                // Validar formato de hora
+                const horaEvento = $('#hora_evento').val();
+                if (horaEvento) {
+                    const horaRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                    if (!horaRegex.test(horaEvento)) {
+                        isValid = false;
+                        errors.push('El formato de hora no es válido');
+                        $('#hora_evento').addClass('is-invalid');
+                        $('#hora_evento_error').text('Formato de hora inválido');
+                    }
+                }
+
+                // Validar longitud de campos
+                const validaciones = {
+                    'nombre_evento': {
+                        max: 60,
+                        mensaje: 'El nombre del evento'
+                    },
+                    'ciudad_evento': {
+                        max: 100,
+                        mensaje: 'La ciudad'
+                    },
+                    'lugar_evento': {
+                        max: 150,
+                        mensaje: 'El lugar'
+                    },
+                    'tipo_evento': {
+                        max: 100,
+                        mensaje: 'El tipo de evento'
+                    }
+                };
+
+                Object.entries(validaciones).forEach(([fieldId, config]) => {
+                    const value = $(`#${fieldId}`).val();
+                    if (value && value.length > config.max) {
+                        isValid = false;
+                        errors.push(`${config.mensaje} no puede exceder los ${config.max} caracteres`);
+                        $(`#${fieldId}`).addClass('is-invalid');
+                        $(`#${fieldId}_error`).text(`Máximo ${config.max} caracteres`);
+                    }
+                });
 
                 if (!isValid) {
                     showErrorMessage(errors.join('<br>'));
@@ -562,7 +686,7 @@ $pageTitle = "Generador de Eventos";
 
             // Actualizar resumen del evento
             function actualizarResumenEvento() {
-                $('#resumen_gira').text($('#gira_id option:selected').text());
+                $('#resumen_gira').text($('#gira_id option:selected').text() || 'Sin gira');
                 $('#resumen_artista').text($('#artista_id option:selected').text());
                 $('#resumen_cliente').text($('#nombre_cliente').text());
                 $('#resumen_nombre_evento').text($('#nombre_evento').val());
@@ -606,6 +730,11 @@ $pageTitle = "Generador de Eventos";
             function crearEvento() {
                 var formData = new FormData(document.getElementById('eventoForm'));
 
+                // Debug: Mostrar datos que se enviarán
+                for (var pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+
                 $.ajax({
                     url: 'functions/crear_evento.php',
                     type: 'POST',
@@ -615,15 +744,35 @@ $pageTitle = "Generador de Eventos";
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            window.location.href = 'index.php?mensaje=Evento creado exitosamente';
+                            window.location.href = 'index.php?mensaje=' + encodeURIComponent('Evento creado exitosamente');
                         } else {
                             $('#confirmationModal').modal('hide');
                             showErrorMessage(response.message || 'Error desconocido al crear el evento');
+                            console.error('Error en la respuesta:', response);
                         }
                     },
                     error: function(xhr, status, error) {
                         $('#confirmationModal').modal('hide');
-                        showErrorMessage('Error en la conexión: ' + error);
+                        console.error('Error AJAX:', {
+                            status: status,
+                            error: error,
+                            response: xhr.responseText,
+                            state: xhr.state(),
+                            statusText: xhr.statusText
+                        });
+
+                        // Intentar parsear la respuesta
+                        let errorMessage = 'Error en la conexión';
+                        try {
+                            const responseText = xhr.responseText;
+                            console.log('Respuesta completa:', responseText);
+                            const response = JSON.parse(responseText);
+                            errorMessage = response.message || errorMessage;
+                        } catch (e) {
+                            console.error('Error al parsear respuesta:', e);
+                            errorMessage += ': ' + error;
+                        }
+                        showErrorMessage(errorMessage);
                     },
                     complete: function() {
                         isSubmitting = false;
@@ -635,8 +784,30 @@ $pageTitle = "Generador de Eventos";
 
             // Mostrar mensaje de error
             function showErrorMessage(message) {
-                $('#errorModalBody').html(message);
+                $('#errorModalBody').html(`
+            <div class="alert alert-danger">
+                <i class="fa fa-exclamation-triangle"></i>
+                ${message}
+            </div>
+        `);
                 $('#errorModal').modal('show');
+            }
+
+            // Formatear automáticamente el valor del evento
+            $('#valor_evento').on('input', function() {
+                let valor = $(this).val().replace(/\D/g, '');
+                if (valor.length > 0) {
+                    valor = parseInt(valor);
+                    $(this).val(valor);
+                }
+            });
+
+            // Inicializar campos de fecha y hora con valores por defecto
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            $('#fecha_evento').attr('min', formattedDate);
+            if (!$('#fecha_evento').val()) {
+                $('#fecha_evento').val(formattedDate);
             }
 
             // Verificar nueva gira en URL
@@ -649,4 +820,5 @@ $pageTitle = "Generador de Eventos";
         });
     </script>
 </body>
+
 </html>
