@@ -210,25 +210,26 @@ try {
     }
 
     // Vincular parámetros
-    if (!$stmt->bind_param("iiisssssississs",
-    $evento['cliente_id'],
-    $evento['gira_id'],
-    $evento['artista_id'],
-    $evento['nombre_evento'],
-    $evento['fecha_evento'],
-    $evento['hora_evento'],
-    $evento['ciudad_evento'],
-    $evento['lugar_evento'],
-    $evento['valor_evento'],
-    $evento['tipo_evento'],
-    $evento['encabezado_evento'],
-    $evento['estado_evento'],
-    $evento['hotel'],
-    $evento['traslados'],
-    $evento['viaticos']
-)) {
-    throw new Exception("Error vinculando parámetros: " . $stmt->error);
-}
+    if (!$stmt->bind_param(
+        "iiisssssississs",
+        $evento['cliente_id'],
+        $evento['gira_id'],
+        $evento['artista_id'],
+        $evento['nombre_evento'],
+        $evento['fecha_evento'],
+        $evento['hora_evento'],
+        $evento['ciudad_evento'],
+        $evento['lugar_evento'],
+        $evento['valor_evento'],
+        $evento['tipo_evento'],
+        $evento['encabezado_evento'],
+        $evento['estado_evento'],
+        $evento['hotel'],
+        $evento['traslados'],
+        $evento['viaticos']
+    )) {
+        throw new Exception("Error vinculando parámetros: " . $stmt->error);
+    }
 
     // Ejecutar la inserción
     if (!$stmt->execute()) {
