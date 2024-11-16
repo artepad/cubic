@@ -1,3 +1,7 @@
+-- Crear la base de datos
+CREATE DATABASE IF NOT EXISTS schaaf_producciones CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE schaaf_producciones;
+
 -- Eliminar tablas existentes si es necesario (en orden inverso a las dependencias)
 DROP TABLE IF EXISTS eventos;
 DROP TABLE IF EXISTS artistas;
@@ -33,8 +37,7 @@ CREATE TABLE clientes (
     celular VARCHAR(15) NOT NULL COMMENT 'Número de celular del cliente',
     genero ENUM('Masculino', 'Femenino', 'Otro') NOT NULL COMMENT 'Género del cliente',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del cliente',
-    PRIMARY KEY (id),
-    INDEX idx_cliente_rut (rut) COMMENT 'Índice para búsquedas por RUT'
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB COMMENT='Tabla de información de clientes';
 
 -- --------------------------------------------------------
@@ -48,12 +51,7 @@ CREATE TABLE empresas (
     direccion VARCHAR(255) NOT NULL COMMENT 'Dirección de la empresa',
     cliente_id INT COMMENT 'ID del cliente asociado',
     PRIMARY KEY (id),
-    INDEX idx_empresa_rut (rut) COMMENT 'Índice para búsquedas por RUT',
-    CONSTRAINT fk_empresa_cliente 
-        FOREIGN KEY (cliente_id) 
-        REFERENCES clientes(id) 
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Tabla de empresas asociadas a clientes';
 
 -- --------------------------------------------------------
@@ -64,8 +62,7 @@ CREATE TABLE giras (
     id INT AUTO_INCREMENT,
     nombre VARCHAR(255) NOT NULL COMMENT 'Nombre de la gira',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de creación de la gira',
-    PRIMARY KEY (id),
-    INDEX idx_gira_nombre (nombre) COMMENT 'Índice para búsquedas por nombre de gira'
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB COMMENT='Tabla de giras artísticas';
 
 -- --------------------------------------------------------
@@ -83,8 +80,7 @@ CREATE TABLE artistas (
     imagen_presentacion MEDIUMBLOB COMMENT 'Imagen de presentación del artista',
     imagen_presentacion_tipo VARCHAR(50) COMMENT 'Tipo MIME de la imagen de presentación',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del artista',
-    PRIMARY KEY (id),
-    INDEX idx_artista_nombre (nombre) COMMENT 'Índice para búsquedas por nombre de artista'
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB COMMENT='Tabla de información de artistas';
 
 -- --------------------------------------------------------
@@ -93,44 +89,54 @@ CREATE TABLE artistas (
 -- --------------------------------------------------------
 CREATE TABLE eventos (
     id INT AUTO_INCREMENT,
-    cliente_id INT COMMENT 'ID del cliente que solicita el evento',
+    cliente_id INT NOT NULL COMMENT 'ID del cliente que solicita el evento',
     gira_id INT COMMENT 'ID de la gira asociada',
-    artista_id INT COMMENT 'ID del artista que se presenta',
+    artista_id INT NOT NULL COMMENT 'ID del artista que se presenta',
     nombre_evento VARCHAR(255) NOT NULL COMMENT 'Nombre del evento',
     fecha_evento DATE NOT NULL COMMENT 'Fecha programada del evento',
     hora_evento TIME NOT NULL COMMENT 'Hora programada del evento',
-    ciudad_evento VARCHAR(100) COMMENT 'Ciudad donde se realiza el evento',
-    lugar_evento VARCHAR(255) COMMENT 'Lugar específico del evento',
-    valor_evento INT COMMENT 'Valor monetario del evento',
-    tipo_evento VARCHAR(100) COMMENT 'Tipo o categoría del evento',
+    ciudad_evento VARCHAR(100) NOT NULL COMMENT 'Ciudad donde se realiza el evento',
+    lugar_evento VARCHAR(255) NOT NULL COMMENT 'Lugar específico del evento',
+    valor_evento INT NOT NULL COMMENT 'Valor monetario del evento',
+    tipo_evento VARCHAR(100) NOT NULL COMMENT 'Tipo o categoría del evento',
     encabezado_evento VARCHAR(255) COMMENT 'Encabezado o título promocional del evento',
-    estado_evento VARCHAR(20) DEFAULT 'Propuesta' COMMENT 'Estado actual del evento',
+    estado_evento ENUM('Propuesta', 'Confirmado', 'Finalizado', 'Reagendado', 'Cancelado') 
+        NOT NULL DEFAULT 'Propuesta' COMMENT 'Estado actual del evento',
     hotel ENUM('Si', 'No') DEFAULT 'No' COMMENT 'Indica si incluye hotel',
     traslados ENUM('Si', 'No') DEFAULT 'No' COMMENT 'Indica si incluye traslados',
     viaticos ENUM('Si', 'No') DEFAULT 'No' COMMENT 'Indica si incluye viáticos',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de creación del evento',
     PRIMARY KEY (id),
-    INDEX idx_evento_fecha (fecha_evento) COMMENT 'Índice para búsquedas por fecha',
-    INDEX idx_evento_fecha_hora (fecha_evento, hora_evento) COMMENT 'Índice compuesto para búsquedas por fecha y hora',
-    CONSTRAINT fk_evento_cliente 
-        FOREIGN KEY (cliente_id) 
-        REFERENCES clientes(id) 
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_evento_gira 
-        FOREIGN KEY (gira_id) 
-        REFERENCES giras(id) 
-        ON DELETE SET NULL
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_evento_artista 
-        FOREIGN KEY (artista_id) 
-        REFERENCES artistas(id) 
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (gira_id) REFERENCES giras(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (artista_id) REFERENCES artistas(id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Tabla principal de eventos';
 
--- Agregar comentario general de la base de datos
--- Este script crea una base de datos para un sistema de gestión de eventos artísticos
--- que maneja clientes, empresas, artistas, giras y eventos.
--- Incluye relaciones entre todas las entidades y manejo de archivos binarios para imágenes.
--- Última actualización: 15/11/2024
+-- Crear índices para mejorar el rendimiento de las búsquedas
+CREATE INDEX idx_cliente_rut ON clientes(rut);
+CREATE INDEX idx_empresa_rut ON empresas(rut);
+CREATE INDEX idx_gira_nombre ON giras(nombre);
+CREATE INDEX idx_artista_nombre ON artistas(nombre);
+CREATE INDEX idx_evento_fecha ON eventos(fecha_evento);
+CREATE INDEX idx_evento_fecha_hora ON eventos(fecha_evento, hora_evento);
+
+-- Agregar un usuario inicial para pruebas (password: admin123)
+INSERT INTO usuarios (username, password, nombre, email) VALUES 
+('admin', '$2y$10$RXUByHVDtBGQAOI6WGDxN.H0gZTWdfXDR5M9ekB7oZA61.cOA1K6K', 'Administrador', 'admin@example.com');
+
+-- Insertar algunos datos de prueba
+INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES 
+('Juan', 'Pérez', '12.345.678-9', 'juan@email.com', '+56912345678', 'Masculino'),
+('María', 'González', '98.765.432-1', 'maria@email.com', '+56987654321', 'Femenino');
+
+INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES 
+('Empresa A', '11.111.111-1', 'Calle 123, Santiago', 1),
+('Empresa B', '22.222.222-2', 'Avenida 456, Providencia', 2);
+
+INSERT INTO giras (nombre) VALUES 
+('Gira Verano 2024'),
+('Gira Otoño 2024');
+
+INSERT INTO artistas (nombre, genero_musical, descripcion) VALUES 
+('Los Rockeros', 'Rock', 'Banda de rock con 10 años de trayectoria'),
+('DJ Mix', 'Electrónica', 'DJ profesional con experiencia en eventos masivos');

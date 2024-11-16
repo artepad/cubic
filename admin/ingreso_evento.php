@@ -451,6 +451,10 @@ $pageTitle = "Generador de Eventos";
 
                             <dt class="col-sm-4">Servicios:</dt>
                             <dd class="col-sm-8" id="resumen_servicios"></dd>
+
+                            <dt class="col-sm-4">Estado:</dt>
+                            <dd class="col-sm-8"><span class="badge badge-warning">Propuesta</span></dd>
+
                         </dl>
                     </div>
                     <p class="mt-3">¿Está seguro que desea crear este evento con la información mostrada?</p>
@@ -697,7 +701,7 @@ $pageTitle = "Generador de Eventos";
                     $('#ciudad_evento').val() + ' - ' + $('#lugar_evento').val()
                 );
                 $('#resumen_valor').text(formatMoney($('#valor_evento').val()));
-
+                $('#resumen_estado').html('<span class="badge badge-warning">Propuesta</span>');
                 // Servicios adicionales
                 const servicios = [];
                 ['hotel', 'traslados', 'viaticos'].forEach(function(servicio) {
