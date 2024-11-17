@@ -83,6 +83,11 @@ CREATE TABLE artistas (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB COMMENT='Tabla de información de artistas';
 
+INSERT INTO artistas (nombre, descripcion, genero_musical, presentacion, logo, logo_tipo, imagen_presentacion, imagen_presentacion_tipo)
+VALUES 
+('Agrupación Marilyn', 'Banda argentina conocida por su estilo de cumbia testimonial, fundada en 2006. Han plasmado historias de barrio y vida en sus letras, alcanzando Disco de Oro y Platino con su álbum "Historias". Han recorrido diversos países de América y Europa.', 'Cumbia testimonial', 'Con un estilo único, Agrupación Marilyn ha influenciado la cumbia argentina, consolidando su nueva formación en 2020.', NULL, 'image/jpeg', NULL, 'image/jpeg');
+
+
 -- --------------------------------------------------------
 -- Tabla: eventos
 -- Descripción: Almacena la información de los eventos
