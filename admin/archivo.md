@@ -1,26 +1,30 @@
-# 📋 Tareas Pendientes en Cubic
+# 🎯 Tareas Pendientes en Cubic
 
 ## 📊 Dashboard
-- [x] 📈 **Mejorar tabla** con función de búsqueda y paginación.
-- [x] 🗂️ **Mostrar información** de todos los eventos.
-- [x] 🔢 **Corregir contador** de eventos.
+- [x] 🔍 **Búsqueda y Paginación**: Implementar funcionalidades en tabla principal
+- [x] 📈 **Visualización de Eventos**: Mostrar datos completos de todos los eventos
+- [x] 🔢 **Contador de Eventos**: Corrección y optimización del contador
 
+## 👥 Gestión de Clientes
+- [x] 👁️ **Vista Detallada**: Nueva página "Ver Cliente" con enlace desde tabla
+- [x] ✏️ **Edición de Clientes**: Implementación del botón "Editar"
+- [x] 🗑️ **Eliminación de Clientes**: Funcionalidad de eliminación completa
+- [x] 📤 **Exportación de Base de Datos**: Nuevo botón para exportar datos de clientes
 
-## 👤 Clientes
-- [x] 👁️ **Crear página "Ver Cliente"** y enlazar al botón "Ver" en la tabla.
-- [x] 🔄 **Enlazar botón "Editar Cliente"** a la funcionalidad correspondiente.
-- [x] ❗ **Enlazar botón "Eliminar Cliente"** a la funcionalidad correspondiente.
-- [x] 📤 **Agregar botón "Exportar BD Clientes"** debajo de la tabla de clientes.
+## 📅 Sistema de Agenda
+- [ ] 🔄 **Estados de Agenda**: Reparar funcionalidad del botón de cambio de estado
+- [x] 🔍 **Optimización de Tabla**: Implementación de búsqueda avanzada y paginación
 
-## 📅 Agenda
-- [x] 📋 **Mejorar tabla** con búsqueda avanzada y paginación.
-- [ ] ➕ **Botón "Crear Evento"**: agregar debajo de la tabla.(opcional).
+## 🎫 Gestión de Eventos
+- [ ] ✏️ **Edición de Eventos**: Completar programación del botón editar
+- [ ] 🗑️ **Eliminación de Eventos**: Finalizar funcionalidad de eliminación
+- [ ] 📎 **Gestión Documental**: Implementar sistema de archivos adjuntos
+- [ ] 🔍 **Visualización de Documentos**: Desarrollo de visor de archivos adjuntos
+- [x] 🎭 **Selección de Artista**: Campo desplegable en formulario de eventos
+- [x] ➕ **Registro Rápido**: Botón "Nuevo Cliente" junto a selector
+- [x] ✅ **Contratos**: Corrección de errores en generación
+- [x] ✅ **Cotizaciones**: Solución de problemas en creación
 
-## 📒 Eventos
-- [ ] 📋 **Agregar campo "Seleccionar Artista"** en la creación de eventos, con un menú desplegable de artistas.
-- [ ] ➕ **Agregar botón "Nuevo Cliente"** al lado del campo "Seleccionar Cliente".
-- [x] ❗ **Arreglar Creacion de Contrato** Sacar error".
-- [x] ❗ **Arreglar Creacion de Cotizacion** Sacar error".
-
-## 📅 Calendario
-- [ ] ➕ **Botón "Crear Itinerario"**: agregar debajo de la tabla (opcional).
+## 📆 Sistema de Calendario
+- [ ] 📅 **Calendario Principal**: Desarrollar vista completa con eventos
+- [ ] 📋 **Itinerarios**: Implementar función de creación (característica opcional)

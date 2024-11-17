@@ -227,7 +227,7 @@ $pageTitle = "Detalles del Cliente";
                                                     <div class="btn-group dropup m-r-10">
                                                         <button aria-expanded="false" data-toggle="dropdown" class="btn btn-warning dropdown-toggle waves-effect waves-light" type="button">Opciones <span class="caret"></span></button>
                                                         <ul role="menu" class="dropdown-menu">
-                                                            <li><a href="editar_cliente.php?id=<?php echo $cliente_id; ?>">Editar</a></li>
+                                                            <li><a href="ingreso_cliente.php?id=<?php echo $cliente_id; ?>">Editar</a></li>
                                                             <li><a href="#" data-toggle="modal" data-target="#deleteModal">Eliminar</a></li>
                                                             <li class="divider"></li>
                                                             <li><a href="listar_clientes.php">Volver</a></li>
