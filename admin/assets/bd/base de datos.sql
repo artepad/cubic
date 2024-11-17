@@ -1,3 +1,7 @@
+-- Crear la base de datos
+CREATE DATABASE IF NOT EXISTS schaaf_producciones CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE schaaf_producciones;
+
 -- Eliminar tablas existentes si es necesario (en orden inverso a las dependencias)
 DROP TABLE IF EXISTS eventos;
 DROP TABLE IF EXISTS artistas;
@@ -129,6 +133,28 @@ CREATE TABLE eventos (
         ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Tabla principal de eventos';
+
+
+-- Agregar un usuario inicial para pruebas (password: admin123)
+INSERT INTO usuarios (username, password, nombre, email) VALUES 
+('admin', '$2y$10$R65JBBwJOc3ZnLyqPHpeS.TXe1bsHfvjOXKl3YDFB87yl6nMT33E.', 'miguel', 'nuevo_admin@example.com');
+
+-- Insertar algunos datos de prueba
+INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES 
+('Juan', 'Pérez', '12.345.678-9', 'juan@email.com', '+56912345678', 'Masculino'),
+('María', 'González', '98.765.432-1', 'maria@email.com', '+56987654321', 'Femenino');
+
+INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES 
+('Empresa A', '11.111.111-1', 'Calle 123, Santiago', 1),
+('Empresa B', '22.222.222-2', 'Avenida 456, Providencia', 2);
+
+INSERT INTO giras (nombre) VALUES 
+('Gira Verano 2025'),
+('Gira Otoño 2025');
+
+INSERT INTO artistas (nombre, genero_musical, descripcion) VALUES 
+('Agrupación Marilyn', 'Cumbia Testimonial', 'Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial'),
+('Flor Alvarez', 'Cumbia', 'Flor Alvarez sueña con cantar y dedicarse a la música desde que tenía 6 años. La música siempre la ayudó a salir adelante, cantaba en el subte y en las plazas a la gorra hasta que empezó a subir videos a su cuenta de TikTok y se empezaron a viralizar.');
 
 -- Agregar comentario general de la base de datos
 -- Este script crea una base de datos para un sistema de gestión de eventos artísticos
