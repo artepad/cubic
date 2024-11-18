@@ -354,7 +354,7 @@ class QuoteGenerator
             "cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos " .
             "destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, " .
             "Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos " .
-            "singles: Abismo, Siento y Piel y Huesos, que adelantan una propuesta fresca y " .
+            "singles: Abismo, Siento, Piel y Huesos, que adelantan una propuesta fresca y " .
             "poderosa, fiel a su estilo.";
 
         $section->addText($paragraph, 'paragraphStyle', ['alignment' => Jc::BOTH]);
