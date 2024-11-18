@@ -10,7 +10,7 @@ checkAuthentication();
 // Obtener datos comunes
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
-$totalEventosAnioActual = getTotalEventosAnioActual($conn);
+$totalEventosAnioActual = getTotalEventos($conn);
 
 // Lógica específica de ingreso-giras.php
 $mensaje = '';

@@ -9,8 +9,8 @@ checkAuthentication();
 
 // Obtener datos comunes
 $totalClientes = getTotalClientes($conn);
-$totalEventosActivos = getTotalEventosActivos($conn);
-$totalEventosAnioActual = getTotalEventosAnioActual($conn);
+$totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
+$totalEventosAnioActual = getTotalEventos($conn);
 
 // Cerrar la conexión después de obtener los datos necesarios
 $conn->close();

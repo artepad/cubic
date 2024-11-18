@@ -111,14 +111,8 @@ function getTotalClientes($conn) {
     return $result->fetch_assoc()['total'];
 }
 
-function getTotalEventosActivos($conn) {
-    $sql = "SELECT COUNT(*) as total FROM eventos WHERE fecha_evento >= CURDATE()";
-    $result = executeQuery($conn, $sql);
-    return $result->fetch_assoc()['total'];
-}
-
-function getTotalEventosAnioActual($conn) {
-    $sql = "SELECT COUNT(*) as total FROM eventos WHERE YEAR(fecha_evento) = YEAR(CURDATE())";
+function getTotalEventos($conn) {
+    $sql = "SELECT COUNT(*) as total FROM eventos";
     $result = executeQuery($conn, $sql);
     return $result->fetch_assoc()['total'];
 }
