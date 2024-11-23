@@ -6,13 +6,15 @@
 - [x] 🔢 **Contador de Eventos**: Corrección y optimización del contador
 
 ## 👥 Gestión de Clientes
+- [ ] ➕ **Quitar resticiones al formulario**: El campo rut, correo y celular no seran obligatiorios
 - [x] 👁️ **Vista Detallada**: Nueva página "Ver Cliente" con enlace desde tabla
 - [x] ✏️ **Edición de Clientes**: Implementación del botón "Editar"
 - [x] 🗑️ **Eliminación de Clientes**: Funcionalidad de eliminación completa
 - [x] 📤 **Exportación de Base de Datos**: Nuevo botón para exportar datos de clientes
 
 ## 📅 Sistema de Agenda
-- [ ] 🔄 **Estados de Agenda**: Reparar funcionalidad del botón de cambio de estado
+- [ ] ✏️ **Modificar Tabla para que muestre los artistas**: Mostrar mas informacion en la tabla
+- [x] 🔄 **Estados de Agenda**: Reparar funcionalidad del botón de cambio de estado
 - [x] 🔍 **Optimización de Tabla**: Implementación de búsqueda avanzada y paginación
 
 ## 🎫 Gestión de Eventos
