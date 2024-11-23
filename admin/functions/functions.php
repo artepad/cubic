@@ -168,3 +168,80 @@ function obtenerDetallesEvento($conn, $evento_id) {
     $result = executeQuery($conn, $sql, [$evento_id]);
     return $result->fetch_assoc();
 }
+
+
+/**
+ * Funciones para manejo de archivos de eventos
+ */
+
+ function getEventoArchivos($conn, $evento_id) {
+    $sql = "SELECT * FROM evento_archivos WHERE evento_id = ? ORDER BY fecha_subida DESC";
+    return executeQuery($conn, $sql, [$evento_id]);
+}
+
+function guardarArchivoEvento($conn, $evento_id, $archivo) {
+    // Validar el archivo
+    $allowed_types = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    $max_size = 5 * 1024 * 1024; // 5MB
+    
+    if (!in_array($archivo['type'], $allowed_types)) {
+        throw new Exception('Tipo de archivo no permitido');
+    }
+    
+    if ($archivo['size'] > $max_size) {
+        throw new Exception('El archivo excede el tamaño máximo permitido (5MB)');
+    }
+    
+    // Crear directorio específico para el evento si no existe
+    $evento_dir = EVENTOS_UPLOAD_DIR . '/' . $evento_id;
+    if (!file_exists($evento_dir)) {
+        mkdir($evento_dir, 0755, true);
+    }
+    
+    // Generar nombre único para el archivo
+    $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
+    $nombre_archivo = uniqid() . '_' . time() . '.' . $extension;
+    $ruta_completa = $evento_dir . '/' . $nombre_archivo;
+    
+    // Mover el archivo
+    if (!move_uploaded_file($archivo['tmp_name'], $ruta_completa)) {
+        throw new Exception('Error al guardar el archivo');
+    }
+    
+    // Guardar referencia en la base de datos
+    $sql = "INSERT INTO evento_archivos (evento_id, nombre_original, nombre_archivo, tipo_archivo, tamano) 
+            VALUES (?, ?, ?, ?, ?)";
+    
+    executeQuery($conn, $sql, [
+        $evento_id,
+        $archivo['name'],
+        $nombre_archivo,
+        $archivo['type'],
+        $archivo['size']
+    ]);
+    
+    return true;
+}
+
+function eliminarArchivoEvento($conn, $archivo_id) {
+    // Obtener información del archivo
+    $sql = "SELECT * FROM evento_archivos WHERE id = ?";
+    $result = executeQuery($conn, $sql, [$archivo_id]);
+    $archivo = $result->fetch_assoc();
+    
+    if (!$archivo) {
+        throw new Exception('Archivo no encontrado');
+    }
+    
+    // Eliminar archivo físico
+    $ruta_archivo = EVENTOS_UPLOAD_DIR . '/' . $archivo['evento_id'] . '/' . $archivo['nombre_archivo'];
+    if (file_exists($ruta_archivo)) {
+        unlink($ruta_archivo);
+    }
+    
+    // Eliminar registro de la base de datos
+    $sql = "DELETE FROM evento_archivos WHERE id = ?";
+    executeQuery($conn, $sql, [$archivo_id]);
+    
+    return true;
+}

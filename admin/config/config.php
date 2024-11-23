@@ -34,6 +34,17 @@ function getDbConnection() {
     return $conn;
 }
 
+// Definir directorios de upload
+define('UPLOAD_BASE_DIR', __DIR__ . '/../uploads');
+define('EVENTOS_UPLOAD_DIR', UPLOAD_BASE_DIR . '/eventos');
+
+// Crear directorios si no existen
+if (!file_exists(UPLOAD_BASE_DIR)) {
+    mkdir(UPLOAD_BASE_DIR, 0755, true);
+}
+if (!file_exists(EVENTOS_UPLOAD_DIR)) {
+    mkdir(EVENTOS_UPLOAD_DIR, 0755, true);
+}
 // Obtener la conexión
 $conn = getDbConnection();
 ?>
