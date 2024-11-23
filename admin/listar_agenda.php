@@ -58,6 +58,7 @@ $pageTitle = "Listar Agenda";
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <?php include 'includes/head.php'; ?>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
@@ -151,6 +152,7 @@ $pageTitle = "Listar Agenda";
         }
     </style>
 </head>
+
 <body class="mini-sidebar">
     <div id="wrapper">
         <div class="preloader">
@@ -265,10 +267,43 @@ $pageTitle = "Listar Agenda";
             <?php include 'includes/footer.php'; ?>
         </div>
     </div>
+    <!-- Modalidad para cambio de estado -->
+    <div class="modal fade" id="cambioEstadoModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Estado del Evento</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCambioEstado">
+                        <input type="hidden" id="evento_id">
+                        <div class="form-group">
+                            <label for="nuevo_estado">Nuevo Estado:</label>
+                            <select class="form-control" id="nuevo_estado" name="nuevo_estado">
+                                <option value="Propuesta">Propuesta</option>
+                                <option value="Confirmado">Confirmado</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Reagendado">Reagendado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardarEstado">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         $(document).ready(function() {
@@ -280,7 +315,7 @@ $pageTitle = "Listar Agenda";
                     "infoEmpty": "Mostrando 0 a 0 de 0 registros",
                     "infoFiltered": ""
                 },
-                "pageLength": <?php echo $registrosPorPagina; ?>,
+                "pageLength": 8, // Registros por página
                 "ordering": true,
                 "responsive": true,
                 "dom": 'rt<"bottom"<"custom-pagination">><"clear">',
@@ -288,8 +323,7 @@ $pageTitle = "Listar Agenda";
                 "info": false,
                 "searching": true,
                 "paging": false,
-                "columnDefs": [
-                    {
+                "columnDefs": [{
                         "targets": 0,
                         "orderable": false
                     },
@@ -298,10 +332,12 @@ $pageTitle = "Listar Agenda";
                         "type": "date-eu"
                     }
                 ],
-                "order": [[2, 'desc']]
+                "order": [
+                    [2, 'desc']
+                ]
             });
 
-            // Implementación de búsqueda personalizada
+            // Implementación del buscador personalizado
             $('#searchInput').on('keyup', function() {
                 clearTimeout(window.searchTimeout);
                 var searchValue = $(this).val();
@@ -313,19 +349,77 @@ $pageTitle = "Listar Agenda";
                 }, 300);
             });
 
-            // Ocultar búsqueda predeterminada de DataTables
+            // Ocultar el buscador predeterminado de DataTables
             $('.dataTables_filter').hide();
             $('#searchInput').attr('type', 'search');
 
-            // Inicializar tooltips
+            // Inicializar tooltips de Bootstrap
             $('[data-toggle="tooltip"]').tooltip();
 
-            // Manejador para el botón de cambiar estado
+            // Manejador para abrir el modal de cambio de estado
             $('.cambiar-estado').on('click', function() {
                 var eventoId = $(this).data('id');
-                // Aquí puedes implementar la lógica para cambiar el estado
-                // Por ejemplo, abrir un modal o hacer una petición AJAX
-                console.log('Cambiar estado del evento:', eventoId);
+                var estadoActual = $(this).closest('tr').find('td:last').text().trim();
+                $('#evento_id').val(eventoId);
+                $('#nuevo_estado').val(estadoActual);
+                $('#cambioEstadoModal').modal('show');
+            });
+
+            // Manejador para guardar el cambio de estado
+            $('#guardarEstado').on('click', function() {
+                var eventoId = $('#evento_id').val();
+                var nuevoEstado = $('#nuevo_estado').val();
+                var $boton = $(this);
+                var $fila = $('button.cambiar-estado[data-id="' + eventoId + '"]').closest('tr');
+
+                // Deshabilitar el botón durante el proceso
+                $boton.prop('disabled', true);
+
+                // Petición AJAX para actualizar el estado
+                $.ajax({
+                    url: 'cambiar_estado.php',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        evento_id: eventoId,
+                        nuevo_estado: nuevoEstado
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Actualizar el estado en la tabla
+                            $fila.find('td:last').html(response.data.nuevo_estado);
+                            $('#cambioEstadoModal').modal('hide');
+
+                            // Mostrar mensaje de éxito
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Éxito!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            // Mostrar mensaje de error si la respuesta no fue exitosa
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Manejar errores de red o servidor
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al cambiar el estado: ' + error
+                        });
+                    },
+                    complete: function() {
+                        // Rehabilitar el botón al completar la petición
+                        $boton.prop('disabled', false);
+                    }
+                });
             });
 
             // Función para actualizar parámetros en la URL
@@ -340,21 +434,20 @@ $pageTitle = "Listar Agenda";
                 }
             }
 
-            // Manejo de errores AJAX
+            // Manejador global de errores AJAX
             $(document).ajaxError(function(event, jqXHR, ajaxSettings, thrownError) {
                 console.error("Error en la petición AJAX:", thrownError);
-                // Aquí puedes implementar un manejo de errores más específico
             });
 
-            // Limpieza al destruir la página
+            // Limpieza al cerrar la página
             $(window).on('unload', function() {
                 if (table) {
                     table.destroy();
                 }
-                // Destruir todos los tooltips
                 $('[data-toggle="tooltip"]').tooltip('dispose');
             });
         });
     </script>
 </body>
+
 </html>
