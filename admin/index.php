@@ -46,6 +46,7 @@ $pageTitle = "Lista de Eventos";
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <?php include 'includes/head.php'; ?>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
@@ -127,7 +128,7 @@ $pageTitle = "Lista de Eventos";
             }
         }
     </style>
-     <style>
+    <style>
         .alert {
             padding: 15px;
             border: 1px solid transparent;
@@ -189,17 +190,17 @@ $pageTitle = "Lista de Eventos";
                                             <?php while ($evento = $result_eventos->fetch_assoc()): ?>
                                                 <tr>
                                                     <td>
-                                                        <a href="ver_evento.php?id=<?php echo $evento['id']; ?>" 
-                                                           class="btn btn-sm btn-info" 
-                                                           data-toggle="tooltip" 
-                                                           title="Ver Evento">
+                                                        <a href="ver_evento.php?id=<?php echo $evento['id']; ?>"
+                                                            class="btn btn-sm btn-info"
+                                                            data-toggle="tooltip"
+                                                            title="Ver Evento">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
-                                                        <button type="button" 
-                                                                class="btn btn-sm btn-warning cambiar-estado" 
-                                                                data-id="<?php echo $evento['id']; ?>" 
-                                                                data-toggle="tooltip" 
-                                                                title="Cambiar Estado">
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-warning cambiar-estado"
+                                                            data-id="<?php echo $evento['id']; ?>"
+                                                            data-toggle="tooltip"
+                                                            title="Cambiar Estado">
                                                             <i class="fa fa-exchange"></i>
                                                         </button>
                                                     </td>
@@ -218,7 +219,7 @@ $pageTitle = "Lista de Eventos";
                                 <div class="custom-pagination">
                                     <?php
                                     $rango = 2; // Número de páginas a mostrar antes y después de la página actual
-                                    
+
                                     // Mostrar primera página si estamos lejos de ella
                                     if ($paginaActual - $rango > 1) {
                                         echo "<a href='?pagina=1' class='page-number'>1</a>";
@@ -254,58 +255,112 @@ $pageTitle = "Lista de Eventos";
         </div>
     </div>
 
+    <div class="modal fade" id="cambioEstadoModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Estado del Evento</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCambioEstado">
+                        <input type="hidden" id="evento_id">
+                        <div class="form-group">
+                            <label for="nuevo_estado">Nuevo Estado:</label>
+                            <select class="form-control" id="nuevo_estado" name="nuevo_estado">
+                                <option value="Finalizado" selected>Finalizado</option>
+                                <option value="Reagendado">Reagendado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardarEstado">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
-            // Inicializar DataTables con configuración personalizada
-            var table = $('#eventosTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json",
-                    "zeroRecords": "No se encontraron eventos coincidentes",
-                    "infoEmpty": "No hay eventos disponibles",
-                    "infoFiltered": ""
-                },
-                "pageLength": <?php echo $registrosPorPagina; ?>,
-                "ordering": true,
-                "responsive": true,
-                "dom": 'rt<"bottom"<"custom-pagination">><"clear">',
-                "lengthChange": false,
-                "info": false,
-                "searching": true,
-                "paging": false
-            });
-
-            // Implementar búsqueda en tiempo real
-            var searchTimeout;
-            $('#searchInput').on('keyup', function() {
-                clearTimeout(searchTimeout);
-                var searchTerm = this.value;
-                
-                searchTimeout = setTimeout(function() {
-                    table.search(searchTerm).draw();
-                }, 300); // Esperar 300ms después de que el usuario deje de escribir
-            });
-
-            // Ocultar la búsqueda predeterminada de DataTables
-            $('.dataTables_filter').hide();
-
-            // Inicializar tooltips de Bootstrap
-            $('[data-toggle="tooltip"]').tooltip();
-
-            // Manejador para el botón de cambiar estado
-            $(".cambiar-estado").click(function() {
+            // Manejador para abrir el modal de cambio de estado
+            $('.cambiar-estado').on('click', function() {
                 var eventoId = $(this).data('id');
-                $("#cambiarEstadoModal").modal('show');
+                $('#evento_id').val(eventoId);
+                // Por defecto seleccionamos "Finalizado"
+                $('#nuevo_estado').val('Finalizado');
+                $('#cambioEstadoModal').modal('show');
             });
 
-            // Mejorar la responsividad de la tabla
-            $(window).resize(function() {
-                table.columns.adjust().responsive.recalc();
+            // Manejador para guardar el cambio de estado
+            $('#guardarEstado').on('click', function() {
+                var eventoId = $('#evento_id').val();
+                var nuevoEstado = $('#nuevo_estado').val();
+                var $boton = $(this);
+                var $fila = $('button.cambiar-estado[data-id="' + eventoId + '"]').closest('tr');
+
+                // Deshabilitar el botón durante el proceso
+                $boton.prop('disabled', true);
+
+                // Petición AJAX para actualizar el estado
+                $.ajax({
+                    url: 'cambiar_estado.php',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: {
+                        evento_id: eventoId,
+                        nuevo_estado: nuevoEstado
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Actualizar el estado en la tabla
+                            $fila.find('td:last').html(response.data.nuevo_estado);
+                            $('#cambioEstadoModal').modal('hide');
+
+                            // Mostrar mensaje de éxito
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Éxito!',
+                                text: response.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(function() {
+                                // Recargar la página después de mostrar el mensaje
+                                location.reload();
+                            });
+                        } else {
+                            // Mostrar mensaje de error si la respuesta no fue exitosa
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // Manejar errores de red o servidor
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al cambiar el estado: ' + error
+                        });
+                    },
+                    complete: function() {
+                        // Rehabilitar el botón al completar la petición
+                        $boton.prop('disabled', false);
+                    }
+                });
             });
         });
     </script>
 </body>
+
 </html>
