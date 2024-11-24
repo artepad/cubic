@@ -18,6 +18,7 @@
 - [x] 🔍 **Optimización de Tabla**: Implementación de búsqueda avanzada y paginación
 
 ## 🎫 Gestión de Eventos
+- [ ] ✏️ **Hora y fecha no sean obligatorio**: Y si no estan colocar en los documento por definir
 - [ ] ✏️ **Edición de Eventos**: Completar programación del botón editar
 - [ ] 🗑️ **Eliminación de Eventos**: Finalizar funcionalidad de eliminación
 - [ ] 📎 **Gestión Documental**: Implementar sistema de archivos adjuntos

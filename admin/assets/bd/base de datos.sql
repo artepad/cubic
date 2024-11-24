@@ -135,6 +135,20 @@ CREATE TABLE eventos (
 ) ENGINE=InnoDB COMMENT='Tabla principal de eventos';
 
 
+CREATE TABLE IF NOT EXISTS evento_archivos (
+    id INT AUTO_INCREMENT,
+    evento_id INT NOT NULL,
+    nombre_original VARCHAR(255) NOT NULL,
+    nombre_archivo VARCHAR(255) NOT NULL,
+    tipo_archivo VARCHAR(100) NOT NULL,
+    tamano INT NOT NULL,
+    fecha_subida TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE,
+    INDEX idx_evento_archivos (evento_id)
+) ENGINE=InnoDB COMMENT='Tabla para almacenar referencias a archivos de eventos';
+
+
 -- Agregar un usuario inicial para pruebas (password: admin123)
 INSERT INTO usuarios (username, password, nombre, email) VALUES 
 ('admin', '$2y$10$R65JBBwJOc3ZnLyqPHpeS.TXe1bsHfvjOXKl3YDFB87yl6nMT33E.', 'miguel', 'nuevo_admin@example.com');
