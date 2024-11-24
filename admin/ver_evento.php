@@ -86,6 +86,37 @@ $pageTitle = "Detalles del Evento";
             margin-bottom: 0;
             margin-top: 5px;
         }
+
+        /* Añade estos estilos a la sección existente de CSS */
+        .table>tbody>tr>td {
+            vertical-align: middle;
+        }
+
+        .m-r-5 {
+            margin-right: 5px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+        }
+
+        .table>thead>tr>th {
+            font-weight: 600;
+            background-color: #f5f5f5;
+        }
+
+        #archivos-lista tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .file-item {
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            background: #f5f5f5;
+        }
     </style>
 </head>
 
@@ -209,16 +240,75 @@ $pageTitle = "Detalles del Evento";
                                                 </div>
                                             <?php endforeach; ?>
 
+
+                                            <!-- Sección de Archivos Adjuntos -->
+                                            <h3 class="box-title m-t-40">Archivos Adjuntos</h3>
+                                            <hr class="m-t-0 m-b-20">
+
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <?php if ($archivos && $archivos->num_rows > 0): ?>
+                                                        <div class="table-responsive m-b-20">
+                                                            <table class="table table-hover">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Nombre Archivo</th>
+                                                                        <th>Tamaño</th>
+                                                                        <th>Fecha</th>
+                                                                        <th class="text-center">Acciones</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="archivos-lista">
+                                                                    <?php
+                                                                    while ($archivo = $archivos->fetch_assoc()):
+                                                                        $tamano = number_format($archivo['tamano'] / 1024, 2) . ' KB';
+                                                                    ?>
+                                                                        <tr id="archivo-<?php echo $archivo['id']; ?>">
+                                                                            <td>
+                                                                                <i class="fa fa-file-o m-r-5"></i>
+                                                                                <?php echo htmlspecialchars($archivo['nombre_original']); ?>
+                                                                            </td>
+                                                                            <td><?php echo $tamano; ?></td>
+                                                                            <td><?php echo date('d/m/Y H:i', strtotime($archivo['fecha_subida'])); ?></td>
+                                                                            <td class="text-center">
+                                                                                <a href="descargar_archivo.php?id=<?php echo $archivo['id']; ?>"
+                                                                                    class="btn btn-info btn-sm m-r-5"
+                                                                                    title="Descargar">
+                                                                                    <i class="fa fa-download"></i>
+                                                                                </a>
+                                                                                <button type="button"
+                                                                                    class="btn btn-danger btn-sm eliminar-archivo"
+                                                                                    data-id="<?php echo $archivo['id']; ?>"
+                                                                                    title="Eliminar">
+                                                                                    <i class="fa fa-trash"></i>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    <?php endwhile; ?>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                   
+                                                </div>
+                                            </div>
                                             <div class="form-actions">
                                                 <div class="row">
                                                     <div class="col-md-12 text-center">
                                                         <div class="btn-group dropup m-r-10">
-                                                            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button">Documentos <span class="caret"></span></button>
+                                                            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button">
+                                                                Documentos <span class="caret"></span>
+                                                            </button>
                                                             <ul role="menu" class="dropdown-menu">
                                                                 <li><a href="generar_cotizacion.php?id=<?php echo $evento_id; ?>">Cotización</a></li>
                                                                 <li><a href="#" id="generar-contrato">Contrato</a></li>
-                                                                <li class="divider"></li>
-                                                                <li><a href="crear_contrato.php?id=<?php echo $evento_id; ?>">Adjuntar</a></li>
+                                                                <li>
+                                                                    <!-- Botón de subir archivos adaptado -->
+                                                                    <button type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#modalSubirArchivos">
+                                                                        <i class="fa fa-upload m-r-5"></i> Subir Archivos
+                                                                    </button>
+                                                                </li>
                                                             </ul>
                                                         </div>
                                                         <div class="btn-group dropup m-r-10">
@@ -233,55 +323,7 @@ $pageTitle = "Detalles del Evento";
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- Sección de Archivos Adjuntos -->
-                                            <h3 class="box-title m-t-40">Archivos Adjuntos</h3>
-                                            <hr class="m-t-0 m-b-20">
 
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <div class="table-responsive">
-                                                        <table class="table table-hover">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Nombre Archivo</th>
-                                                                    <th>Tipo</th>
-                                                                    <th>Tamaño</th>
-                                                                    <th>Fecha</th>
-                                                                    <th>Acciones</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="archivos-lista">
-                                                                <?php
-                                                                if ($archivos && $archivos->num_rows > 0):
-                                                                    while ($archivo = $archivos->fetch_assoc()):
-                                                                        $tamano = number_format($archivo['tamano'] / 1024, 2) . ' KB';
-                                                                ?>
-                                                                        <tr id="archivo-<?php echo $archivo['id']; ?>">
-                                                                            <td><?php echo htmlspecialchars($archivo['nombre_original']); ?></td>
-                                                                            <td><?php echo htmlspecialchars($archivo['tipo_archivo']); ?></td>
-                                                                            <td><?php echo $tamano; ?></td>
-                                                                            <td><?php echo date('d/m/Y H:i', strtotime($archivo['fecha_subida'])); ?></td>
-                                                                            <td>
-                                                                                <a href="descargar_archivo.php?id=<?php echo $archivo['id']; ?>" class="btn btn-info btn-sm">
-                                                                                    <i class="fa fa-download"></i>
-                                                                                </a>
-                                                                                <button type="button" class="btn btn-danger btn-sm eliminar-archivo" data-id="<?php echo $archivo['id']; ?>">
-                                                                                    <i class="fa fa-trash"></i>
-                                                                                </button>
-                                                                            </td>
-                                                                        </tr>
-                                                                <?php
-                                                                    endwhile;
-                                                                endif;
-                                                                ?>
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalSubirArchivos">
-                                                        <i class="fa fa-upload"></i> Subir Archivos
-                                                    </button>
-                                                </div>
-                                            </div>
                                         </form>
                                     <?php else: ?>
                                         <p>No se encontraron detalles del evento.</p>
@@ -559,7 +601,6 @@ $pageTitle = "Detalles del Evento";
                 });
             });
         });
-
     </script>
 
 
