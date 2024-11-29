@@ -26,13 +26,13 @@ if ($esEdicion) {
             FROM clientes c 
             LEFT JOIN empresas e ON c.id = e.cliente_id 
             WHERE c.id = ?";
-    
+
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
     $cliente = $result->fetch_assoc();
-    
+
     if (!$cliente) {
         $_SESSION['mensaje'] = "Cliente no encontrado.";
         $_SESSION['mensaje_tipo'] = "danger";
@@ -53,23 +53,27 @@ if ($esEdicion) {
 }
 
 // Función de validación general
-function validarCampo($valor, $longitud, $patron) {
+function validarCampo($valor, $longitud, $patron)
+{
     $valor = trim($valor);
     return strlen($valor) <= $longitud && preg_match($patron, $valor);
 }
 
 // Función de validación del RUT
-function validarRut($rut) {
+function validarRut($rut)
+{
     return preg_match('/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/', $rut);
 }
 
 // Función para limpiar el RUT
-function limpiarRut($rut) {
+function limpiarRut($rut)
+{
     return str_replace(['.', '-'], '', $rut);
 }
 
 // Función para formatear el RUT
-function formatearRut($rut) {
+function formatearRut($rut)
+{
     $rutLimpio = limpiarRut($rut);
     $dv = substr($rutLimpio, -1);
     $numero = substr($rutLimpio, 0, -1);
@@ -98,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!validarCampo($apellidos, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
         $errores['apellidos'] = "Apellidos inválidos. Solo letras, máximo 20 caracteres.";
     }
-    if (!validarRut($rut)) {
+    if (!empty($rut) && !validarRut($rut)) {
         $errores['rut'] = "Formato de RUT inválido.";
     }
 
@@ -259,8 +263,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Nombres</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombres" id="nombres" 
-                                                           value="<?php echo htmlspecialchars($nombres); ?>" maxlength="20" required>
+                                                    <input type="text" class="form-control" name="nombres" id="nombres"
+                                                        value="<?php echo htmlspecialchars($nombres); ?>" maxlength="20" required>
                                                     <span class="error-message" id="nombresError">
                                                         <?php echo isset($errores['nombres']) ? $errores['nombres'] : ''; ?>
                                                     </span>
@@ -271,8 +275,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Apellidos</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="apellidos" id="apellidos" 
-                                                           value="<?php echo htmlspecialchars($apellidos); ?>" maxlength="20" required>
+                                                    <input type="text" class="form-control" name="apellidos" id="apellidos"
+                                                        value="<?php echo htmlspecialchars($apellidos); ?>" maxlength="20" required>
                                                     <span class="error-message" id="apellidosError">
                                                         <?php echo isset($errores['apellidos']) ? $errores['apellidos'] : ''; ?>
                                                     </span>
@@ -285,8 +289,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">RUT</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut" id="rut" 
-                                                           value="<?php echo htmlspecialchars($rut); ?>" maxlength="12" required>
+                                                    <input type="text" class="form-control" name="rut" id="rut"
+                                                        value="<?php echo htmlspecialchars($rut); ?>" maxlength="12">
                                                     <span class="error-message" id="rutError">
                                                         <?php echo isset($errores['rut']) ? $errores['rut'] : ''; ?>
                                                     </span>
@@ -297,9 +301,9 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Correo Electrónico</label>
                                                 <div class="col-md-9">
-                                                    <input type="email" class="form-control" name="email" 
-                                                           value="<?php echo htmlspecialchars($email); ?>" maxlength="60" required>
-                                                           </div>
+                                                    <input type="email" class="form-control" name="email"
+                                                        value="<?php echo htmlspecialchars($email); ?>" maxlength="60">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -308,8 +312,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Celular</label>
                                                 <div class="col-md-9">
-                                                    <input type="tel" class="form-control" name="celular" 
-                                                           value="<?php echo htmlspecialchars($celular); ?>" maxlength="16" required>
+                                                    <input type="tel" class="form-control" name="celular"
+                                                        value="<?php echo htmlspecialchars($celular); ?>" maxlength="16">
                                                 </div>
                                             </div>
                                         </div>
@@ -334,8 +338,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Nombre Empresa o Muni</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombre_empresa" 
-                                                           value="<?php echo htmlspecialchars($nombre_empresa); ?>" maxlength="100">
+                                                    <input type="text" class="form-control" name="nombre_empresa"
+                                                        value="<?php echo htmlspecialchars($nombre_empresa); ?>" maxlength="100">
                                                 </div>
                                             </div>
                                         </div>
@@ -343,8 +347,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">RUT Empresa o Muni</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut_empresa" id="rut_empresa" 
-                                                           value="<?php echo htmlspecialchars($rut_empresa); ?>" maxlength="12">
+                                                    <input type="text" class="form-control" name="rut_empresa" id="rut_empresa"
+                                                        value="<?php echo htmlspecialchars($rut_empresa); ?>" maxlength="12">
                                                 </div>
                                             </div>
                                         </div>
@@ -354,8 +358,8 @@ $conn->close();
                                             <div class="form-group">
                                                 <label class="control-label col-md-3">Dirección Empresa o Muni</label>
                                                 <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="direccion_empresa" 
-                                                           value="<?php echo htmlspecialchars($direccion_empresa); ?>" maxlength="250">
+                                                    <input type="text" class="form-control" name="direccion_empresa"
+                                                        value="<?php echo htmlspecialchars($direccion_empresa); ?>" maxlength="250">
                                                 </div>
                                             </div>
                                         </div>
@@ -381,86 +385,92 @@ $conn->close();
     </div>
 
     <script>
-    $(document).ready(function() {
-        function validarCampo(campo, regex, errorMsg) {
-            var valor = $(campo).val().trim();
-            var esValido = regex.test(valor);
-            var errorSpan = $(campo + 'Error');
-            
-            if (!esValido) {
-                errorSpan.text(errorMsg).show();
-                $(campo).addClass('is-invalid');
-            } else {
-                errorSpan.text('').hide();
-                $(campo).removeClass('is-invalid');
-            }
-            
-            return esValido;
-        }
+        $(document).ready(function() {
+            function validarCampo(campo, regex, errorMsg) {
+                var valor = $(campo).val().trim();
+                var esValido = regex.test(valor);
+                var errorSpan = $(campo + 'Error');
 
-        function formatearRut(rut) {
-            // Eliminar caracteres no permitidos
-            var valor = rut.replace(/[^0-9kK\-\.]/g, '');
-            
-            // Aplicar formato
-            var resultado = valor.replace(/\./g, '').replace('-', '');
-            if(resultado.length > 1) {
-                resultado = resultado.substring(0, resultado.length - 1) + '-' + resultado.substring(resultado.length - 1);
-            }
-            if(resultado.length > 5) {
-                resultado = resultado.substring(0, resultado.length - 5) + '.' + resultado.substring(resultado.length - 5);
-            }
-            if(resultado.length > 9) {
-                resultado = resultado.substring(0, resultado.length - 9) + '.' + resultado.substring(resultado.length - 9);
-            }
-            
-            return resultado;
-        }
+                if (!esValido) {
+                    errorSpan.text(errorMsg).show();
+                    $(campo).addClass('is-invalid');
+                } else {
+                    errorSpan.text('').hide();
+                    $(campo).removeClass('is-invalid');
+                }
 
-        // Formatear RUT al escribir
-        $('#rut, #rut_empresa').on('input', function(e) {
-            var start = this.selectionStart,
-                end = this.selectionEnd;
-            
-            var $this = $(this);
-            var valor = $this.val();
-            var valorFormateado = formatearRut(valor);
-            
-            $this.val(valorFormateado);
-            
-            // Ajustar la posición del cursor
-            if (valor !== valorFormateado) {
-                var diff = valorFormateado.length - valor.length;
-                start += diff;
-                end += diff;
+                return esValido;
             }
-            
-            this.setSelectionRange(start, end);
-            
-            // Validar formato de RUT solo si es el campo principal de RUT
-            if ($this.attr('id') === 'rut') {
-                validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+
+            function formatearRut(rut) {
+                // Eliminar caracteres no permitidos
+                var valor = rut.replace(/[^0-9kK\-\.]/g, '');
+
+                // Aplicar formato
+                var resultado = valor.replace(/\./g, '').replace('-', '');
+                if (resultado.length > 1) {
+                    resultado = resultado.substring(0, resultado.length - 1) + '-' + resultado.substring(resultado.length - 1);
+                }
+                if (resultado.length > 5) {
+                    resultado = resultado.substring(0, resultado.length - 5) + '.' + resultado.substring(resultado.length - 5);
+                }
+                if (resultado.length > 9) {
+                    resultado = resultado.substring(0, resultado.length - 9) + '.' + resultado.substring(resultado.length - 9);
+                }
+
+                return resultado;
             }
+
+            // Formatear RUT al escribir
+            $('#rut, #rut_empresa').on('input', function(e) {
+                var start = this.selectionStart,
+                    end = this.selectionEnd;
+
+                var $this = $(this);
+                var valor = $this.val();
+                var valorFormateado = formatearRut(valor);
+
+                $this.val(valorFormateado);
+
+                // Ajustar la posición del cursor
+                if (valor !== valorFormateado) {
+                    var diff = valorFormateado.length - valor.length;
+                    start += diff;
+                    end += diff;
+                }
+
+                this.setSelectionRange(start, end);
+
+                // Validar formato de RUT solo si es el campo principal de RUT
+                if ($this.attr('id') === 'rut') {
+                    validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+                }
+            });
+
+            // Validar formulario al enviar
+            $('#clienteForm').on('submit', function(e) {
+                var nombreValido = validarCampo('#nombres', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+                var apellidoValido = validarCampo('#apellidos', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+                var rutValido = true; // El RUT es opcional ahora
+
+                // Solo validar RUT si se ha ingresado algo
+                if ($('#rut').val().trim() !== '') {
+                    rutValido = validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+                }
+
+                if (!nombreValido || !apellidoValido || !rutValido) {
+                    e.preventDefault();
+                }
+            });
+
+            // Validar nombres y apellidos mientras se escriben
+            $('#nombres, #apellidos').on('input', function() {
+                var campo = '#' + $(this).attr('id');
+                validarCampo(campo, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+            });
         });
-
-        // Validar formulario al enviar
-        $('#clienteForm').on('submit', function(e) {
-            var nombreValido = validarCampo('#nombres', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
-            var apellidoValido = validarCampo('#apellidos', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
-            var rutValido = validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
-
-            if (!nombreValido || !apellidoValido || !rutValido) {
-                e.preventDefault();
-            }
-        });
-
-        // Validar nombres y apellidos mientras se escriben
-        $('#nombres, #apellidos').on('input', function() {
-            var campo = '#' + $(this).attr('id');
-            validarCampo(campo, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
-        });
-    });
     </script>
 
 </body>
+
 </html>
