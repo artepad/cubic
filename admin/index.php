@@ -28,9 +28,10 @@ $totalRegistros = $fila['total'];
 $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
 
 // Consulta principal con paginación
-$sql = "SELECT e.*, c.nombres, c.apellidos 
+$sql = "SELECT e.*, c.nombres, c.apellidos, a.nombre as nombre_artista 
         FROM eventos e 
         LEFT JOIN clientes c ON e.cliente_id = c.id 
+        LEFT JOIN artistas a ON e.artista_id = a.id
         WHERE e.estado_evento IN ('confirmado', 'en_proceso') 
         ORDER BY e.fecha_evento ASC 
         LIMIT $registrosPorPagina OFFSET $offset";
@@ -179,6 +180,7 @@ $pageTitle = "Lista de Eventos";
                                             <tr>
                                                 <th>Acciones</th>
                                                 <th>Nombre del Evento</th>
+                                                <th>Artista</th>
                                                 <th>Fecha</th>
                                                 <th>Hora</th>
                                                 <th>Cliente</th>
@@ -205,6 +207,7 @@ $pageTitle = "Lista de Eventos";
                                                         </button>
                                                     </td>
                                                     <td><?php echo htmlspecialchars($evento['nombre_evento']); ?></td>
+                                                    <td><?php echo htmlspecialchars($evento['nombre_artista'] ?? 'No asignado'); ?></td>
                                                     <td><?php echo date('d/m/Y', strtotime($evento['fecha_evento'])); ?></td>
                                                     <td><?php echo date('H:i', strtotime($evento['hora_evento'])); ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></td>

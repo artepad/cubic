@@ -1,8 +1,10 @@
 # 🎯 Tareas Pendientes en Cubic
 
 ## 📊 Dashboard
-- [ ] ✏️ **Modificar Tabla para que muestre los artistas**: Mostrar mas informacion en la tabla
-- [x] 🔍 **Búsqueda y Paginación**: Implementar funcionalidades en tabla principal
+
+- [ ] 🔍 **Arreglar Filtro de Busqueda**: Hacer funcionar bien el filtro de busqueda de la tabla
+- [x] ✏️ **Modificar Tabla para que muestre los artistas**: Mostrar mas informacion en la tabla
+- [x] 🔢 **Paginación**: Implementar funcionalidades en tabla principal
 - [x] 📈 **Visualización de Eventos**: Mostrar datos completos de todos los eventos
 - [x] 🔢 **Contador de Eventos**: Corrección y optimización del contador
 
@@ -22,8 +24,8 @@
 - [ ] ✏️ **Hora y fecha no sean obligatorio**: Y si no estan colocar en los documento por definir
 - [ ] ✏️ **Edición de Eventos**: Completar programación del botón editar
 - [ ] 🗑️ **Eliminación de Eventos**: Finalizar funcionalidad de eliminación
-- [ ] 📎 **Gestión Documental**: Implementar sistema de archivos adjuntos
-- [ ] 🔍 **Visualización de Documentos**: Desarrollo de visor de archivos adjuntos
+- [X] 📎 **Gestión Documental**: Implementar sistema de archivos adjuntos
+- [x] 🔍 **Visualización de Documentos**: Desarrollo de visor de archivos adjuntos
 - [x] 🎭 **Selección de Artista**: Campo desplegable en formulario de eventos
 - [x] ➕ **Registro Rápido**: Botón "Nuevo Cliente" junto a selector
 - [x] ✅ **Contratos**: Corrección de errores en generación
@@ -31,4 +33,4 @@
 
 ## 📆 Sistema de Calendario
 - [ ] 📅 **Calendario Principal**: Desarrollar vista completa con eventos
-- [ ] 📋 **Itinerarios**: Implementar función de creación (característica opcional)
+- [ ] 📋 **Crear Itinerarios**: Implementar función de creación (característica opcional)
