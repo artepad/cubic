@@ -181,10 +181,10 @@ $pageTitle = "Lista de Eventos";
                                                 <th>Acciones</th>
                                                 <th>Nombre del Evento</th>
                                                 <th>Artista</th>
+                                                <th>Ciudad</th>
                                                 <th>Fecha</th>
                                                 <th>Hora</th>
                                                 <th>Cliente</th>
-                                                <th>Ciudad</th>
                                                 <th>Estado</th>
                                             </tr>
                                         </thead>
@@ -208,10 +208,10 @@ $pageTitle = "Lista de Eventos";
                                                     </td>
                                                     <td><?php echo htmlspecialchars($evento['nombre_evento']); ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombre_artista'] ?? 'No asignado'); ?></td>
+                                                    <td><?php echo htmlspecialchars($evento['ciudad_evento']); ?></td>
                                                     <td><?php echo date('d/m/Y', strtotime($evento['fecha_evento'])); ?></td>
                                                     <td><?php echo date('H:i', strtotime($evento['hora_evento'])); ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></td>
-                                                    <td><?php echo htmlspecialchars($evento['ciudad_evento']); ?></td>
                                                     <td><?php echo generarEstadoEvento($evento['estado_evento']); ?></td>
                                                 </tr>
                                             <?php endwhile; ?>

@@ -1,36 +1,49 @@
 # 🎯 Tareas Pendientes en Cubic
 
 ## 📊 Dashboard
-
-- [ ] 🔍 **Arreglar Filtro de Busqueda**: Hacer funcionar bien el filtro de busqueda de la tabla
-- [x] ✏️ **Modificar Tabla para que muestre los artistas**: Mostrar mas informacion en la tabla
-- [x] 🔢 **Paginación**: Implementar funcionalidades en tabla principal
-- [x] 📈 **Visualización de Eventos**: Mostrar datos completos de todos los eventos
-- [x] 🔢 **Contador de Eventos**: Corrección y optimización del contador
+- [ ] 🔍 **Optimización del Filtro de Búsqueda**: Implementar y corregir la funcionalidad del filtro en la tabla principal
+- [x] 📋 **Integración de Información de Artistas**: Ampliar la visualización de datos en la tabla
+- [x] 📄 **Sistema de Paginación**: Implementación exitosa en la tabla principal
+- [x] 📊 **Visualizador de Eventos**: Implementación completa del display de información
+- [x] 📈 **Sistema de Conteo de Eventos**: Optimización y corrección del contador
 
 ## 👥 Gestión de Clientes
-- [x] ➕ **Quitar resticiones al formulario**: El campo rut, correo y celular no seran obligatiorios
-- [x] 👁️ **Vista Detallada**: Nueva página "Ver Cliente" con enlace desde tabla
-- [x] ✏️ **Edición de Clientes**: Implementación del botón "Editar"
-- [x] 🗑️ **Eliminación de Clientes**: Funcionalidad de eliminación completa
-- [x] 📤 **Exportación de Base de Datos**: Nuevo botón para exportar datos de clientes
+- [ ] ✏️ **Corrección del Editor de Clientes**: Solucionar errores en la funcionalidad de edición
+- [x] 📝 **Flexibilización de Formularios**: Campos de RUT, correo y celular ahora son opcionales
+- [x] 🔍 **Vista Detallada de Cliente**: Nueva interfaz con acceso directo desde la tabla
+- [x] ✏️ **Sistema de Edición**: Implementación completa del módulo de edición
+- [x] 🗑️ **Sistema de Eliminación**: Funcionalidad de eliminación implementada
+- [x] 💾 **Exportación de Datos**: Nueva función para exportar base de datos de clientes
 
 ## 📅 Sistema de Agenda
-- [ ] ✏️ **Modificar Tabla para que muestre los artistas**: Mostrar mas informacion en la tabla
-- [x] 🔄 **Estados de Agenda**: Reparar funcionalidad del botón de cambio de estado
-- [x] 🔍 **Optimización de Tabla**: Implementación de búsqueda avanzada y paginación
+- [x] 📋 **Integración de Información de Artistas**: Expandir la visualización de datos en la tabla
+- [x] 🔄 **Gestión de Estados**: Reparación del sistema de cambio de estados
+- [x] 🔍 **Mejoras en la Tabla**: Implementación de búsqueda avanzada y paginación
 
 ## 🎫 Gestión de Eventos
-- [ ] ✏️ **Hora y fecha no sean obligatorio**: Y si no estan colocar en los documento por definir
-- [ ] ✏️ **Edición de Eventos**: Completar programación del botón editar
-- [ ] 🗑️ **Eliminación de Eventos**: Finalizar funcionalidad de eliminación
-- [X] 📎 **Gestión Documental**: Implementar sistema de archivos adjuntos
-- [x] 🔍 **Visualización de Documentos**: Desarrollo de visor de archivos adjuntos
-- [x] 🎭 **Selección de Artista**: Campo desplegable en formulario de eventos
-- [x] ➕ **Registro Rápido**: Botón "Nuevo Cliente" junto a selector
-- [x] ✅ **Contratos**: Corrección de errores en generación
-- [x] ✅ **Cotizaciones**: Solución de problemas en creación
+- [ ] ⏰ **Campos Temporales Opcionales**: Implementar "Por definir" para fecha y hora no especificadas
+- [ ] ✏️ **Sistema de Edición**: Completar la funcionalidad de edición de eventos
+- [ ] 🗑️ **Sistema de Eliminación**: Finalizar implementación de eliminación de eventos
+- [x] 📎 **Gestión de Archivos**: Sistema de documentos adjuntos implementado
+- [x] 👁️ **Visor de Documentos**: Visualizador de archivos adjuntos en funcionamiento
+- [x] 🎭 **Selector de Artistas**: Menú desplegable integrado en el formulario
+- [x] ➕ **Registro Express**: Botón de creación rápida de clientes junto al selector
+- [x] 📄 **Sistema de Contratos**: Corrección de errores en generación
+- [x] 📋 **Sistema de Cotizaciones**: Resolución de problemas en creación
+
+## 👁️ Visualización de Eventos
+- [ ] 🎭 **Información de Artista**: Mostrar artista asociado al evento
+- [ ]  ℹ️ **Manejo de Datos Vacíos**: Implementar "N/A" para campos sin información
+- [ ] ⏰ **Gestión de Horarios**: Mostrar "Por definir" cuando no hay hora especificada
+
+## 📄 Generación de Contratos
+- [ ] 🎭 **Integración de Artistas**: Obtener información del artista desde la base de datos
+- [ ] ℹ️ **Gestión de Datos Nulos**: Implementar "N/A" para campos sin información
+
+## 📋 Generación de Cotizaciones
+- [ ] 🎭 **Información de Artista**: Integrar nombre y descripción desde la base de datos
+- [ ] 🖼️ **Galería de Artistas**: Incorporar fotografías desde la base de datos
 
 ## 📆 Sistema de Calendario
-- [ ] 📅 **Calendario Principal**: Desarrollar vista completa con eventos
-- [ ] 📋 **Crear Itinerarios**: Implementar función de creación (característica opcional)
+- [ ] 📅 **Vista Principal**: Desarrollar interfaz completa con integración de eventos
+- [ ] 📋 **Generador de Itinerarios**: Implementar sistema de creación (función opcional)

@@ -20,9 +20,10 @@ $offset = ($paginaActual - 1) * $registrosPorPagina;
 
 // Construir la consulta base
 $baseQuery = "
-    SELECT e.*, c.nombres, c.apellidos 
+   SELECT e.*, c.nombres, c.apellidos, a.nombre as nombre_artista 
     FROM eventos e
     LEFT JOIN clientes c ON e.cliente_id = c.id
+    LEFT JOIN artistas a ON e.artista_id = a.id
     WHERE 1=1
 ";
 
@@ -195,10 +196,11 @@ $pageTitle = "Listar Agenda";
                                             <tr>
                                                 <th>Acciones</th>
                                                 <th>Nombre del Evento</th>
+                                                <th>Artista</th>
+                                                <th>Ciudad</th>
                                                 <th>Fecha</th>
                                                 <th>Hora</th>
                                                 <th>Cliente</th>
-                                                <th>Ciudad</th>
                                                 <th>Estado</th>
                                             </tr>
                                         </thead>
@@ -221,10 +223,11 @@ $pageTitle = "Listar Agenda";
                                                         </button>
                                                     </td>
                                                     <td><?php echo htmlspecialchars($evento['nombre_evento']); ?></td>
+                                                    <td><?php echo htmlspecialchars($evento['nombre_artista'] ?? 'No asignado'); ?></td>
+                                                    <td><?php echo htmlspecialchars($evento['ciudad_evento']); ?></td>
                                                     <td><?php echo date('d/m/Y', strtotime($evento['fecha_evento'])); ?></td>
                                                     <td><?php echo date('H:i', strtotime($evento['hora_evento'])); ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></td>
-                                                    <td><?php echo htmlspecialchars($evento['ciudad_evento']); ?></td>
                                                     <td><?php echo generarEstadoEvento($evento['estado_evento']); ?></td>
                                                 </tr>
                                             <?php endwhile; ?>
