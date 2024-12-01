@@ -27,12 +27,71 @@ if (!defined('DEFAULT_FONT_SIZE')) define('DEFAULT_FONT_SIZE', 18);
 $config = [
     'background_images' => [
         'portada' => 'assets/img/portada.png',
-        'hoja2' => 'assets/img/hoja2.png',
+        'hoja2' => '', // Se establecerá dinámicamente
         'hoja3' => 'assets/img/hoja3.png',
         'hoja4' => 'assets/img/hoja4.png',
     ],
     'temp_directory' => sys_get_temp_dir(),
+    'base_artist_path' => 'C:/xampp/htdocs/cubic/admin/assets/img/'
 ];
+
+try {
+    if ($_SERVER["REQUEST_METHOD"] == "POST" || isset($_GET['id'])) {
+        // Obtener ID del evento
+        $evento_id = isset($_POST['evento_id']) ? $_POST['evento_id'] : $_GET['id'];
+
+        // Obtener datos del evento
+        $db = new DatabaseConnection();
+        $evento = $db->getEventData($evento_id);
+
+        // Establecer la ruta de la imagen del artista
+        if (!empty($evento['artista_id'])) {
+            $artistImagePath = $config['base_artist_path'] . $evento['artista_id'] . '/presentacion.png';
+
+            // Verificar que la imagen existe
+            if (file_exists($artistImagePath)) {
+                $config['background_images']['hoja2'] = $artistImagePath;
+            } else {
+                // Si no existe la imagen del artista, usar una imagen por defecto
+                $config['background_images']['hoja2'] = 'assets/img/hoja2.png';
+                error_log("Imagen de artista no encontrada: " . $artistImagePath);
+            }
+        } else {
+            // Si no hay artista_id, usar imagen por defecto
+            $config['background_images']['hoja2'] = 'assets/img/hoja2.png';
+        }
+
+        // Preparar datos para la cotización
+        $formData = [
+            'encabezado' => !empty($evento['encabezado_evento'])
+                ? $evento['encabezado_evento']
+                : ($evento['nombres'] . ' ' . $evento['apellidos']),
+            'nombres' => $evento['nombres'],
+            'apellidos' => $evento['apellidos'],
+            'es_encabezado_evento' => !empty($evento['encabezado_evento']),
+            'ciudad' => $evento['ciudad_evento'],
+            'fecha' => $evento['fecha_evento'],
+            'horario' => $evento['hora_evento'],
+            'evento' => $evento['nombre_evento'],
+            'valor' => $evento['valor_evento'],
+            'hotel' => $evento['hotel'],
+            'transporte' => $evento['traslados'],
+            'viaticos' => $evento['viaticos'],
+            'presentacion_artista' => $evento['presentacion_artista']
+        ];
+
+        // Generar cotización
+        $quoteGenerator = new QuoteGenerator($formData, $config);
+        $quoteGenerator->generate();
+    } else {
+        throw new Exception("Método de solicitud no válido");
+    }
+} catch (Exception $e) {
+    error_log("Error en la generación de la cotización: " . $e->getMessage());
+    header('Content-Type: application/json');
+    echo json_encode(['error' => $e->getMessage()]);
+    exit();
+}
 
 /**
  * Clase simple para logging
@@ -346,10 +405,10 @@ class QuoteGenerator
      */
     private function addDescriptiveText($section)
     {
-        $presentacion = !empty($this->formData['presentacion_artista']) 
+        $presentacion = !empty($this->formData['presentacion_artista'])
             ? $this->formData['presentacion_artista']
             : "Agradecemos desde ya su interés en el espectáculo..."; // Texto por defecto en caso de que no haya presentación
-    
+
         $section->addText($presentacion, 'paragraphStyle', ['alignment' => Jc::BOTH]);
     }
 
@@ -667,21 +726,30 @@ class QuoteGenerator
         $this->logger->log("Iniciando proceso de guardado del documento");
 
         try {
-            // Limpiar cualquier salida anterior
-            if (ob_get_length()) ob_end_clean();
+            // Limpiar todos los buffers de salida
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
 
-            // Crear archivo temporal
+            // Crear archivo temporal con extensión .docx
             $tempFile = tempnam($this->config['temp_directory'], 'quote_');
+            $tempFileDocx = $tempFile . '.docx';
+
             if ($tempFile === false) {
                 throw new Exception("No se pudo crear el archivo temporal");
             }
 
+            // Renombrar el archivo temporal para agregarle la extensión .docx
+            if (file_exists($tempFile)) {
+                rename($tempFile, $tempFileDocx);
+            }
+
             // Guardar documento en archivo temporal
             $writer = IOFactory::createWriter($this->phpWord, 'Word2007');
-            $writer->save($tempFile);
+            $writer->save($tempFileDocx);
 
             // Verificar que el archivo se creó correctamente
-            if (!file_exists($tempFile) || filesize($tempFile) === 0) {
+            if (!file_exists($tempFileDocx) || filesize($tempFileDocx) === 0) {
                 throw new Exception("Error al generar el archivo");
             }
 
@@ -689,14 +757,24 @@ class QuoteGenerator
             header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             header('Content-Disposition: attachment; filename="' . $this->fileName . '"');
             header('Cache-Control: max-age=0');
+            header('Content-Length: ' . filesize($tempFileDocx));
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
 
             // Leer y enviar el archivo
-            readfile($tempFile);
+            readfile($tempFileDocx);
 
-            // Eliminar archivo temporal
-            unlink($tempFile);
+            // Eliminar archivos temporales
+            if (file_exists($tempFileDocx)) {
+                unlink($tempFileDocx);
+            }
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
 
             $this->logger->log("Documento guardado y enviado exitosamente");
+            exit(); // Asegurarnos de que no se envíe nada más
+
         } catch (Exception $e) {
             $this->logger->log("Error al guardar documento: " . $e->getMessage());
             throw new Exception("Error al guardar el documento: " . $e->getMessage());
@@ -761,7 +839,8 @@ class DatabaseConnection
             $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut as rut_cliente, 
                        c.correo, c.celular, emp.nombre as nombre_empresa, 
                        emp.rut as rut_empresa, e.encabezado_evento,
-                       a.presentacion as presentacion_artista
+                       a.presentacion as presentacion_artista,
+                       e.artista_id  -- Aseguramos que se incluya el artista_id
                 FROM eventos e 
                 LEFT JOIN clientes c ON e.cliente_id = c.id 
                 LEFT JOIN empresas emp ON c.id = emp.cliente_id
