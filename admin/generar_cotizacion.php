@@ -346,18 +346,11 @@ class QuoteGenerator
      */
     private function addDescriptiveText($section)
     {
-        $paragraph = "Agradecemos desde ya su interés en el espectáculo de la reconocida banda Argentina, " .
-            "Agrupación Marilyn. Sin duda, esta banda representa una experiencia musical integral " .
-            "con una destacada trayectoria. Agrupación Marilyn ha conseguido un lugar especial " .
-            "en el corazón de seguidores tanto a nivel nacional como internacional. Su música, " .
-            "definida por la cumbia romántica y testimonial, narra historias que reflejan el " .
-            "cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos " .
-            "destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, " .
-            "Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos " .
-            "singles: Abismo, Siento, Piel y Huesos, que adelantan una propuesta fresca y " .
-            "poderosa, fiel a su estilo.";
-
-        $section->addText($paragraph, 'paragraphStyle', ['alignment' => Jc::BOTH]);
+        $presentacion = !empty($this->formData['presentacion_artista']) 
+            ? $this->formData['presentacion_artista']
+            : "Agradecemos desde ya su interés en el espectáculo..."; // Texto por defecto en caso de que no haya presentación
+    
+        $section->addText($presentacion, 'paragraphStyle', ['alignment' => Jc::BOTH]);
     }
 
     /**
@@ -766,12 +759,14 @@ class DatabaseConnection
     {
         try {
             $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut as rut_cliente, 
-                           c.correo, c.celular, emp.nombre as nombre_empresa, 
-                           emp.rut as rut_empresa, e.encabezado_evento
-                    FROM eventos e 
-                    LEFT JOIN clientes c ON e.cliente_id = c.id 
-                    LEFT JOIN empresas emp ON c.id = emp.cliente_id
-                    WHERE e.id = ?";
+                       c.correo, c.celular, emp.nombre as nombre_empresa, 
+                       emp.rut as rut_empresa, e.encabezado_evento,
+                       a.presentacion as presentacion_artista
+                FROM eventos e 
+                LEFT JOIN clientes c ON e.cliente_id = c.id 
+                LEFT JOIN empresas emp ON c.id = emp.cliente_id
+                LEFT JOIN artistas a ON e.artista_id = a.id
+                WHERE e.id = ?";
 
             $stmt = $this->conn->prepare($sql);
             if (!$stmt) {
@@ -970,7 +965,8 @@ try {
             'valor' => $evento['valor_evento'],
             'hotel' => $evento['hotel'],
             'transporte' => $evento['traslados'],
-            'viaticos' => $evento['viaticos']
+            'viaticos' => $evento['viaticos'],
+            'presentacion_artista' => $evento['presentacion_artista']
         ];
 
         // Generar cotización

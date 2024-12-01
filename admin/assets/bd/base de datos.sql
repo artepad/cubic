@@ -80,18 +80,16 @@ CREATE TABLE giras (
 
 -- ========================================
 -- Tabla: artistas
--- Descripción: Almacena información de los artistas y sus materiales
+-- Descripción: Almacena información de los artistas
 -- ========================================
 CREATE TABLE artistas (
     id INT AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL COMMENT 'Nombre del artista',
     descripcion TEXT COMMENT 'Descripción detallada del artista',
+    presentacion TEXT COMMENT 'Presentación para cotizaciones',
     genero_musical VARCHAR(50) NOT NULL COMMENT 'Género musical principal del artista',
-    presentacion TEXT COMMENT 'Descripción de la presentación del artista',
-    logo MEDIUMBLOB COMMENT 'Logo del artista (imagen hasta 16MB)',
-    logo_tipo VARCHAR(50) COMMENT 'Tipo MIME del logo (ej: image/jpeg)',
-    imagen_presentacion MEDIUMBLOB COMMENT 'Imagen de presentación del artista',
-    imagen_presentacion_tipo VARCHAR(50) COMMENT 'Tipo MIME de la imagen de presentación',
+    imagen_presentacion VARCHAR(255) COMMENT 'Ruta de la imagen de presentación',
+    logo_artista VARCHAR(255) COMMENT 'Ruta del logo del artista',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del artista',
     PRIMARY KEY (id),
     INDEX idx_artista_nombre (nombre) COMMENT 'Índice para búsquedas por nombre de artista'
@@ -181,6 +179,6 @@ INSERT INTO giras (nombre) VALUES
 ('Gira Otoño 2025');
 
 -- Artistas de ejemplo
-INSERT INTO artistas (nombre, genero_musical, descripcion) VALUES 
-('Agrupación Marilyn', 'Cumbia Testimonial', 'Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial'),
-('Flor Alvarez', 'Cumbia', 'Flor Alvarez sueña con cantar y dedicarse a la música desde que tenía 6 años. La música siempre la ayudó a salir adelante, cantaba en el subte y en las plazas a la gorra hasta que empezó a subir videos a su cuenta de TikTok y se empezaron a viralizar.');
+INSERT INTO artistas (nombre, genero_musical, descripcion, presentacion) VALUES 
+('Agrupación Marilyn', 'Cumbia Testimonial', 'Descripción detallada de Agrupación Marilyn...', 'Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial, narra historias que reflejan el cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos singles: Abismo, Siento, Piel y Huesos, que adelantan una propuesta fresca y poderosa, fiel a su estilo.'),
+('Flor Alvarez', 'Cumbia', 'Descripción detallada de Flor Alvarez...', 'gradecemos desde ya su interés en la talentosa cantante argentina Flor Álvarez, una joven promesa que ha conquistado corazones con su música. Desde sus inicios cantando en el subte de Buenos Aires, Flor ha logrado posicionarse como una figura destacada en la música urbana y cumbia romántica. Con éxitos como Con Vos, junto a Rusherking, y Sin Querer, con Fer Vázquez de Rombai, acumula millones de reproducciones, además de recibir elogios de artistas como La Joaqui. Su EP Etapas refleja una propuesta fresca y emotiva, consolidando su lugar en la escena musical. Actualmente, trabaja en nuevas colaboraciones que prometen sorprender, llevando su música a niveles internacionales');
