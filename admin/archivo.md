@@ -8,7 +8,8 @@
 - [x] 📈 **Sistema de Conteo de Eventos**: Optimización y corrección del contador
 
 ## 👥 Gestión de Clientes
-- [ ] ✏️ **Corrección del Editor de Clientes**: Solucionar errores en la funcionalidad de edición
+- [ ] ✏️ **Mejorar Formato del Ingreso celular**: La idea es que se guarde el numero de esta forma +56987879312
+- [x] ✏️ **Corrección del Editor de Clientes**: Solucionar errores en la funcionalidad de edición
 - [x] 📝 **Flexibilización de Formularios**: Campos de RUT, correo y celular ahora son opcionales
 - [x] 🔍 **Vista Detallada de Cliente**: Nueva interfaz con acceso directo desde la tabla
 - [x] ✏️ **Sistema de Edición**: Implementación completa del módulo de edición

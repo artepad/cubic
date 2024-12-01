@@ -19,6 +19,47 @@ $cliente = null;
 // Inicializar variables para mantener los valores del formulario
 $nombres = $apellidos = $rut = $email = $celular = $genero = $nombre_empresa = $rut_empresa = $direccion_empresa = '';
 
+// Función para validar el formato del RUT
+function validarRut($rut)
+{
+    return preg_match('/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/', $rut);
+}
+
+// Modificar la función formatearRut para mantener el formato
+function formatearRut($rut)
+{
+    if (empty($rut)) {
+        return '';
+    }
+    // Primero limpiamos el RUT de cualquier formato previo
+    $rutLimpio = preg_replace('/[^0-9kK]/', '', $rut);
+
+    if (strlen($rutLimpio) < 2) {
+        return '';
+    }
+
+    // Separamos el dígito verificador
+    $dv = substr($rutLimpio, -1);
+    $numero = substr($rutLimpio, 0, -1);
+
+    if (!is_numeric($numero)) {
+        return '';
+    }
+
+    // Formateamos el número
+    $numero = number_format($numero, 0, "", ".");
+
+    // Retornamos el RUT formateado
+    return $numero . "-" . $dv;
+}
+
+// Función de validación general
+function validarCampo($valor, $longitud, $patron)
+{
+    $valor = trim($valor);
+    return strlen($valor) <= $longitud && preg_match($patron, $valor);
+}
+
 if ($esEdicion) {
     // Obtener datos del cliente para edición
     $id = (int)$_GET['id'];
@@ -43,41 +84,13 @@ if ($esEdicion) {
     // Asignar valores existentes
     $nombres = $cliente['nombres'];
     $apellidos = $cliente['apellidos'];
-    $rut = formatearRut($cliente['rut']); // Función para formatear el RUT
+    $rut = !empty($cliente['rut']) ? $cliente['rut'] : '';
     $email = $cliente['correo'];
     $celular = $cliente['celular'];
     $genero = $cliente['genero'];
     $nombre_empresa = $cliente['nombre_empresa'];
-    $rut_empresa = $cliente['rut_empresa'] ? formatearRut($cliente['rut_empresa']) : '';
+    $rut_empresa = !empty($cliente['rut_empresa']) ? $cliente['rut_empresa'] : '';
     $direccion_empresa = $cliente['direccion_empresa'];
-}
-
-// Función de validación general
-function validarCampo($valor, $longitud, $patron)
-{
-    $valor = trim($valor);
-    return strlen($valor) <= $longitud && preg_match($patron, $valor);
-}
-
-// Función de validación del RUT
-function validarRut($rut)
-{
-    return preg_match('/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/', $rut);
-}
-
-// Función para limpiar el RUT
-function limpiarRut($rut)
-{
-    return str_replace(['.', '-'], '', $rut);
-}
-
-// Función para formatear el RUT
-function formatearRut($rut)
-{
-    $rutLimpio = limpiarRut($rut);
-    $dv = substr($rutLimpio, -1);
-    $numero = substr($rutLimpio, 0, -1);
-    return number_format($numero, 0, "", ".") . "-" . $dv;
 }
 
 $errores = [];
@@ -102,23 +115,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!validarCampo($apellidos, 20, '/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/')) {
         $errores['apellidos'] = "Apellidos inválidos. Solo letras, máximo 20 caracteres.";
     }
-    if (!empty($rut) && !validarRut($rut)) {
-        $errores['rut'] = "Formato de RUT inválido.";
+
+    // Validar y formatear RUT si se proporciona
+    if (!empty($rut)) {
+        $rutFormateado = formatearRut($rut);
+        if (!validarRut($rutFormateado)) {
+            $errores['rut'] = "Formato de RUT inválido.";
+        }
+    } else {
+        $rutFormateado = null;
+    }
+
+    // Validar y formatear RUT de empresa si se proporciona
+    if (!empty($rut_empresa)) {
+        $rutEmpresaFormateado = formatearRut($rut_empresa);
+        if (!validarRut($rutEmpresaFormateado)) {
+            $errores['rut_empresa'] = "Formato de RUT de empresa inválido.";
+        }
+    } else {
+        $rutEmpresaFormateado = null;
     }
 
     if (empty($errores)) {
-        // Verificar si el RUT ya existe (solo para nuevos registros o si el RUT ha cambiado)
-        $rutLimpio = limpiarRut($rut);
-        $check_rut_sql = "SELECT id FROM clientes WHERE rut = ? AND id != ?";
-        $check_stmt = $conn->prepare($check_rut_sql);
-        $idCheck = $esEdicion ? $id : 0;
-        $check_stmt->bind_param("si", $rutLimpio, $idCheck);
-        $check_stmt->execute();
-        $check_result = $check_stmt->get_result();
+        // Verificar si el RUT ya existe (solo si se proporcionó un RUT)
+        if (!empty($rutFormateado)) {
+            $check_rut_sql = "SELECT id FROM clientes WHERE rut = ? AND id != ?";
+            $check_stmt = $conn->prepare($check_rut_sql);
+            $idCheck = $esEdicion ? $id : 0;
+            $check_stmt->bind_param("si", $rutFormateado, $idCheck);
+            $check_stmt->execute();
+            $check_result = $check_stmt->get_result();
 
-        if ($check_result->num_rows > 0) {
-            $errores['rut'] = "Ya existe un cliente con ese RUT.";
-        } else {
+            if ($check_result->num_rows > 0) {
+                $errores['rut'] = "Ya existe un cliente con ese RUT.";
+            }
+        }
+
+        if (empty($errores)) {
             // Iniciar transacción
             $conn->begin_transaction();
 
@@ -130,14 +163,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($stmt_cliente === false) {
                         throw new Exception("Error en la preparación de la consulta de actualización: " . $conn->error);
                     }
-                    $stmt_cliente->bind_param("ssssssi", $nombres, $apellidos, $rutLimpio, $email, $celular, $genero, $id);
+                    $stmt_cliente->bind_param("ssssssi", $nombres, $apellidos, $rutFormateado, $email, $celular, $genero, $id);
                     if (!$stmt_cliente->execute()) {
                         throw new Exception("Error al actualizar cliente: " . $stmt_cliente->error);
                     }
 
                     // Actualizar o insertar empresa
                     if (!empty($nombre_empresa)) {
-                        $rut_empresa_limpio = limpiarRut($rut_empresa);
                         // Verificar si ya existe una empresa para este cliente
                         $check_empresa_sql = "SELECT id FROM empresas WHERE cliente_id = ?";
                         $check_empresa_stmt = $conn->prepare($check_empresa_sql);
@@ -157,7 +189,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         if ($stmt_empresa === false) {
                             throw new Exception("Error en la preparación de la consulta de empresa: " . $conn->error);
                         }
-                        $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa_limpio, $direccion_empresa, $id);
+                        $stmt_empresa->bind_param("sssi", $nombre_empresa, $rutEmpresaFormateado, $direccion_empresa, $id);
                         if (!$stmt_empresa->execute()) {
                             throw new Exception("Error al actualizar/insertar empresa: " . $stmt_empresa->error);
                         }
@@ -169,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($stmt_cliente === false) {
                         throw new Exception("Error en la preparación de la consulta de cliente: " . $conn->error);
                     }
-                    $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rutLimpio, $email, $celular, $genero);
+                    $stmt_cliente->bind_param("ssssss", $nombres, $apellidos, $rutFormateado, $email, $celular, $genero);
                     if (!$stmt_cliente->execute()) {
                         throw new Exception("Error al insertar cliente: " . $stmt_cliente->error);
                     }
@@ -182,8 +214,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         if ($stmt_empresa === false) {
                             throw new Exception("Error en la preparación de la consulta de empresa: " . $conn->error);
                         }
-                        $rut_empresa_limpio = limpiarRut($rut_empresa);
-                        $stmt_empresa->bind_param("sssi", $nombre_empresa, $rut_empresa_limpio, $direccion_empresa, $cliente_id);
+                        $stmt_empresa->bind_param("sssi", $nombre_empresa, $rutEmpresaFormateado, $direccion_empresa, $cliente_id);
                         if (!$stmt_empresa->execute()) {
                             throw new Exception("Error al insertar empresa: " . $stmt_empresa->error);
                         }
@@ -227,6 +258,23 @@ $conn->close();
 
         .is-invalid {
             border-color: red !important;
+        }
+
+        /* Agregar dentro de la sección <style> existente */
+        input[name="celular"].is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+
+        .error-message {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875em;
+            margin-top: 0.25rem;
         }
     </style>
 </head>
@@ -386,87 +434,213 @@ $conn->close();
 
     <script>
         $(document).ready(function() {
-            function validarCampo(campo, regex, errorMsg) {
-                var valor = $(campo).val().trim();
-                var esValido = regex.test(valor);
-                var errorSpan = $(campo + 'Error');
+            // Constantes para las expresiones regulares
+            const REGEX = {
+                nombres: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/,
+                rut: /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/
+            };
 
-                if (!esValido) {
-                    errorSpan.text(errorMsg).show();
-                    $(campo).addClass('is-invalid');
-                } else {
-                    errorSpan.text('').hide();
-                    $(campo).removeClass('is-invalid');
-                }
+            // Función para validar campos
+            function validarCampo(campo, regex, errorMsg) {
+                const $campo = $(campo);
+                const $errorSpan = $(`${campo}Error`);
+                const valor = $campo.val().trim();
+                const esValido = valor === '' || regex.test(valor);
+
+                $errorSpan.text(esValido ? '' : errorMsg)[esValido ? 'hide' : 'show']();
+                $campo[esValido ? 'removeClass' : 'addClass']('is-invalid');
 
                 return esValido;
             }
 
+            // Función mejorada para formatear RUT
             function formatearRut(rut) {
-                // Eliminar caracteres no permitidos
-                var valor = rut.replace(/[^0-9kK\-\.]/g, '');
+                // Limpiar el RUT de caracteres no deseados y convertir a minúsculas
+                let valor = rut.replace(/[^0-9kK\-\.]/g, '').toLowerCase();
 
-                // Aplicar formato
-                var resultado = valor.replace(/\./g, '').replace('-', '');
-                if (resultado.length > 1) {
-                    resultado = resultado.substring(0, resultado.length - 1) + '-' + resultado.substring(resultado.length - 1);
-                }
-                if (resultado.length > 5) {
-                    resultado = resultado.substring(0, resultado.length - 5) + '.' + resultado.substring(resultado.length - 5);
-                }
-                if (resultado.length > 9) {
-                    resultado = resultado.substring(0, resultado.length - 9) + '.' + resultado.substring(resultado.length - 9);
-                }
+                // Si está vacío, retornar vacío
+                if (!valor) return '';
 
-                return resultado;
+                // Obtener números y dígito verificador
+                let rutLimpio = valor.replace(/[\.-]/g, '');
+                if (rutLimpio.length < 2) return valor;
+
+                const dv = rutLimpio.slice(-1);
+                let rutNumeros = rutLimpio.slice(0, -1);
+
+                // Formatear el RUT con puntos
+                let rutFormateado = '';
+                while (rutNumeros.length > 3) {
+                    rutFormateado = '.' + rutNumeros.slice(-3) + rutFormateado;
+                    rutNumeros = rutNumeros.slice(0, -3);
+                }
+                rutFormateado = rutNumeros + rutFormateado + '-' + dv;
+
+                return rutFormateado;
             }
 
-            // Formatear RUT al escribir
+            // Manejar el formato del RUT mientras se escribe
             $('#rut, #rut_empresa').on('input', function(e) {
-                var start = this.selectionStart,
-                    end = this.selectionEnd;
+                const $this = $(this);
+                const cursorPos = this.selectionStart;
+                const valorAnterior = $this.val();
+                const valorFormateado = formatearRut(valorAnterior);
 
-                var $this = $(this);
-                var valor = $this.val();
-                var valorFormateado = formatearRut(valor);
+                if (valorAnterior !== valorFormateado) {
+                    $this.val(valorFormateado);
 
-                $this.val(valorFormateado);
+                    // Calcular la nueva posición del cursor
+                    const diff = valorFormateado.length - valorAnterior.length;
+                    const newPos = cursorPos + diff;
 
-                // Ajustar la posición del cursor
-                if (valor !== valorFormateado) {
-                    var diff = valorFormateado.length - valor.length;
-                    start += diff;
-                    end += diff;
+                    // Establecer la nueva posición del cursor
+                    if (this.setSelectionRange) {
+                        setTimeout(() => this.setSelectionRange(newPos, newPos), 0);
+                    }
                 }
 
-                this.setSelectionRange(start, end);
-
-                // Validar formato de RUT solo si es el campo principal de RUT
+                // Validar el formato si es el campo de RUT principal
                 if ($this.attr('id') === 'rut') {
-                    validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+                    validarCampo('#rut', REGEX.rut, 'Formato de RUT inválido (ej: 12.345.678-9)');
                 }
             });
 
-            // Validar formulario al enviar
+            // Validar el formulario antes de enviar
             $('#clienteForm').on('submit', function(e) {
-                var nombreValido = validarCampo('#nombres', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
-                var apellidoValido = validarCampo('#apellidos', /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
-                var rutValido = true; // El RUT es opcional ahora
+                let isValid = true;
 
-                // Solo validar RUT si se ha ingresado algo
-                if ($('#rut').val().trim() !== '') {
-                    rutValido = validarCampo('#rut', /^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]$/, 'Formato de RUT inválido. Debe ser como 17.398.463-4 o 7.398.463-K');
+                // Validar nombres y apellidos
+                const nombreValido = validarCampo('#nombres', REGEX.nombres, 'Ingrese solo letras (máximo 20 caracteres)');
+                const apellidoValido = validarCampo('#apellidos', REGEX.nombres, 'Ingrese solo letras (máximo 20 caracteres)');
+
+                // Validar RUT solo si se ha ingresado
+                const rutValor = $('#rut').val().trim();
+                const rutValido = rutValor === '' || validarCampo('#rut', REGEX.rut, 'Formato de RUT inválido (ej: 12.345.678-9)');
+
+                // Validar RUT de empresa solo si se ha ingresado nombre de empresa
+                const nombreEmpresa = $('#nombre_empresa').val().trim();
+                const rutEmpresa = $('#rut_empresa').val().trim();
+                let rutEmpresaValido = true;
+
+                if (nombreEmpresa && rutEmpresa) {
+                    rutEmpresaValido = validarCampo('#rut_empresa', REGEX.rut, 'Formato de RUT de empresa inválido');
                 }
 
-                if (!nombreValido || !apellidoValido || !rutValido) {
+                isValid = nombreValido && apellidoValido && rutValido && rutEmpresaValido;
+
+                if (!isValid) {
                     e.preventDefault();
+                    // Mostrar mensaje de error general
+                    mostrarMensajeError('Por favor, corrija los errores en el formulario.');
                 }
             });
 
-            // Validar nombres y apellidos mientras se escriben
+            // Validación en tiempo real para nombres y apellidos
             $('#nombres, #apellidos').on('input', function() {
-                var campo = '#' + $(this).attr('id');
-                validarCampo(campo, /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{1,20}$/, 'Ingrese solo letras (máximo 20 caracteres)');
+                const campo = '#' + $(this).attr('id');
+                validarCampo(campo, REGEX.nombres, 'Ingrese solo letras (máximo 20 caracteres)');
+            });
+
+            // Función para mostrar mensaje de error general
+            function mostrarMensajeError(mensaje) {
+                const $alertaError = $('<div>')
+                    .addClass('alert alert-danger alert-dismissible fade show mt-3')
+                    .attr('role', 'alert')
+                    .html(`
+                ${mensaje}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            `);
+
+                // Insertar el mensaje al principio del formulario
+                $('#clienteForm').prepend($alertaError);
+
+                // Autodesaparecer después de 5 segundos
+                setTimeout(() => {
+                    $alertaError.alert('close');
+                }, 5000);
+            }
+            // Agregar dentro del $(document).ready(function() { ... })
+
+            // Constante para el formato del teléfono
+            const PHONE_REGEX = /^\+569\d{8}$/;
+
+            // Función para formatear número de teléfono
+            function formatPhoneNumber(phone) {
+                // Eliminar todos los caracteres no numéricos
+                let cleaned = phone.replace(/\D/g, '');
+
+                // Si está vacío, retornar vacío
+                if (!cleaned) return '';
+
+                // Si no empieza con 56, agregarlo
+                if (!cleaned.startsWith('56')) {
+                    cleaned = '56' + cleaned;
+                }
+
+                // Asegurarse de que tenga el formato correcto
+                if (cleaned.length >= 11) {
+                    return '+' + cleaned.substring(0, 11);
+                }
+
+                // Si no tiene suficientes números, solo agregar el '+'
+                return '+' + cleaned;
+            }
+
+            // Manejar el campo de teléfono
+            $('input[name="celular"]').on('input', function(e) {
+                const $input = $(this);
+                const cursorPos = this.selectionStart;
+                const valorAnterior = $input.val();
+                const valorFormateado = formatPhoneNumber(valorAnterior);
+
+                // Solo actualizar si el valor ha cambiado
+                if (valorAnterior !== valorFormateado) {
+                    $input.val(valorFormateado);
+
+                    // Mantener el cursor en la posición correcta
+                    if (this.setSelectionRange) {
+                        const newPos = cursorPos + (valorFormateado.length - valorAnterior.length);
+                        this.setSelectionRange(newPos, newPos);
+                    }
+                }
+
+                // Validar el formato
+                validarTelefono($input);
+            });
+
+            // Función para validar el teléfono
+            function validarTelefono($input) {
+                const valor = $input.val().trim();
+                const esValido = valor === '' || PHONE_REGEX.test(valor);
+
+                // Agregar o remover clase de error
+                $input.toggleClass('is-invalid', !esValido);
+
+                // Mostrar u ocultar mensaje de error
+                let $errorSpan = $input.siblings('.error-message');
+                if ($errorSpan.length === 0) {
+                    $errorSpan = $('<span class="error-message">').insertAfter($input);
+                }
+
+                $errorSpan.text(esValido ? '' : 'Ingrese un número válido en formato +56912345678')
+                    .toggle(!esValido);
+
+                return esValido;
+            }
+
+            // Agregar validación del teléfono al envío del formulario
+            const formValidationOriginal = $('#clienteForm').prop('onsubmit');
+            $('#clienteForm').on('submit', function(e) {
+                const telefonoValido = validarTelefono($('input[name="celular"]'));
+                if (!telefonoValido) {
+                    e.preventDefault();
+                    mostrarMensajeError('Por favor, corrija el formato del número de teléfono.');
+                } else if (formValidationOriginal) {
+                    // Llamar a la validación original si existe
+                    formValidationOriginal.call(this, e);
+                }
             });
         });
     </script>
