@@ -28,9 +28,9 @@ try {
         'artista_id' => filter_input(INPUT_POST, 'artista_id', FILTER_VALIDATE_INT),
         'nombre_evento' => trim($_POST['nombre_evento'] ?? ''),
         'fecha_evento' => trim($_POST['fecha_evento'] ?? ''),
-        'hora_evento' => trim($_POST['hora_evento'] ?? ''),
-        'ciudad_evento' => trim($_POST['ciudad_evento'] ?? ''),
-        'lugar_evento' => trim($_POST['lugar_evento'] ?? ''),
+        'hora_evento' => !empty($_POST['hora_evento']) ? trim($_POST['hora_evento']) : null,
+        'ciudad_evento' => !empty($_POST['ciudad_evento']) ? trim($_POST['ciudad_evento']) : null,
+        'lugar_evento' => !empty($_POST['lugar_evento']) ? trim($_POST['lugar_evento']) : null,
         'valor_evento' => filter_input(INPUT_POST, 'valor_evento', FILTER_VALIDATE_INT),
         'tipo_evento' => trim($_POST['tipo_evento'] ?? ''),
         'encabezado_evento' => trim($_POST['encabezado_evento'] ?? ''),
@@ -39,14 +39,11 @@ try {
         'viaticos' => $_POST['viaticos'] ?? 'No'
     ];
 
-    // Validaciones básicas
+    // Validaciones básicas (solo para campos obligatorios)
     if (empty($evento['cliente_id'])) throw new Exception("El cliente es requerido");
     if (empty($evento['artista_id'])) throw new Exception("El artista es requerido");
     if (empty($evento['nombre_evento'])) throw new Exception("El nombre del evento es requerido");
     if (empty($evento['fecha_evento'])) throw new Exception("La fecha es requerida");
-    if (empty($evento['hora_evento'])) throw new Exception("La hora es requerida");
-    if (empty($evento['ciudad_evento'])) throw new Exception("La ciudad es requerida");
-    if (empty($evento['lugar_evento'])) throw new Exception("El lugar es requerido");
     if (empty($evento['valor_evento'])) throw new Exception("El valor es requerido");
     if (empty($evento['tipo_evento'])) throw new Exception("El tipo de evento es requerido");
 
@@ -63,6 +60,12 @@ try {
     // Validar que la fecha no sea anterior a hoy
     if (strtotime($evento['fecha_evento']) < strtotime(date('Y-m-d'))) {
         throw new Exception("La fecha del evento no puede ser anterior a hoy");
+    }
+
+    // Validar que el tipo de evento sea uno de los permitidos
+    $tipos_permitidos = ['Privado', 'Municipal', 'Matrimonio'];
+    if (!in_array($evento['tipo_evento'], $tipos_permitidos)) {
+        throw new Exception("Tipo de evento no válido");
     }
 
     // Iniciar transacción
@@ -83,7 +86,7 @@ try {
     }
     $check_stmt->close();
 
-    // Preparar la consulta de inserción - Nota que omitimos estado_evento
+    // Preparar la consulta de inserción
     $sql = "INSERT INTO eventos (
         cliente_id, gira_id, artista_id, nombre_evento, fecha_evento,
         hora_evento, ciudad_evento, lugar_evento, valor_evento, tipo_evento,
@@ -95,7 +98,7 @@ try {
         throw new Exception("Error preparando la consulta: " . $conn->error);
     }
 
-    // Vincular parámetros - Nota que omitimos estado_evento
+    // Vincular parámetros
     $stmt->bind_param("iiisssssisssss",
         $evento['cliente_id'],
         $evento['gira_id'],
