@@ -22,9 +22,9 @@
 - [x] 🔍 **Mejoras en la Tabla**: Implementación de búsqueda avanzada y paginación
 
 ## 🎫 Gestión de Eventos
-- [ ] ⏰ **Campos Temporales Opcionales**: Implementar "Por definir" para fecha y hora no especificadas
 - [ ] ✏️ **Sistema de Edición**: Completar la funcionalidad de edición de eventos
 - [ ] 🗑️ **Sistema de Eliminación**: Finalizar implementación de eliminación de eventos
+- [x] ⏰ **Campos Temporales Opcionales**: Implementar "Por definir" para fecha y hora no especificadas
 - [x] 📎 **Gestión de Archivos**: Sistema de documentos adjuntos implementado
 - [x] 👁️ **Visor de Documentos**: Visualizador de archivos adjuntos en funcionamiento
 - [x] 🎭 **Selector de Artistas**: Menú desplegable integrado en el formulario
@@ -34,12 +34,12 @@
 
 ## 👁️ Visualización de Eventos
 - [ ] 🎭 **Información de Artista**: Mostrar artista asociado al evento
-- [ ]  ℹ️ **Manejo de Datos Vacíos**: Implementar "N/A" para campos sin información
-- [ ] ⏰ **Gestión de Horarios**: Mostrar "Por definir" cuando no hay hora especificada
+- [x]  ℹ️ **Manejo de Datos Vacíos**: Implementar "N/A" para campos sin información
+- [x] ⏰ **Gestión de Horarios**: Mostrar "Por definir" cuando no hay hora especificada
 
 ## 📄 Generación de Contratos
-- [ ] 🎭 **Integración de Artistas**: Obtener información del artista desde la base de datos
-- [ ] ℹ️ **Gestión de Datos Nulos**: Implementar "N/A" para campos sin información
+- [x] 🎭 **Integración de Artistas**: Obtener información del artista desde la base de datos
+- [x] ℹ️ **Gestión de Datos Nulos**: Implementar "N/A" para campos sin información
 
 ## 📋 Generación de Cotizaciones
 - [x] 🎭 **Información de Artista**: Integrar nombre y descripción desde la base de datos

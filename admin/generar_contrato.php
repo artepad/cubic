@@ -66,24 +66,26 @@ class ContractGenerator
             mysqli_set_charset($this->conn, "utf8mb4");
 
             $sql = "SELECT 
-                e.*, 
-                c.nombres, 
-                c.apellidos, 
-                c.rut, 
-                c.correo, 
-                c.celular, 
-                c.genero,
-                em.nombre as nombre_empresa, 
-                em.rut as rut_empresa, 
-                em.direccion as direccion_empresa,
-                COALESCE(e.nombre_evento, '') as nombre_evento,
-                COALESCE(e.encabezado_evento, '') as encabezado_evento,
-                COALESCE(e.lugar_evento, '') as lugar_evento,
-                COALESCE(e.hora_evento, NULL) as hora_evento
-                FROM eventos e
-                LEFT JOIN clientes c ON e.cliente_id = c.id
-                LEFT JOIN empresas em ON c.id = em.cliente_id
-                WHERE e.id = ?";
+                    e.*, 
+                    c.nombres, 
+                    c.apellidos, 
+                    c.rut, 
+                    c.correo, 
+                    c.celular, 
+                    c.genero,
+                    em.nombre as nombre_empresa, 
+                    em.rut as rut_empresa, 
+                    em.direccion as direccion_empresa,
+                    COALESCE(e.nombre_evento, '') as nombre_evento,
+                    COALESCE(e.encabezado_evento, '') as encabezado_evento,
+                    COALESCE(e.lugar_evento, '') as lugar_evento,
+                    COALESCE(e.hora_evento, NULL) as hora_evento,
+                    UPPER(a.nombre) as nombre_artista /* Convertimos el nombre a mayúsculas */
+                    FROM eventos e
+                    LEFT JOIN clientes c ON e.cliente_id = c.id
+                    LEFT JOIN empresas em ON c.id = em.cliente_id
+                    LEFT JOIN artistas a ON e.artista_id = a.id
+                    WHERE e.id = ?";
 
             $stmt = $this->conn->prepare($sql);
             if (!$stmt) {
@@ -236,7 +238,7 @@ class ContractGenerator
         // Function to check and format value
         $formatValue = function ($value) use ($boldStyle) {
             return [
-                empty($value) ? "N/A" : $value,
+                empty($value) ? "N/A" : mb_strtoupper($value, 'UTF-8'),
                 empty($value) ? $boldStyle : $boldStyle
             ];
         };
@@ -246,6 +248,7 @@ class ContractGenerator
         $rutEmpresaData = $formatValue($this->eventData['rut_empresa']);
         $direccionData = $formatValue($this->eventData['direccion_empresa']);
         $rutClienteData = $formatValue($this->eventData['rut']);
+        $nombreCompleto = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
 
         $introText = [
             ["Entre la ", null],
@@ -259,7 +262,7 @@ class ContractGenerator
             [", Rut: ", null],
             ["76.748.346-5", $boldStyle],
             [" por una parte, y por la otra ", null],
-            ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
+            [$nombreCompleto, $boldStyle],
             [" Rut: ", null],
             [$rutClienteData[0], $rutClienteData[1]],
             [", en adelante, en representación de ", null],
@@ -306,35 +309,35 @@ class ContractGenerator
     }
 
     // Cláusula 1: Objeto del Contrato
-    private function addClause1()
-    {
+    private function addClause1() {
         try {
             $this->section->addText(
                 "Cláusula 1: OBJETO DEL CONTRATO",
                 ['bold' => true],
                 ['spaceAfter' => 100, 'spaceBefore' => 100]
             );
-
+            
             $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
             $boldStyle = ['bold' => true];
-
-            // Función auxiliar para formatear valores
             $formatValue = function ($value) {
-                return empty($value) || $value === null ? "N/A" : $value;
+                return empty($value) || $value === null ? "N/A" : mb_strtoupper($value, 'UTF-8');
             };
-
+            
             $lugar = $formatValue($this->eventData['lugar_evento']);
-
+            $nombre_artista = $formatValue($this->eventData['nombre_artista']);
+            $nombre_completo = $formatValue($this->eventData['nombres'] . ' ' . $this->eventData['apellidos']);
+            $nombre_evento = $formatValue($this->eventData['nombre_evento']); // Nuevo: formatear nombre_evento
+            
             // Formatear la hora
             $hora = $this->eventData['hora_evento'];
             $horaFormateada = empty($hora) || $hora === null || $hora === '00:00:00' || $hora === '01:00:00'
                 ? "N/A"
                 : mb_strtoupper(date('H:i', strtotime($hora)), 'UTF-8');
-
+            
             $clause1Text = [
-                ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
+                [$nombre_completo, $boldStyle],
                 [" contrata los servicios del siguiente artista: ", null],
-                ["AGRUPACIÓN MARILYN", $boldStyle],
+                [$nombre_artista, $boldStyle],
                 [" el mencionado, en adelante y a los efectos del presente contrato denominado, el artista, efectuará una (1) presentación de aproximadamente 60 minutos, a realizarse en el marco de presentación pública, el día ", null],
                 [$this->convertirFecha($this->eventData['fecha_evento']), $boldStyle],
                 [" a las ", null],
@@ -342,9 +345,9 @@ class ContractGenerator
                 [" en ", null],
                 [$lugar, $boldStyle],
                 [" para el evento ", null],
-                [$this->eventData['nombre_evento'], $boldStyle]
+                [$nombre_evento, $boldStyle] // Modificado: usar la variable formateada
             ];
-
+            
             foreach ($clause1Text as $text) {
                 $textRun->addText($text[0], $text[1]);
             }
@@ -352,7 +355,6 @@ class ContractGenerator
             throw new Exception("Error al añadir la cláusula 1: " . $e->getMessage());
         }
     }
-
     // Cláusula 2: Remuneración
     private function addClause2()
     {
@@ -373,11 +375,12 @@ class ContractGenerator
             $mitad_valor = $valor_evento / 2;
             $mitad_valor_palabras = $this->numberToWords($mitad_valor);
             $mitad_valor_formateado = number_format($mitad_valor, 0, ',', '.');
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
 
             // Construir el texto de la cláusula 2
             $clause2Text = [
                 ["2.1 Por la presentación mencionada en la Cláusula 1, ", null],
-                ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
+                [$nombre_completo, $boldStyle],
                 [" Pagará a ", null],
                 ["SCHAAFPRODUCCIONES SPA", $boldStyle],
                 [" la cantidad de ", null],
@@ -408,7 +411,7 @@ class ContractGenerator
             $this->section->addText("Cláusula 3: ALOJAMIENTO, TRASLADOS Y VIÁTICOS", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
             $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
             $boldStyle = ['bold' => true];
-
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
             $servicios_productora = [];
             $servicios_cliente = [];
 
@@ -425,13 +428,13 @@ class ContractGenerator
                 $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
                 $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
                 $textRun->addText(". El pago de los servicios de sonido y catering se hará cargo ");
-                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText($nombre_completo, $boldStyle);
                 $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
             } elseif (count($servicios_cliente) == 3) {
                 $textRun->addText("La responsabilidad de alojamiento, traslados (ida y vuelta) y viáticos estará a cargo de ");
-                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText($nombre_completo, $boldStyle);
                 $textRun->addText(". El pago de los servicios de sonido y catering también será responsabilidad de ");
-                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText($nombre_completo, $boldStyle);
                 $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
             } else {
                 $servicios_productora_str = implode(', ', $servicios_productora);
@@ -440,7 +443,7 @@ class ContractGenerator
                 $textRun->addText("La responsabilidad de $servicios_productora_str estará a cargo de ");
                 $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
                 $textRun->addText(". La responsabilidad de $servicios_cliente_str y el pago de los servicios de sonido y catering estará a cargo de ");
-                $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+                $textRun->addText($nombre_completo, $boldStyle);
                 $textRun->addText(" el día de la presentación mencionada en la cláusula 1. ");
             }
         } catch (Exception $e) {
@@ -530,13 +533,13 @@ class ContractGenerator
             $this->section->addText("Cláusula 4: SUSPENSIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
             $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
             $boldStyle = ['bold' => true];
-
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
             $textRun->addText("4.1 Salvo acuerdo entre ambas partes, ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText($nombre_completo, $boldStyle);
             $textRun->addText(" no podrá rescindir el presente contrato unilateralmente.");
             $textRun->addText(" Pero podrá solicitar la suspensión de la actuación del artista solamente con las siguientes causales:");
             $textRun->addText(" 4.2 Si ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText($nombre_completo, $boldStyle);
             $textRun->addText(" cancelara unilateralmente la presentación deberá pagar a ");
             $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
             $textRun->addText(" el 100% (cien por ciento) del monto establecido como Remuneración en la Cláusula 2 de este contrato por concepto de indemnización, haciéndose cargo también de los gastos en que ");
@@ -546,7 +549,6 @@ class ContractGenerator
             throw new Exception("Error al añadir la cláusula 4: " . $e->getMessage());
         }
     }
-
     // Cláusula 5: Promoción
     private function addClause5()
     {
@@ -554,12 +556,12 @@ class ContractGenerator
             $this->section->addText("Cláusula 5: PROMOCIÓN", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
             $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
             $boldStyle = ['bold' => true];
-
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
             $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
             $textRun->addText(" autoriza expresamente a ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText($nombre_completo, $boldStyle);
             $textRun->addText(" para utilizar el nombre del artista, biografía e imagen en la comunicación relativa a la promoción del espectáculo, pero en ningún caso ");
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText($nombre_completo, $boldStyle);
             $textRun->addText(" quedará facultad" . (strtoupper($this->eventData['genero']) == 'FEMENINO' ? "a" : "o") . " para relacionar directa o indirectamente la imagen del artista con marcas comerciales que puedan auspiciar el espectáculo. En caso de divergencias respecto a la forma en que la imagen del artista es utilizada, primará la opinión de ");
             $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
             $textRun->addText(".");
@@ -575,8 +577,8 @@ class ContractGenerator
             $this->section->addText("Cláusula 6: SEGURIDAD", ['bold' => true], ['spaceAfter' => 100, 'spaceBefore' => 100]);
             $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
             $boldStyle = ['bold' => true];
-
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
+            $textRun->addText($nombre_completo, $boldStyle);
             $textRun->addText(" tiene la obligación de proveer la adecuada seguridad para el artista, los miembros de la delegación y el público que asiste al espectáculo.");
             $textRun->addText(" El acceso a camarines estará restringido exclusivamente a las personas que ");
             $textRun->addText("SCHAAFPRODUCCIONES SPA", $boldStyle);
@@ -605,8 +607,11 @@ class ContractGenerator
 
             // Función auxiliar para formatear valores
             $formatValue = function ($value) {
-                return empty($value) || $value === null ? "N/A" : $value;
+                return empty($value) || $value === null ? "N/A" : mb_strtoupper($value, 'UTF-8');
             };
+
+            // Formatear nombre completo en mayúsculas
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
 
             // Sección de SCHAAFPRODUCCIONES
             $this->section->addText("SCHAAFPRODUCCIONES SPA", $boldStyle, $leftAlignedStyle);
@@ -622,7 +627,7 @@ class ContractGenerator
             // Nombre del cliente
             $textRun = $this->section->addTextRun($leftAlignedStyle);
             $textRun->addText($tratamiento . "       ", $boldStyle);
-            $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
+            $textRun->addText($nombre_completo, $boldStyle);
 
             // Celular del cliente
             $textRun = $this->section->addTextRun($leftAlignedStyle);
@@ -645,6 +650,11 @@ class ContractGenerator
     private function addSignatures()
     {
         try {
+            // Formatear datos en mayúsculas
+            $nombre_completo = mb_strtoupper($this->eventData['nombres'] . ' ' . $this->eventData['apellidos'], 'UTF-8');
+            $rut_empresa = mb_strtoupper($this->eventData['rut_empresa'], 'UTF-8');
+            $nombre_empresa = mb_strtoupper($this->eventData['nombre_empresa'], 'UTF-8');
+
             $this->addMultipleLineBreaks(1);
             $table = $this->section->addTable(['alignment' => 'center']);
             $table->addRow();
@@ -664,9 +674,9 @@ class ContractGenerator
             $this->addSignatureContent(
                 $cell2,
                 'firma-2.png',
-                "{$this->eventData['nombres']} {$this->eventData['apellidos']}",
-                $this->eventData['rut_empresa'],
-                $this->eventData['nombre_empresa']
+                $nombre_completo,
+                $rut_empresa,
+                $nombre_empresa
             );
         } catch (Exception $e) {
             throw new Exception("Error al añadir las firmas: " . $e->getMessage());
@@ -676,27 +686,32 @@ class ContractGenerator
     // Agregar contenido de firma
     private function addSignatureContent($cell, $imageName, $nombre, $rut, $empresa)
     {
-        $firmaPath = __DIR__ . '/assets/img/' . $imageName;
-        if (!file_exists($firmaPath)) {
-            throw new Exception("Imagen de firma no encontrada: $firmaPath");
-        }
-
-        $firmaStyle = [
-            'width' => 100,
-            'height' => 74,
-            'alignment' => 'center',
-            'marginBottom' => 5
-        ];
-
-        $cell->addImage($firmaPath, $firmaStyle);
-
-        $boldStyle = ['bold' => true];
-        $centerStyle = ['alignment' => 'center'];
-
-        $cell->addText("___________________________", $boldStyle, $centerStyle);
-        $cell->addText($nombre, $boldStyle, $centerStyle);
-        $cell->addText($rut, $boldStyle, $centerStyle);
-        $cell->addText($empresa, $boldStyle, $centerStyle);
+       $firmaPath = __DIR__ . '/assets/img/' . $imageName;
+       if (!file_exists($firmaPath)) {
+           throw new Exception("Imagen de firma no encontrada: $firmaPath");
+       }
+    
+       $firmaStyle = [
+           'width' => 100,
+           'height' => 74,
+           'alignment' => 'center',
+           'marginBottom' => 5
+       ];
+    
+       $cell->addImage($firmaPath, $firmaStyle);
+    
+       $boldStyle = ['bold' => true];
+       $centerStyle = ['alignment' => 'center'];
+    
+       // Asegurar que todos los textos estén en mayúsculas
+       $nombre = mb_strtoupper($nombre, 'UTF-8');
+       $rut = mb_strtoupper($rut, 'UTF-8');
+       $empresa = mb_strtoupper($empresa, 'UTF-8');
+    
+       $cell->addText("___________________________", $boldStyle, $centerStyle);
+       $cell->addText($nombre, $boldStyle, $centerStyle);
+       $cell->addText($rut, $boldStyle, $centerStyle);
+       $cell->addText($empresa, $boldStyle, $centerStyle);
     }
 }
 
