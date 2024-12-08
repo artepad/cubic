@@ -435,9 +435,6 @@ class QuoteGenerator
         }
     }
 
-    /**
-     * Agrega los detalles del evento a la sección
-     */
     private function addEventDetails($section)
     {
         try {
@@ -445,35 +442,57 @@ class QuoteGenerator
                 "Evento: " . htmlspecialchars($this->formData['evento']),
                 "Ciudad: " . htmlspecialchars($this->formData['ciudad']),
             ];
-
+    
             // Agregar fecha solo si está definida y no es la fecha actual por defecto
             if (!empty($this->formData['fecha']) && $this->formData['fecha'] !== date('Y-m-d')) {
                 $formattedDate = $this->formatDate($this->formData['fecha']);
                 $eventDetails[] = "Fecha: " . $formattedDate;
             }
-
-            // Agregar hora solo si no es "Por definir"
-            if ($this->formData['horario'] !== 'Por definir') {
-                $formattedTime = $this->formData['horario'];
-                $eventDetails[] = "Hora: " . $formattedTime;
-            }
-
+    
+            // Manejar la hora
+            $hora = $this->formatTime($this->formData['horario']);
+            $eventDetails[] = "Hora: " . $hora;
+    
             // Formatear y agregar el valor
             $formattedValue = $this->formatValue($this->formData['valor']);
             $eventDetails[] = "Valor: $" . $formattedValue;
-
+    
             foreach ($eventDetails as $detail) {
                 $section->addText($detail, 'boldParagraphStyle');
             }
-
+    
             $section->addTextBreak(1);
         } catch (Exception $e) {
             $this->logger->log("Error al agregar detalles del evento: " . $e->getMessage());
             throw $e;
         }
     }
+    
+    /**
+     * Formatea la hora al formato deseado
+     */
+    private function formatTime($time)
+    {
+        try {
+            if ($time === null) {
+                return 'Por definir';
+            }
+    
+            // Intentar parsear la hora
+            $timestamp = strtotime($time);
+            if ($timestamp !== false) {
+                return date('H:i', $timestamp);
+            }
+    
+            // Si no se puede parsear, devolver la hora original
+            return $time;
+        } catch (Exception $e) {
+            $this->logger->log("Error al formatear hora: " . $e->getMessage());
+            return $time;
+        }
+    }
 
-
+    
     /**
      * Agrega los items incluidos en la cotización
      */
@@ -860,30 +879,30 @@ class DatabaseConnection
                 LEFT JOIN empresas emp ON c.id = emp.cliente_id
                 LEFT JOIN artistas a ON e.artista_id = a.id
                 WHERE e.id = ?";
-
+    
             $stmt = $this->conn->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Error en la preparación de la consulta: " . $this->conn->error);
             }
-
+    
             $stmt->bind_param("i", $evento_id);
             if (!$stmt->execute()) {
                 throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
             }
-
+    
             $result = $stmt->get_result();
             if ($result->num_rows === 0) {
                 throw new Exception("No se encontró el evento especificado");
             }
-
+    
             $evento = $result->fetch_assoc();
             $stmt->close();
-
-            // Asignar valores por defecto para campos que podrían ser NULL
+    
+            // Asignar valores por defecto solo para ciudad y lugar
             $evento['ciudad_evento'] = $evento['ciudad_evento'] ?? 'Por definir';
-            $evento['hora_evento'] = $evento['hora_evento'] ?? 'Por definir';
             $evento['lugar_evento'] = $evento['lugar_evento'] ?? 'Por definir';
-
+            // Mantener hora_evento como NULL si es NULL
+            
             return $evento;
         } catch (Exception $e) {
             $this->logger->log("Error al obtener datos del evento: " . $e->getMessage());

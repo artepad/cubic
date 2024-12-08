@@ -1,6 +1,7 @@
 # 🎯 Tareas Pendientes en Cubic
 
 ## 📊 Dashboard
+- [ ] ⏰ **En el campo Hora**: Si es nulo qeu muestre por definir
 - [ ] 🔍 **Optimización del Filtro de Búsqueda**: Implementar y corregir la funcionalidad del filtro en la tabla principal
 - [x] 📋 **Integración de Información de Artistas**: Ampliar la visualización de datos en la tabla
 - [x] 📄 **Sistema de Paginación**: Implementación exitosa en la tabla principal
@@ -17,6 +18,7 @@
 - [x] 💾 **Exportación de Datos**: Nueva función para exportar base de datos de clientes
 
 ## 📅 Sistema de Agenda
+- [ ] ⏰ **En el campo Hora**: Si es nulo qeu muestre por definir
 - [x] 📋 **Integración de Información de Artistas**: Expandir la visualización de datos en la tabla
 - [x] 🔄 **Gestión de Estados**: Reparación del sistema de cambio de estados
 - [x] 🔍 **Mejoras en la Tabla**: Implementación de búsqueda avanzada y paginación
