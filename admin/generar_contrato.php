@@ -61,14 +61,30 @@ class ContractGenerator
             throw new InvalidArgumentException("ID de evento inválido");
         }
 
-        $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut, c.correo, c.celular, c.genero, 
-                em.nombre as nombre_empresa, em.rut as rut_empresa, em.direccion as direccion_empresa
+        try {
+            // Asegurar codificación UTF-8 en la conexión
+            mysqli_set_charset($this->conn, "utf8mb4");
+
+            $sql = "SELECT 
+                e.*, 
+                c.nombres, 
+                c.apellidos, 
+                c.rut, 
+                c.correo, 
+                c.celular, 
+                c.genero,
+                em.nombre as nombre_empresa, 
+                em.rut as rut_empresa, 
+                em.direccion as direccion_empresa,
+                COALESCE(e.nombre_evento, '') as nombre_evento,
+                COALESCE(e.encabezado_evento, '') as encabezado_evento,
+                COALESCE(e.lugar_evento, '') as lugar_evento,
+                COALESCE(e.hora_evento, NULL) as hora_evento
                 FROM eventos e
                 LEFT JOIN clientes c ON e.cliente_id = c.id
                 LEFT JOIN empresas em ON c.id = em.cliente_id
                 WHERE e.id = ?";
 
-        try {
             $stmt = $this->conn->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Error en la preparación de la consulta: " . $this->conn->error);
@@ -84,11 +100,25 @@ class ContractGenerator
                 throw new Exception("No se encontraron datos del evento.");
             }
 
+            // Obtener los datos y procesarlos
             $this->eventData = $result->fetch_assoc();
+
+            // Procesar campos que podrían ser NULL
+            $this->eventData = array_map(function ($value) {
+                if ($value === null) {
+                    return '';
+                }
+                return $value;
+            }, $this->eventData);
+
+            // Limpiar la memoria
+            $stmt->close();
+            $result->free();
+
             return true;
         } catch (Exception $e) {
             error_log("Error en getEventData: " . $e->getMessage());
-            throw $e;
+            throw new Exception("Error al obtener datos del evento: " . $e->getMessage());
         }
     }
     // Función principal para generar el contrato
@@ -110,26 +140,26 @@ class ContractGenerator
     public function saveDocument()
     {
         try {
-            // Limpiar el buffer de salida
+            // Limpiar cualquier salida previa
             if (ob_get_level()) ob_end_clean();
 
-            // Generar nombre del archivo con fecha actual
             $fileName = "Contrato_Evento_" . date('Y-m-d') . ".docx";
 
-            // Configurar headers para la descarga
-            header("Content-Description: File Transfer");
+            // Configurar headers con codificación
+            header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8');
             header('Content-Disposition: attachment; filename="' . $fileName . '"');
-            header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-            header("Content-Transfer-Encoding: binary");
-            header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-            header("Expires: 0");
-            header("Pragma: public");
+            header('Cache-Control: max-age=0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
 
-            // Guardar y enviar el archivo
+            // Crear archivo temporal con codificación adecuada
             $tempFile = tempnam(sys_get_temp_dir(), 'contract_');
+
+            // Configurar el writer con codificación UTF-8
             $objWriter = IOFactory::createWriter($this->phpWord, 'Word2007');
             $objWriter->save($tempFile);
 
+            // Leer y enviar el archivo
             readfile($tempFile);
             unlink($tempFile);
             exit();
@@ -203,6 +233,20 @@ class ContractGenerator
     // Agrega el texto de introducción
     private function addIntroductionText($textRun, $boldStyle)
     {
+        // Function to check and format value
+        $formatValue = function ($value) use ($boldStyle) {
+            return [
+                empty($value) ? "N/A" : $value,
+                empty($value) ? $boldStyle : $boldStyle
+            ];
+        };
+
+        // Format company data
+        $empresaData = $formatValue($this->eventData['nombre_empresa']);
+        $rutEmpresaData = $formatValue($this->eventData['rut_empresa']);
+        $direccionData = $formatValue($this->eventData['direccion_empresa']);
+        $rutClienteData = $formatValue($this->eventData['rut']);
+
         $introText = [
             ["Entre la ", null],
             ["PRODUCTORA", $boldStyle],
@@ -217,13 +261,13 @@ class ContractGenerator
             [" por una parte, y por la otra ", null],
             ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
             [" Rut: ", null],
-            ["{$this->eventData['rut']}", $boldStyle],
+            [$rutClienteData[0], $rutClienteData[1]],
             [", en adelante, en representación de ", null],
-            ["{$this->eventData['nombre_empresa']}", ['bold' => true, 'allCaps' => true]],
+            [$empresaData[0], ['bold' => true, 'allCaps' => true]],
             [", Rol Único Tributario Rut: ", null],
-            ["{$this->eventData['rut_empresa']}", $boldStyle],
+            [$rutEmpresaData[0], $rutEmpresaData[1]],
             [" con domicilio en: ", null],
-            ["{$this->eventData['direccion_empresa']}", $boldStyle],
+            [$direccionData[0], $direccionData[1]],
             [", se conviene en celebrar el presente contrato de actuación de artistas, contenido en las cláusulas siguientes:", null]
         ];
 
@@ -274,6 +318,19 @@ class ContractGenerator
             $textRun = $this->section->addTextRun(['alignment' => 'both', 'spaceAfter' => 100]);
             $boldStyle = ['bold' => true];
 
+            // Función auxiliar para formatear valores
+            $formatValue = function ($value) {
+                return empty($value) || $value === null ? "N/A" : $value;
+            };
+
+            $lugar = $formatValue($this->eventData['lugar_evento']);
+
+            // Formatear la hora
+            $hora = $this->eventData['hora_evento'];
+            $horaFormateada = empty($hora) || $hora === null || $hora === '00:00:00' || $hora === '01:00:00'
+                ? "N/A"
+                : mb_strtoupper(date('H:i', strtotime($hora)), 'UTF-8');
+
             $clause1Text = [
                 ["{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle],
                 [" contrata los servicios del siguiente artista: ", null],
@@ -281,9 +338,9 @@ class ContractGenerator
                 [" el mencionado, en adelante y a los efectos del presente contrato denominado, el artista, efectuará una (1) presentación de aproximadamente 60 minutos, a realizarse en el marco de presentación pública, el día ", null],
                 [$this->convertirFecha($this->eventData['fecha_evento']), $boldStyle],
                 [" a las ", null],
-                [mb_strtoupper(date('H:i', strtotime($this->eventData['hora_evento'])), 'UTF-8'), $boldStyle],
+                [$horaFormateada, $boldStyle],
                 [" en ", null],
-                [$this->eventData['lugar_evento'], $boldStyle],
+                [$lugar, $boldStyle],
                 [" para el evento ", null],
                 [$this->eventData['nombre_evento'], $boldStyle]
             ];
@@ -546,24 +603,38 @@ class ContractGenerator
             $leftAlignedStyle = ['alignment' => 'left'];
             $boldStyle = ['bold' => true];
 
+            // Función auxiliar para formatear valores
+            $formatValue = function ($value) {
+                return empty($value) || $value === null ? "N/A" : $value;
+            };
+
+            // Sección de SCHAAFPRODUCCIONES
             $this->section->addText("SCHAAFPRODUCCIONES SPA", $boldStyle, $leftAlignedStyle);
             $this->section->addText("SEÑORITA:   OLGA XIMENA SCHAAF GODOY", $boldStyle, $leftAlignedStyle);
             $this->section->addText("CELULAR:    +569995699801", $boldStyle, $leftAlignedStyle);
             $this->section->addText("CORREO:     ARTISTAS@SCHAAFPRODUCCIONES.CL", $boldStyle, $leftAlignedStyle);
 
+            $this->section->addTextBreak();
+
+            // Sección del cliente
             $tratamiento = (strtoupper($this->eventData['genero']) == 'FEMENINO') ? "SEÑORA:" : "SEÑOR:";
+
+            // Nombre del cliente
             $textRun = $this->section->addTextRun($leftAlignedStyle);
             $textRun->addText($tratamiento . "       ", $boldStyle);
             $textRun->addText("{$this->eventData['nombres']} {$this->eventData['apellidos']}", $boldStyle);
 
+            // Celular del cliente
             $textRun = $this->section->addTextRun($leftAlignedStyle);
             $textRun->addText("CELULAR:     ", $boldStyle);
-            $textRun->addText($this->eventData['celular'], $boldStyle);
+            $textRun->addText($formatValue($this->eventData['celular']), $boldStyle);
 
+            // Correo del cliente
             $textRun = $this->section->addTextRun($leftAlignedStyle);
             $textRun->addText("CORREO:     ", $boldStyle);
-            $textRun->addText($this->eventData['correo'], $boldStyle);
+            $textRun->addText($formatValue($this->eventData['correo']), $boldStyle);
 
+            // Agregar espacio para las firmas
             $this->addMultipleLineBreaks(5);
         } catch (Exception $e) {
             throw new Exception("Error al añadir la cláusula 7: " . $e->getMessage());

@@ -158,21 +158,25 @@ $pageTitle = "Detalles del Evento";
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Correo:</label>
-                                                        <div class="col-md-9">
-                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($evento['correo']); ?></strong></p>
-                                                        </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Correo:</label>
+                                                    <div class="col-md-9">
+                                                        <p class="form-control-static"><strong><?php
+                                                                                                $value = empty($evento['correo']) ? 'N/A' : htmlspecialchars($evento['correo']);
+                                                                                                echo $value;
+                                                                                                ?></strong></p>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-3">Celular:</label>
-                                                        <div class="col-md-9">
-                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($evento['celular']); ?></strong></p>
-                                                        </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Celular:</label>
+                                                    <div class="col-md-9">
+                                                        <p class="form-control-static"><strong><?php
+                                                                                                $value = empty($evento['celular']) ? 'N/A' : htmlspecialchars($evento['celular']);
+                                                                                                echo $value;
+                                                                                                ?></strong></p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -207,9 +211,15 @@ $pageTitle = "Detalles del Evento";
                                                                             if ($field['name'] === 'fecha_evento') {
                                                                                 $value = date('d/m/Y', strtotime($value));
                                                                             } elseif ($field['name'] === 'hora_evento') {
-                                                                                $value = date('H:i', strtotime($value));
-                                                                            } elseif ($field['name'] === 'valor_evento') {
+                                                                                if ($value === null || $value === '' || trim($value) === '00:00:00' || trim($value) === '01:00:00' || $value === 'N/A') {
+                                                                                    $value = 'Por definir';
+                                                                                } else {
+                                                                                    $value = date('H:i', strtotime($value));
+                                                                                }
+                                                                            } elseif ($field['name'] === 'valor_evento' && $value !== 'N/A') {
                                                                                 $value = '$' . number_format($value, 0, ',', '.');
+                                                                            } elseif ($field['name'] === 'encabezado_evento') {
+                                                                                $value = empty($value) || $value === null ? 'N/A' : $value;
                                                                             }
                                                                             echo htmlspecialchars($value);
                                                                             ?>
@@ -290,7 +300,7 @@ $pageTitle = "Detalles del Evento";
                                                         </div>
                                                     <?php endif; ?>
 
-                                                   
+
                                                 </div>
                                             </div>
                                             <div class="form-actions">
