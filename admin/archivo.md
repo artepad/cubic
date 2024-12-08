@@ -25,7 +25,7 @@
 
 ## 🎫 Gestión de Eventos
 - [ ] ✏️ **Sistema de Edición**: Completar la funcionalidad de edición de eventos
-- [ ] 🗑️ **Sistema de Eliminación**: Finalizar implementación de eliminación de eventos
+- [x] 🗑️ **Sistema de Eliminación**: Finalizar implementación de eliminación de eventos
 - [x] ⏰ **Campos Temporales Opcionales**: Implementar "Por definir" para fecha y hora no especificadas
 - [x] 📎 **Gestión de Archivos**: Sistema de documentos adjuntos implementado
 - [x] 👁️ **Visor de Documentos**: Visualizador de archivos adjuntos en funcionamiento

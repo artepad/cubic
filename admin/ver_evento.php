@@ -33,6 +33,10 @@ $pageTitle = "Detalles del Evento";
 <html lang="es">
 
 <head>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <?php include 'includes/head.php'; ?>
     <style>
         .upload-area {
@@ -478,6 +482,8 @@ $pageTitle = "Detalles del Evento";
                         console.error('Error al generar el contrato:', error);
                         alert('Hubo un error al generar el contrato. Por favor, inténtelo de nuevo.');
                     }
+
+
                 });
             });
         });
@@ -638,7 +644,62 @@ $pageTitle = "Detalles del Evento";
         });
     </script>
 
+    <script>
+        $('a[href^="eliminar_evento.php"]').on('click', function(e) {
+            e.preventDefault();
 
+            const eventoId = new URLSearchParams($(this).attr('href').split('?')[1]).get('id');
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción eliminará el evento y todos sus archivos asociados. No podrás revertir esto.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: 'eliminar_evento.php',
+                        type: 'POST',
+                        data: {
+                            id: eventoId,
+                            csrf_token: '<?php echo $_SESSION["csrf_token"]; ?>'
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: '¡Eliminado!',
+                                    text: 'El evento ha sido eliminado correctamente.',
+                                    icon: 'success',
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.href = 'index.php';
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: response.message || 'Hubo un error al eliminar el evento',
+                                    icon: 'error'
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Hubo un error al procesar la solicitud',
+                                icon: 'error'
+                            });
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 
 <?php
