@@ -1,9 +1,28 @@
 <?php
-// Definir constantes para la configuración
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'schaaf_producciones');
+// Detectar el ambiente basado en el hostname del servidor
+$environment = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['HTTP_HOST'] === '127.0.0.1') ? 'local' : 'production';
+
+// Configuraciones para cada ambiente
+$config = [
+    'local' => [
+        'host' => 'localhost',
+        'user' => 'root',
+        'pass' => '',
+        'name' => 'schaaf_producciones'
+    ],
+    'production' => [
+        'host' => '162.241.61.65',
+        'user' => 'schaafpr_admin',
+        'pass' => 'entrar-03',
+        'name' => 'schaafpr_bd'
+    ]
+];
+
+// Definir constantes según el ambiente
+define('DB_HOST', $config[$environment]['host']);
+define('DB_USER', $config[$environment]['user']);
+define('DB_PASS', $config[$environment]['pass']);
+define('DB_NAME', $config[$environment]['name']);
 
 // Función para obtener conexión a la base de datos
 function getDbConnection() {
@@ -45,6 +64,13 @@ if (!file_exists(UPLOAD_BASE_DIR)) {
 if (!file_exists(EVENTOS_UPLOAD_DIR)) {
     mkdir(EVENTOS_UPLOAD_DIR, 0755, true);
 }
+
 // Obtener la conexión
 $conn = getDbConnection();
+
+// Debug info (puedes comentar o eliminar esto en producción)
+if ($environment === 'local') {
+    error_log("Ambiente actual: " . $environment);
+    error_log("Base de datos: " . DB_NAME);
+}
 ?>

@@ -35,7 +35,7 @@
 - [x] 📋 **Sistema de Cotizaciones**: Resolución de problemas en creación
 
 ## 👁️ Visualización de Eventos
-- [ ] 🎭 **Información de Artista**: Mostrar artista asociado al evento
+- [x] 🎭 **Información de Artista**: Mostrar artista asociado al evento
 - [x]  ℹ️ **Manejo de Datos Vacíos**: Implementar "N/A" para campos sin información
 - [x] ⏰ **Gestión de Horarios**: Mostrar "Por definir" cuando no hay hora especificada
 

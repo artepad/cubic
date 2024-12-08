@@ -138,14 +138,18 @@ $pageTitle = "Detalles del Evento";
                                     <?php if (!empty($evento)): ?>
                                         <form class="form-horizontal" role="form">
                                             <!-- Sección de información del cliente -->
+                                            <!-- Sección de información del cliente -->
                                             <h3 class="box-title">Cliente</h3>
                                             <hr class="m-t-0 m-b-40">
+
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Nombre:</label>
                                                         <div class="col-md-9">
-                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></strong></p>
+                                                            <p class="form-control-static">
+                                                                <strong><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></strong>
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -153,30 +157,39 @@ $pageTitle = "Detalles del Evento";
                                                     <div class="form-group">
                                                         <label class="control-label col-md-3">Empresa:</label>
                                                         <div class="col-md-9">
-                                                            <p class="form-control-static"><strong><?php echo htmlspecialchars($evento['nombre_empresa'] ?? 'N/A'); ?></strong></p>
+                                                            <p class="form-control-static">
+                                                                <strong><?php echo htmlspecialchars($evento['nombre_empresa'] ?? 'N/A'); ?></strong>
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-3">Correo:</label>
-                                                    <div class="col-md-9">
-                                                        <p class="form-control-static"><strong><?php
-                                                                                                $value = empty($evento['correo']) ? 'N/A' : htmlspecialchars($evento['correo']);
-                                                                                                echo $value;
-                                                                                                ?></strong></p>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Correo:</label>
+                                                        <div class="col-md-9">
+                                                            <p class="form-control-static">
+                                                                <strong><?php
+                                                                        $value = empty($evento['correo']) ? 'N/A' : htmlspecialchars($evento['correo']);
+                                                                        echo $value;
+                                                                        ?></strong>
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-3">Celular:</label>
-                                                    <div class="col-md-9">
-                                                        <p class="form-control-static"><strong><?php
-                                                                                                $value = empty($evento['celular']) ? 'N/A' : htmlspecialchars($evento['celular']);
-                                                                                                echo $value;
-                                                                                                ?></strong></p>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Celular:</label>
+                                                        <div class="col-md-9">
+                                                            <p class="form-control-static">
+                                                                <strong><?php
+                                                                        $value = empty($evento['celular']) ? 'N/A' : htmlspecialchars($evento['celular']);
+                                                                        echo $value;
+                                                                        ?></strong>
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -185,16 +198,32 @@ $pageTitle = "Detalles del Evento";
                                             <h3 class="box-title">Detalles del Evento</h3>
                                             <hr class="m-t-0 m-b-40">
 
+                                            <style>
+                                                .valor-verde {
+                                                    color: #4CAF50 !important;
+                                                    /* Verde más claro */
+                                                    font-weight: bold;
+                                                    font-size: 1.25em;
+                                                    /* Texto más grande */
+                                                    letter-spacing: 0.5px;
+                                                    /* Mejor legibilidad */
+                                                }
+                                            </style>
+
                                             <?php
                                             $event_fields = [
                                                 ['name' => 'nombre_evento', 'label' => 'Nombre Evento'],
-                                                ['name' => 'encabezado_evento', 'label' => 'Encabezado'],
+                                                ['name' => 'artista_id', 'label' => 'Artista'],
                                                 ['name' => 'fecha_evento', 'label' => 'Fecha'],
                                                 ['name' => 'hora_evento', 'label' => 'Hora'],
                                                 ['name' => 'ciudad_evento', 'label' => 'Ciudad'],
                                                 ['name' => 'lugar_evento', 'label' => 'Lugar'],
                                                 ['name' => 'valor_evento', 'label' => 'Valor'],
                                                 ['name' => 'tipo_evento', 'label' => 'Tipo de Evento'],
+                                                ['name' => 'encabezado_evento', 'label' => 'Encabezado'],
+                                                ['name' => 'hotel', 'label' => 'Hotel'],
+                                                ['name' => 'traslados', 'label' => 'Traslados'],
+                                                ['name' => 'viaticos', 'label' => 'Viáticos']
                                             ];
 
                                             foreach (array_chunk($event_fields, 2) as $row): ?>
@@ -205,7 +234,7 @@ $pageTitle = "Detalles del Evento";
                                                                 <label class="control-label col-md-3"><?php echo $field['label']; ?>:</label>
                                                                 <div class="col-md-9">
                                                                     <p class="form-control-static">
-                                                                        <strong>
+                                                                        <strong <?php echo $field['name'] === 'valor_evento' ? 'class="valor-verde"' : ''; ?>>
                                                                             <?php
                                                                             $value = $evento[$field['name']] ?? 'N/A';
                                                                             if ($field['name'] === 'fecha_evento') {
@@ -220,6 +249,22 @@ $pageTitle = "Detalles del Evento";
                                                                                 $value = '$' . number_format($value, 0, ',', '.');
                                                                             } elseif ($field['name'] === 'encabezado_evento') {
                                                                                 $value = empty($value) || $value === null ? 'N/A' : $value;
+                                                                            } elseif ($field['name'] === 'artista_id') {
+                                                                                // Obtener el nombre del artista desde la base de datos
+                                                                                $artistaQuery = "SELECT nombre FROM artistas WHERE id = ?";
+                                                                                $stmt = $conn->prepare($artistaQuery);
+                                                                                $stmt->bind_param("i", $value);
+                                                                                $stmt->execute();
+                                                                                $resultado = $stmt->get_result();
+                                                                                if ($resultado->num_rows > 0) {
+                                                                                    $artista = $resultado->fetch_assoc();
+                                                                                    $value = $artista['nombre'];
+                                                                                } else {
+                                                                                    $value = 'N/A';
+                                                                                }
+                                                                                $stmt->close();
+                                                                            } elseif (in_array($field['name'], ['hotel', 'traslados', 'viaticos'])) {
+                                                                                $value = $value ?? 'No';
                                                                             }
                                                                             echo htmlspecialchars($value);
                                                                             ?>
@@ -232,32 +277,14 @@ $pageTitle = "Detalles del Evento";
                                                 </div>
                                             <?php endforeach; ?>
 
-                                            <!-- Opciones adicionales -->
-                                            <?php
-                                            $additional_options = ['hotel', 'traslados', 'viaticos'];
-                                            foreach (array_chunk($additional_options, 2) as $row): ?>
+
+                                            <?php if ($archivos && $archivos->num_rows > 0): ?>
+                                                <!-- Sección de Archivos Adjuntos -->
+                                                <h3 class="box-title m-t-40">Archivos Adjuntos</h3>
+                                                <hr class="m-t-0 m-b-20">
+
                                                 <div class="row">
-                                                    <?php foreach ($row as $option): ?>
-                                                        <div class="col-md-6">
-                                                            <div class="form-group">
-                                                                <label class="control-label col-md-3"><?php echo ucfirst($option); ?>:</label>
-                                                                <div class="col-md-9">
-                                                                    <p class="form-control-static"><strong><?php echo $evento[$option] ?? 'No'; ?></strong></p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            <?php endforeach; ?>
-
-
-                                            <!-- Sección de Archivos Adjuntos -->
-                                            <h3 class="box-title m-t-40">Archivos Adjuntos</h3>
-                                            <hr class="m-t-0 m-b-20">
-
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <?php if ($archivos && $archivos->num_rows > 0): ?>
+                                                    <div class="col-md-12">
                                                         <div class="table-responsive m-b-20">
                                                             <table class="table table-hover">
                                                                 <thead>
@@ -298,11 +325,9 @@ $pageTitle = "Detalles del Evento";
                                                                 </tbody>
                                                             </table>
                                                         </div>
-                                                    <?php endif; ?>
-
-
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            <?php endif; ?>
                                             <div class="form-actions">
                                                 <div class="row">
                                                     <div class="col-md-12 text-center">
