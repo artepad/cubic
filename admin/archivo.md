@@ -42,8 +42,8 @@
 - [ ] ℹ️ **Gestión de Datos Nulos**: Implementar "N/A" para campos sin información
 
 ## 📋 Generación de Cotizaciones
-- [ ] 🎭 **Información de Artista**: Integrar nombre y descripción desde la base de datos
-- [ ] 🖼️ **Galería de Artistas**: Incorporar fotografías desde la base de datos
+- [x] 🎭 **Información de Artista**: Integrar nombre y descripción desde la base de datos
+- [x] 🖼️ **Galería de Artistas**: Incorporar fotografías desde la base de datos
 
 ## 📆 Sistema de Calendario
 - [ ] 📅 **Vista Principal**: Desarrollar interfaz completa con integración de eventos

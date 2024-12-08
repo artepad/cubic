@@ -106,7 +106,7 @@ CREATE TABLE eventos (
     artista_id INT COMMENT 'ID del artista que se presenta',
     nombre_evento VARCHAR(255) NOT NULL COMMENT 'Nombre del evento',
     fecha_evento DATE NOT NULL COMMENT 'Fecha programada del evento',
-    hora_evento TIME NOT NULL COMMENT 'Hora programada del evento',
+    hora_evento TIME  NULL COMMENT 'Hora programada del evento',
     ciudad_evento VARCHAR(100) COMMENT 'Ciudad donde se realiza el evento',
     lugar_evento VARCHAR(255) COMMENT 'Lugar específico del evento',
     valor_evento INT COMMENT 'Valor monetario del evento',

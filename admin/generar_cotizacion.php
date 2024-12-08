@@ -254,9 +254,6 @@ class QuoteGenerator
             $required_fields = [
                 'encabezado' => 'Encabezado',
                 'evento' => 'Nombre del evento',
-                'ciudad' => 'Ciudad',
-                'fecha' => 'Fecha',
-                'horario' => 'Horario',
                 'valor' => 'Valor'
             ];
 
@@ -266,38 +263,39 @@ class QuoteGenerator
                 }
             }
 
-            // Validar fecha
-            if (!strtotime($this->formData['fecha'])) {
-                throw new Exception("La fecha proporcionada no es válida");
-            }
+            // Validar y establecer valores por defecto para campos opcionales
+            $this->formData['ciudad'] = !empty($this->formData['ciudad'])
+                ? $this->formData['ciudad']
+                : 'Por definir';
 
-            // Validar hora - Versión más flexible
-            $hora = $this->formData['horario'];
+            $this->formData['fecha'] = !empty($this->formData['fecha'])
+                ? $this->formData['fecha']
+                : date('Y-m-d');
 
-            // Limpiar la hora de espacios y convertir a formato 24h
-            $hora = trim($hora);
+            // Manejo especial para el horario
+            if (empty($this->formData['horario'])) {
+                $this->formData['horario'] = 'Por definir';
+            } else {
+                // Solo validar el formato si hay un horario especificado
+                $hora = trim($this->formData['horario']);
 
-            // Si la hora viene con formato AM/PM, convertirla a 24h
-            if (stripos($hora, 'am') !== false || stripos($hora, 'pm') !== false) {
-                $hora = date('H:i', strtotime($hora));
-            }
-
-            // Permitir varios formatos de hora
-            if (
-                !preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/', $hora) &&
-                !preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3])[:.]([0-5][0-9])$/', $hora)
-            ) {
-
-                // Intentar convertir la hora a un formato válido
-                $timestamp = strtotime($hora);
-                if ($timestamp === false) {
-                    throw new Exception("El formato de hora no es válido. Use formato 24h (ejemplo: 14:30) o 12h (ejemplo: 02:30 PM)");
+                if (stripos($hora, 'am') !== false || stripos($hora, 'pm') !== false) {
+                    $timestamp = strtotime($hora);
+                    if ($timestamp !== false) {
+                        $hora = date('H:i', $timestamp);
+                    }
                 }
-                $hora = date('H:i', $timestamp);
-            }
 
-            // Actualizar el horario en formData con el formato correcto
-            $this->formData['horario'] = $hora;
+                if (
+                    $hora !== 'Por definir' &&
+                    !preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/', $hora) &&
+                    !preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3])[:.]([0-5][0-9])$/', $hora)
+                ) {
+                    $this->formData['horario'] = 'Por definir';
+                } else {
+                    $this->formData['horario'] = $hora;
+                }
+            }
 
             // Validar valor monetario
             if (!is_numeric($this->formData['valor']) || $this->formData['valor'] <= 0) {
@@ -443,17 +441,26 @@ class QuoteGenerator
     private function addEventDetails($section)
     {
         try {
-            $formattedDate = $this->formatDate($this->formData['fecha']);
-            $formattedTime = date('H:i', strtotime($this->formData['horario']));
-            $formattedValue = $this->formatValue($this->formData['valor']);
-
             $eventDetails = [
                 "Evento: " . htmlspecialchars($this->formData['evento']),
                 "Ciudad: " . htmlspecialchars($this->formData['ciudad']),
-                "Fecha: " . $formattedDate,
-                "Hora: " . $formattedTime,
-                "Valor: $" . $formattedValue
             ];
+
+            // Agregar fecha solo si está definida y no es la fecha actual por defecto
+            if (!empty($this->formData['fecha']) && $this->formData['fecha'] !== date('Y-m-d')) {
+                $formattedDate = $this->formatDate($this->formData['fecha']);
+                $eventDetails[] = "Fecha: " . $formattedDate;
+            }
+
+            // Agregar hora solo si no es "Por definir"
+            if ($this->formData['horario'] !== 'Por definir') {
+                $formattedTime = $this->formData['horario'];
+                $eventDetails[] = "Hora: " . $formattedTime;
+            }
+
+            // Formatear y agregar el valor
+            $formattedValue = $this->formatValue($this->formData['valor']);
+            $eventDetails[] = "Valor: $" . $formattedValue;
 
             foreach ($eventDetails as $detail) {
                 $section->addText($detail, 'boldParagraphStyle');
@@ -465,6 +472,7 @@ class QuoteGenerator
             throw $e;
         }
     }
+
 
     /**
      * Agrega los items incluidos en la cotización
@@ -836,11 +844,17 @@ class DatabaseConnection
     public function getEventData($evento_id)
     {
         try {
-            $sql = "SELECT e.*, c.nombres, c.apellidos, c.rut as rut_cliente, 
-                       c.correo, c.celular, emp.nombre as nombre_empresa, 
-                       emp.rut as rut_empresa, e.encabezado_evento,
-                       a.presentacion as presentacion_artista,
-                       e.artista_id  -- Aseguramos que se incluya el artista_id
+            $sql = "SELECT e.*, 
+                       COALESCE(c.nombres, '') as nombres,
+                       COALESCE(c.apellidos, '') as apellidos,
+                       COALESCE(c.rut, '') as rut_cliente,
+                       COALESCE(c.correo, '') as correo,
+                       COALESCE(c.celular, '') as celular,
+                       COALESCE(emp.nombre, '') as nombre_empresa,
+                       COALESCE(emp.rut, '') as rut_empresa,
+                       COALESCE(e.encabezado_evento, '') as encabezado_evento,
+                       COALESCE(a.presentacion, '') as presentacion_artista,
+                       e.artista_id
                 FROM eventos e 
                 LEFT JOIN clientes c ON e.cliente_id = c.id 
                 LEFT JOIN empresas emp ON c.id = emp.cliente_id
@@ -864,6 +878,11 @@ class DatabaseConnection
 
             $evento = $result->fetch_assoc();
             $stmt->close();
+
+            // Asignar valores por defecto para campos que podrían ser NULL
+            $evento['ciudad_evento'] = $evento['ciudad_evento'] ?? 'Por definir';
+            $evento['hora_evento'] = $evento['hora_evento'] ?? 'Por definir';
+            $evento['lugar_evento'] = $evento['lugar_evento'] ?? 'Por definir';
 
             return $evento;
         } catch (Exception $e) {
