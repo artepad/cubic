@@ -225,8 +225,8 @@ $pageTitle = "Listar Agenda";
                                                     <td><?php echo htmlspecialchars($evento['nombre_evento']); ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombre_artista'] ?? 'No asignado'); ?></td>
                                                     <td><?php echo htmlspecialchars($evento['ciudad_evento']); ?></td>
-                                                    <td><?php echo date('d/m/Y', strtotime($evento['fecha_evento'])); ?></td>
-                                                    <td><?php echo date('H:i', strtotime($evento['hora_evento'])); ?></td>
+                                                    <td><?php echo $evento['fecha_evento'] ? date('d/m/Y', strtotime($evento['fecha_evento'])) : 'Por definir'; ?></td>
+                                                    <td><?php echo $evento['hora_evento'] ? date('H:i', strtotime($evento['hora_evento'])) : 'Por definir'; ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></td>
                                                     <td><?php echo generarEstadoEvento($evento['estado_evento']); ?></td>
                                                 </tr>
