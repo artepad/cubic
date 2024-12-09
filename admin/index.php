@@ -19,7 +19,7 @@ $offset = ($paginaActual - 1) * $registrosPorPagina;
 
 // Obtener el total de registros de eventos activos
 $sqlTotal = "SELECT COUNT(*) as total FROM eventos e 
-             WHERE e.estado_evento IN ('confirmado', 'en_proceso')";
+             WHERE e.estado_evento IN ('Confirmado', 'En Producción')";
 $resultTotal = $conn->query($sqlTotal);
 $fila = $resultTotal->fetch_assoc();
 $totalRegistros = $fila['total'];
@@ -32,7 +32,7 @@ $sql = "SELECT e.*, c.nombres, c.apellidos, a.nombre as nombre_artista
         FROM eventos e 
         LEFT JOIN clientes c ON e.cliente_id = c.id 
         LEFT JOIN artistas a ON e.artista_id = a.id
-        WHERE e.estado_evento IN ('confirmado', 'en_proceso') 
+        WHERE e.estado_evento IN ('Confirmado', 'En Producción') 
         ORDER BY e.fecha_evento ASC 
         LIMIT $registrosPorPagina OFFSET $offset";
 
@@ -44,13 +44,12 @@ $conn->close();
 // Definir el título de la página
 $pageTitle = "Lista de Eventos";
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <?php include 'includes/head.php'; ?>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         .titulo-busqueda {
             display: flex;
@@ -64,6 +63,7 @@ $pageTitle = "Lista de Eventos";
         }
 
         .search-container {
+            position: relative;
             flex-grow: 1;
             max-width: 300px;
             margin-left: 20px;
@@ -71,9 +71,9 @@ $pageTitle = "Lista de Eventos";
 
         #searchInput {
             width: 100%;
-            padding: 8px 12px;
+            padding: 8px 35px 8px 12px;
             border: 1px solid #e4e7ea;
-            border-radius: 3px;
+            border-radius: 4px;
             box-shadow: none;
             color: #565656;
             height: 38px;
@@ -82,8 +82,20 @@ $pageTitle = "Lista de Eventos";
 
         #searchInput:focus {
             border-color: #7ace4c;
-            box-shadow: none;
-            outline: 0 none;
+            box-shadow: 0 0 5px rgba(122, 206, 76, 0.3);
+            outline: none;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
         }
 
         .custom-pagination {
@@ -123,31 +135,9 @@ $pageTitle = "Lista de Eventos";
                 max-width: none;
                 width: 100%;
             }
-
-            .table-responsive {
-                overflow-x: auto;
-            }
-        }
-    </style>
-    <style>
-        .alert {
-            padding: 15px;
-            border: 1px solid transparent;
-            border-radius: 4px;
-        }
-
-        .alert-info {
-            color: #31708f;
-            background-color: #d9edf7;
-            border-color: #bce8f1;
-        }
-
-        .alert i {
-            margin-right: 8px;
         }
     </style>
 </head>
-
 <body class="mini-sidebar">
     <div id="wrapper">
         <div class="preloader">
@@ -165,10 +155,9 @@ $pageTitle = "Lista de Eventos";
                             <div class="titulo-busqueda">
                                 <h3 class="box-title">Eventos Activos</h3>
                                 <div class="search-container">
-                                    <input type="text" id="searchInput" placeholder="Buscar evento...">
+                                    <input type="text" id="searchInput" placeholder="Buscar en todos los campos...">
                                 </div>
                             </div>
-
                             <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
                                 <div class="alert alert-info">
                                     <i class="fa fa-info-circle"></i> No se encontraron eventos activos.
@@ -193,16 +182,16 @@ $pageTitle = "Lista de Eventos";
                                                 <tr>
                                                     <td>
                                                         <a href="ver_evento.php?id=<?php echo $evento['id']; ?>"
-                                                            class="btn btn-sm btn-info"
-                                                            data-toggle="tooltip"
-                                                            title="Ver Evento">
+                                                           class="btn btn-sm btn-info"
+                                                           data-toggle="tooltip"
+                                                           title="Ver Evento">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
                                                         <button type="button"
-                                                            class="btn btn-sm btn-warning cambiar-estado"
-                                                            data-id="<?php echo $evento['id']; ?>"
-                                                            data-toggle="tooltip"
-                                                            title="Cambiar Estado">
+                                                                class="btn btn-sm btn-warning cambiar-estado"
+                                                                data-id="<?php echo $evento['id']; ?>"
+                                                                data-toggle="tooltip"
+                                                                title="Cambiar Estado">
                                                             <i class="fa fa-exchange"></i>
                                                         </button>
                                                     </td>
@@ -218,6 +207,7 @@ $pageTitle = "Lista de Eventos";
                                         </tbody>
                                     </table>
                                 </div>
+
                                 <!-- Paginación personalizada -->
                                 <div class="custom-pagination">
                                     <?php
@@ -225,7 +215,7 @@ $pageTitle = "Lista de Eventos";
 
                                     // Mostrar primera página si estamos lejos de ella
                                     if ($paginaActual - $rango > 1) {
-                                        echo "<a href='?pagina=1' class='page-number'>1</a>";
+                                        echo "<a href='#' class='page-number' data-page='0'>1</a>";
                                         if ($paginaActual - $rango > 2) {
                                             echo "<span class='page-number'>...</span>";
                                         }
@@ -236,7 +226,7 @@ $pageTitle = "Lista de Eventos";
                                         if ($i == $paginaActual) {
                                             echo "<span class='page-number active'>$i</span>";
                                         } else {
-                                            echo "<a href='?pagina=$i' class='page-number'>$i</a>";
+                                            echo "<a href='#' class='page-number' data-page='" . ($i-1) . "'>$i</a>";
                                         }
                                     }
 
@@ -245,7 +235,7 @@ $pageTitle = "Lista de Eventos";
                                         if ($paginaActual + $rango < $totalPaginas - 1) {
                                             echo "<span class='page-number'>...</span>";
                                         }
-                                        echo "<a href='?pagina=$totalPaginas' class='page-number'>$totalPaginas</a>";
+                                        echo "<a href='#' class='page-number' data-page='" . ($totalPaginas-1) . "'>$totalPaginas</a>";
                                     }
                                     ?>
                                 </div>
@@ -257,63 +247,128 @@ $pageTitle = "Lista de Eventos";
             <?php include 'includes/footer.php'; ?>
         </div>
     </div>
-
-    <div class="modal fade" id="cambioEstadoModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Cambiar Estado del Evento</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>×</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="formCambioEstado">
-                        <input type="hidden" id="evento_id">
-                        <div class="form-group">
-                            <label for="nuevo_estado">Nuevo Estado:</label>
-                            <select class="form-control" id="nuevo_estado" name="nuevo_estado">
-                                <option value="Finalizado" selected>Finalizado</option>
-                                <option value="Reagendado">Reagendado</option>
-                                <option value="Cancelado">Cancelado</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="guardarEstado">Guardar Cambios</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- DataTables -->
-    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script>
         $(document).ready(function() {
-            // Manejador para abrir el modal de cambio de estado
+            const eventosTable = $('#eventosTable').DataTable({
+                "dom": '<"top">rt<"bottom"><"clear">',
+                "pageLength": 8,
+                "ordering": true,
+                "searching": true,
+                "language": {
+                    "zeroRecords": "No se encontraron resultados",
+                    "info": "",
+                    "infoEmpty": "",
+                    "infoFiltered": ""
+                },
+                "columns": [
+                    { "orderable": false },
+                    { "orderable": true },
+                    { "orderable": true },
+                    { "orderable": true },
+                    { "orderable": true },
+                    { "orderable": true },
+                    { "orderable": true },
+                    { "orderable": true }
+                ],
+                "drawCallback": function(settings) {
+                    updateCustomPagination(this.api().page.info());
+                }
+            });
+
+            // Implementar búsqueda en tiempo real
+            $('#searchInput').on('keyup', function() {
+                const searchText = $(this).val().toLowerCase();
+                eventosTable.search(searchText).draw();
+            });
+
+            // Función para actualizar la paginación personalizada
+            function updateCustomPagination(info) {
+                let paginationHtml = '';
+                const totalPages = info.pages;
+                const currentPage = info.page + 1;
+                const range = 2;
+
+                if (currentPage - range > 1) {
+                    paginationHtml += `<a href="#" class="page-number" data-page="0">1</a>`;
+                    if (currentPage - range> 2) {
+                        paginationHtml += `<span class="page-number">...</span>`;
+                    }
+                }
+
+                for (let i = Math.max(0, currentPage - range - 1); i < Math.min(totalPages, currentPage + range); i++) {
+                    if (i + 1 === currentPage) {
+                        paginationHtml += `<span class="page-number active">${i + 1}</span>`;
+                    } else {
+                        paginationHtml += `<a href="#" class="page-number" data-page="${i}">${i + 1}</a>`;
+                    }
+                }
+
+                if (currentPage + range < totalPages) {
+                    if (currentPage + range < totalPages - 1) {
+                        paginationHtml += `<span class="page-number">...</span>`;
+                    }
+                    paginationHtml += `<a href="#" class="page-number" data-page="${totalPages - 1}">${totalPages}</a>`;
+                }
+
+                $('.custom-pagination').html(paginationHtml);
+            }
+
+            // Manejar clics en la paginación personalizada
+            $(document).on('click', '.custom-pagination .page-number', function(e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                if (page !== undefined) {
+                    eventosTable.page(page).draw('page');
+                }
+            });
+
+            // Función para limpiar el campo de búsqueda
+            function clearSearch() {
+                $('#searchInput').val('');
+                eventosTable.search('').draw();
+            }
+
+            // Agregar botón de limpiar búsqueda si hay texto
+            $('#searchInput').on('input', function() {
+                const $this = $(this);
+                const $clearButton = $('.clear-search');
+                
+                if ($this.val()) {
+                    if (!$clearButton.length) {
+                        $this.after('<button class="clear-search"><i class="fa fa-times"></i></button>');
+                    }
+                } else {
+                    $clearButton.remove();
+                }
+            });
+
+            // Manejar clic en botón de limpiar
+            $(document).on('click', '.clear-search', function() {
+                clearSearch();
+                $(this).remove();
+            });
+
+            // Manejar cambio de estado
             $('.cambiar-estado').on('click', function() {
-                var eventoId = $(this).data('id');
+                const eventoId = $(this).data('id');
                 $('#evento_id').val(eventoId);
-                // Por defecto seleccionamos "Finalizado"
                 $('#nuevo_estado').val('Finalizado');
                 $('#cambioEstadoModal').modal('show');
             });
 
-            // Manejador para guardar el cambio de estado
+            // Manejar guardar cambio de estado
             $('#guardarEstado').on('click', function() {
-                var eventoId = $('#evento_id').val();
-                var nuevoEstado = $('#nuevo_estado').val();
-                var $boton = $(this);
-                var $fila = $('button.cambiar-estado[data-id="' + eventoId + '"]').closest('tr');
+                const eventoId = $('#evento_id').val();
+                const nuevoEstado = $('#nuevo_estado').val();
+                const $boton = $(this);
 
-                // Deshabilitar el botón durante el proceso
                 $boton.prop('disabled', true);
 
-                // Petición AJAX para actualizar el estado
                 $.ajax({
                     url: 'cambiar_estado.php',
                     method: 'POST',
@@ -324,11 +379,7 @@ $pageTitle = "Lista de Eventos";
                     },
                     success: function(response) {
                         if (response.success) {
-                            // Actualizar el estado en la tabla
-                            $fila.find('td:last').html(response.data.nuevo_estado);
                             $('#cambioEstadoModal').modal('hide');
-
-                            // Mostrar mensaje de éxito
                             Swal.fire({
                                 icon: 'success',
                                 title: '¡Éxito!',
@@ -336,11 +387,9 @@ $pageTitle = "Lista de Eventos";
                                 timer: 2000,
                                 showConfirmButton: false
                             }).then(function() {
-                                // Recargar la página después de mostrar el mensaje
                                 location.reload();
                             });
                         } else {
-                            // Mostrar mensaje de error si la respuesta no fue exitosa
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error',
@@ -349,7 +398,6 @@ $pageTitle = "Lista de Eventos";
                         }
                     },
                     error: function(xhr, status, error) {
-                        // Manejar errores de red o servidor
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -357,7 +405,6 @@ $pageTitle = "Lista de Eventos";
                         });
                     },
                     complete: function() {
-                        // Rehabilitar el botón al completar la petición
                         $boton.prop('disabled', false);
                     }
                 });
@@ -365,5 +412,4 @@ $pageTitle = "Lista de Eventos";
         });
     </script>
 </body>
-
 </html>
