@@ -46,11 +46,29 @@ $pageTitle = "Lista de Eventos";
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <?php include 'includes/head.php'; ?>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     <style>
+        .alert {
+            padding: 15px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-info {
+            color: #31708f;
+            background-color: #d9edf7;
+            border-color: #bce8f1;
+        }
+
+        .alert i {
+            margin-right: 8px;
+        }
+
         .titulo-busqueda {
             display: flex;
             justify-content: space-between;
@@ -138,6 +156,7 @@ $pageTitle = "Lista de Eventos";
         }
     </style>
 </head>
+
 <body class="mini-sidebar">
     <div id="wrapper">
         <div class="preloader">
@@ -182,16 +201,16 @@ $pageTitle = "Lista de Eventos";
                                                 <tr>
                                                     <td>
                                                         <a href="ver_evento.php?id=<?php echo $evento['id']; ?>"
-                                                           class="btn btn-sm btn-info"
-                                                           data-toggle="tooltip"
-                                                           title="Ver Evento">
+                                                            class="btn btn-sm btn-info"
+                                                            data-toggle="tooltip"
+                                                            title="Ver Evento">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
                                                         <button type="button"
-                                                                class="btn btn-sm btn-warning cambiar-estado"
-                                                                data-id="<?php echo $evento['id']; ?>"
-                                                                data-toggle="tooltip"
-                                                                title="Cambiar Estado">
+                                                            class="btn btn-sm btn-warning cambiar-estado"
+                                                            data-id="<?php echo $evento['id']; ?>"
+                                                            data-toggle="tooltip"
+                                                            title="Cambiar Estado">
                                                             <i class="fa fa-exchange"></i>
                                                         </button>
                                                     </td>
@@ -226,7 +245,7 @@ $pageTitle = "Lista de Eventos";
                                         if ($i == $paginaActual) {
                                             echo "<span class='page-number active'>$i</span>";
                                         } else {
-                                            echo "<a href='#' class='page-number' data-page='" . ($i-1) . "'>$i</a>";
+                                            echo "<a href='#' class='page-number' data-page='" . ($i - 1) . "'>$i</a>";
                                         }
                                     }
 
@@ -235,7 +254,7 @@ $pageTitle = "Lista de Eventos";
                                         if ($paginaActual + $rango < $totalPaginas - 1) {
                                             echo "<span class='page-number'>...</span>";
                                         }
-                                        echo "<a href='#' class='page-number' data-page='" . ($totalPaginas-1) . "'>$totalPaginas</a>";
+                                        echo "<a href='#' class='page-number' data-page='" . ($totalPaginas - 1) . "'>$totalPaginas</a>";
                                     }
                                     ?>
                                 </div>
@@ -247,11 +266,41 @@ $pageTitle = "Lista de Eventos";
             <?php include 'includes/footer.php'; ?>
         </div>
     </div>
+    <!-- Modal para cambiar estado -->
+    <div class="modal fade" id="cambioEstadoModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cambiar Estado del Evento</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formCambioEstado">
+                        <input type="hidden" id="evento_id">
+                        <div class="form-group">
+                            <label for="nuevo_estado">Nuevo Estado:</label>
+                            <select class="form-control" id="nuevo_estado" name="nuevo_estado">
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Reagendado">Reagendado</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="guardarEstado">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- DataTables -->
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <script>
         $(document).ready(function() {
             const eventosTable = $('#eventosTable').DataTable({
@@ -265,15 +314,30 @@ $pageTitle = "Lista de Eventos";
                     "infoEmpty": "",
                     "infoFiltered": ""
                 },
-                "columns": [
-                    { "orderable": false },
-                    { "orderable": true },
-                    { "orderable": true },
-                    { "orderable": true },
-                    { "orderable": true },
-                    { "orderable": true },
-                    { "orderable": true },
-                    { "orderable": true }
+                "columns": [{
+                        "orderable": false
+                    },
+                    {
+                        "orderable": true
+                    },
+                    {
+                        "orderable": true
+                    },
+                    {
+                        "orderable": true
+                    },
+                    {
+                        "orderable": true
+                    },
+                    {
+                        "orderable": true
+                    },
+                    {
+                        "orderable": true
+                    },
+                    {
+                        "orderable": true
+                    }
                 ],
                 "drawCallback": function(settings) {
                     updateCustomPagination(this.api().page.info());
@@ -295,7 +359,7 @@ $pageTitle = "Lista de Eventos";
 
                 if (currentPage - range > 1) {
                     paginationHtml += `<a href="#" class="page-number" data-page="0">1</a>`;
-                    if (currentPage - range> 2) {
+                    if (currentPage - range > 2) {
                         paginationHtml += `<span class="page-number">...</span>`;
                     }
                 }
@@ -337,7 +401,7 @@ $pageTitle = "Lista de Eventos";
             $('#searchInput').on('input', function() {
                 const $this = $(this);
                 const $clearButton = $('.clear-search');
-                
+
                 if ($this.val()) {
                     if (!$clearButton.length) {
                         $this.after('<button class="clear-search"><i class="fa fa-times"></i></button>');
@@ -412,4 +476,5 @@ $pageTitle = "Lista de Eventos";
         });
     </script>
 </body>
+
 </html>
