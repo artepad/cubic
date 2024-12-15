@@ -353,7 +353,7 @@ $pageTitle = "Detalles del Evento";
                                                         <div class="btn-group dropup m-r-10">
                                                             <button aria-expanded="false" data-toggle="dropdown" class="btn btn-warning dropdown-toggle waves-effect waves-light" type="button">Opciones <span class="caret"></span></button>
                                                             <ul role="menu" class="dropdown-menu">
-                                                                <li><a href="eventos.php?id=<?php echo $evento_id; ?>">Editar</a></li>
+                                                            <li><a href="ingreso_evento.php?id=<?php echo $evento_id; ?>">Editar</a></li>
                                                                 <li><a href="eliminar_evento.php?id=<?php echo $evento_id; ?>">Eliminar</a></li>
                                                                 <li class="divider"></li>
                                                                 <li><a href="agenda.php">Volver</a></li>

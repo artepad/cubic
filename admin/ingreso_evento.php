@@ -12,7 +12,7 @@ $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
 
-// Funciones específicas para obtener datos
+// Definir funciones específicas para este archivo
 function obtenerDatosCliente($conn, $cliente_id)
 {
     $sql = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, e.direccion as direccion_empresa
@@ -64,32 +64,54 @@ function obtenerArtistas($conn)
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
-// Obtener datos iniciales
+// Inicializar variables
+$evento = null;
+$is_editing = false;
+$evento_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$cliente = null;
+$clientes = [];
+$pageTitle = "Generador de Eventos";
+
 try {
-    $cliente_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-    $cliente = null;
-    $clientes = [];
+    // Obtener listas necesarias
     $giras = obtenerGirasRecientes($conn);
     $artistas = obtenerArtistas($conn);
 
-    if ($cliente_id > 0) {
-        $cliente = obtenerDatosCliente($conn, $cliente_id);
-        if (!$cliente) {
-            throw new Exception("Cliente no encontrado");
+    if ($evento_id > 0) {
+        // Modo edición
+        $evento = obtenerEventoParaEditar($conn, $evento_id);
+        if (!$evento) {
+            throw new Exception("No se encontró el evento especificado");
+        }
+
+        $is_editing = true;
+        $pageTitle = "Editar Evento";
+        
+        // Obtener datos del cliente del evento
+        if (!empty($evento['cliente_id'])) {
+            $cliente = obtenerDatosCliente($conn, $evento['cliente_id']);
+            if (!$cliente) {
+                throw new Exception("No se encontraron los datos del cliente del evento");
+            }
         }
     } else {
+        // Modo creación
         $clientes = obtenerListaClientes($conn);
     }
 } catch (Exception $e) {
-    die("Error: " . $e->getMessage());
+    error_log("Error en ingreso_evento.php: " . $e->getMessage());
+    die("<div class='alert alert-danger m-3'>
+            <h4>Error al cargar la información</h4>
+            <p>Hubo un problema al cargar los datos. Por favor, intente nuevamente.</p>
+            <p><small>Detalles: " . htmlspecialchars($e->getMessage()) . "</small></p>
+            <a href='index.php' class='btn btn-primary'>Volver al inicio</a>
+          </div>");
 }
 
-// Cerrar la conexión después de obtener los datos necesarios
+// Cerrar la conexión
 $conn->close();
-
-// Definir el título de la página
-$pageTitle = "Generador de Eventos";
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -115,10 +137,14 @@ $pageTitle = "Generador de Eventos";
                 <div class="row">
                     <div class="col-md-12">
                         <div class="panel panel-info">
-                            <div class="panel-heading">Generador de Eventos</div>
+                            <div class="panel-heading"><?php echo $is_editing ? 'Editar Evento' : 'Generador de Eventos'; ?></div>
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body">
                                     <form id="eventoForm" class="form-horizontal" role="form">
+                                        <input type="hidden" name="is_editing" value="<?php echo $is_editing ? '1' : '0'; ?>">
+                                        <?php if ($is_editing): ?>
+                                            <input type="hidden" name="evento_id" value="<?php echo htmlspecialchars($evento_id); ?>">
+                                        <?php endif; ?>
                                         <!-- Sección de Gira -->
                                         <div class="row">
                                             <div class="col-md-6">
@@ -129,7 +155,8 @@ $pageTitle = "Generador de Eventos";
                                                             <select class="form-control" id="gira_id" name="gira_id">
                                                                 <option value="">Seleccione una gira</option>
                                                                 <?php foreach ($giras as $gira): ?>
-                                                                    <option value="<?php echo $gira['id']; ?>">
+                                                                    <option value="<?php echo $gira['id']; ?>"
+                                                                        <?php echo ($is_editing && $evento['gira_id'] == $gira['id']) ? 'selected' : ''; ?>>
                                                                         <?php echo htmlspecialchars($gira['nombre']); ?>
                                                                     </option>
                                                                 <?php endforeach; ?>
@@ -163,7 +190,8 @@ $pageTitle = "Generador de Eventos";
                                                                 <option value="">Seleccione un artista</option>
                                                                 <?php foreach ($artistas as $artista): ?>
                                                                     <option value="<?php echo $artista['id']; ?>"
-                                                                        data-genero="<?php echo htmlspecialchars($artista['genero_musical']); ?>">
+                                                                        data-genero="<?php echo htmlspecialchars($artista['genero_musical']); ?>"
+                                                                        <?php echo ($is_editing && $evento['artista_id'] == $artista['id']) ? 'selected' : ''; ?>>
                                                                         <?php echo htmlspecialchars($artista['nombre']); ?>
                                                                     </option>
                                                                 <?php endforeach; ?>
@@ -187,7 +215,7 @@ $pageTitle = "Generador de Eventos";
                                             </div>
                                         </div>
                                         <!-- Sección de Cliente -->
-                                        <?php if ($cliente_id == 0): ?>
+                                        <?php if (!$is_editing): ?>
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
@@ -216,7 +244,7 @@ $pageTitle = "Generador de Eventos";
                                                 </div>
                                             </div>
                                         <?php else: ?>
-                                            <input type="hidden" name="cliente_id" value="<?php echo $cliente_id; ?>">
+                                            <input type="hidden" name="cliente_id" value="<?php echo htmlspecialchars($evento['cliente_id']); ?>">
                                         <?php endif; ?>
 
                                         <!-- Campo oculto para ID del evento -->
@@ -232,8 +260,9 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Nombre Evento <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
-                                                        <input type="text" class="form-control" id="nombre_evento" 
-                                                               name="nombre_evento" maxlength="60" required>
+                                                        <input type="text" class="form-control" id="nombre_evento"
+                                                            name="nombre_evento" maxlength="60" required
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['nombre_evento']) : ''; ?>">
                                                         <small class="help-block text-muted">Nombre descriptivo del evento</small>
                                                     </div>
                                                 </div>
@@ -242,8 +271,9 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Fecha <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
-                                                        <input type="date" class="form-control" id="fecha_evento" 
-                                                               name="fecha_evento" required>
+                                                        <input type="date" class="form-control" id="fecha_evento"
+                                                            name="fecha_evento" required
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['fecha_evento']) : ''; ?>">
                                                     </div>
                                                 </div>
                                             </div>
@@ -255,9 +285,10 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Hora</label>
                                                     <div class="col-md-9">
-                                                        <input type="time" class="form-control" id="hora_evento" 
-                                                               name="hora_evento">
-                                                        <small class="help-block text-muted">Hora del evento (opcional)</small>
+                                                        <input type="time" class="form-control" id="hora_evento"
+                                                            name="hora_evento"
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['hora_evento']) : ''; ?>">
+                                                            <small class="help-block text-muted">Hora del evento (opcional)</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -265,8 +296,9 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Ciudad</label>
                                                     <div class="col-md-9">
-                                                        <input type="text" class="form-control" id="ciudad_evento" 
-                                                               name="ciudad_evento" maxlength="100">
+                                                        <input type="text" class="form-control" id="ciudad_evento"
+                                                            name="ciudad_evento" maxlength="100"
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['ciudad_evento']) : ''; ?>">
                                                         <small class="help-block text-muted">Ciudad del evento (opcional)</small>
                                                     </div>
                                                 </div>
@@ -279,8 +311,9 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Lugar</label>
                                                     <div class="col-md-9">
-                                                        <input type="text" class="form-control" id="lugar_evento" 
-                                                               name="lugar_evento" maxlength="150">
+                                                        <input type="text" class="form-control" id="lugar_evento"
+                                                            name="lugar_evento" maxlength="150"
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['lugar_evento']) : ''; ?>">
                                                         <small class="help-block text-muted">Lugar específico del evento (opcional)</small>
                                                     </div>
                                                 </div>
@@ -289,8 +322,9 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Valor <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
-                                                        <input type="number" class="form-control" id="valor_evento" 
-                                                               name="valor_evento" min="1000000" max="100000000" required>
+                                                        <input type="number" class="form-control" id="valor_evento"
+                                                            name="valor_evento" min="1000000" max="100000000" required
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['valor_evento']) : ''; ?>">
                                                         <small class="help-block text-muted">Valor en pesos (entre 1.000.000 y 100.000.000)</small>
                                                     </div>
                                                 </div>
@@ -305,9 +339,15 @@ $pageTitle = "Generador de Eventos";
                                                     <div class="col-md-9">
                                                         <select class="form-control" id="tipo_evento" name="tipo_evento" required>
                                                             <option value="">Seleccione tipo de evento</option>
-                                                            <option value="Privado">Privado</option>
-                                                            <option value="Municipal">Municipal</option>
-                                                            <option value="Matrimonio">Matrimonio</option>
+                                                            <?php
+                                                            $tipos_evento = ['Privado', 'Municipal', 'Matrimonio'];
+                                                            foreach ($tipos_evento as $tipo):
+                                                            ?>
+                                                                <option value="<?php echo $tipo; ?>"
+                                                                    <?php echo ($is_editing && $evento['tipo_evento'] == $tipo) ? 'selected' : ''; ?>>
+                                                                    <?php echo $tipo; ?>
+                                                                </option>
+                                                            <?php endforeach; ?>
                                                         </select>
                                                         <small class="help-block text-muted">Categoría del evento</small>
                                                     </div>
@@ -317,8 +357,9 @@ $pageTitle = "Generador de Eventos";
                                                 <div class="form-group">
                                                     <label class="control-label col-md-3">Encabezado</label>
                                                     <div class="col-md-9">
-                                                        <input type="text" class="form-control" id="encabezado_evento" 
-                                                               name="encabezado_evento" maxlength="100">
+                                                        <input type="text" class="form-control" id="encabezado_evento"
+                                                            name="encabezado_evento" maxlength="100"
+                                                            value="<?php echo $is_editing ? htmlspecialchars($evento['encabezado_evento']) : ''; ?>">
                                                         <small class="help-block text-muted">Título para documentos</small>
                                                     </div>
                                                 </div>
@@ -344,10 +385,12 @@ $pageTitle = "Generador de Eventos";
                                                             <div class="col-md-9">
                                                                 <div class="radio-list">
                                                                     <label class="radio-inline">
-                                                                        <input type="radio" name="<?php echo $key; ?>" value="Si"> Sí
+                                                                        <input type="radio" name="<?php echo $key; ?>" value="Si"
+                                                                            <?php echo ($is_editing && $evento[$key] == 'Si') ? 'checked' : ''; ?>> Sí
                                                                     </label>
                                                                     <label class="radio-inline">
-                                                                        <input type="radio" name="<?php echo $key; ?>" value="No" checked> No
+                                                                        <input type="radio" name="<?php echo $key; ?>" value="No"
+                                                                            <?php echo (!$is_editing || $evento[$key] != 'Si') ? 'checked' : ''; ?>> No
                                                                     </label>
                                                                 </div>
                                                                 <small class="help-block text-muted"><?php echo $description; ?></small>
@@ -363,7 +406,7 @@ $pageTitle = "Generador de Eventos";
                                             <div class="row">
                                                 <div class="col-md-12 text-center">
                                                     <button type="submit" id="crearEventoBtn" class="btn btn-success">
-                                                        <i class="fa fa-check"></i> Crear Evento
+                                                        <i class="fa fa-check"></i> <?php echo $is_editing ? 'Actualizar Evento' : 'Crear Evento'; ?>
                                                     </button>
                                                     <a href="index.php" class="btn btn-default">
                                                         <i class="fa fa-times"></i> Cancelar
@@ -381,93 +424,94 @@ $pageTitle = "Generador de Eventos";
             <?php include 'includes/footer.php'; ?>
         </div>
     </div>
-<!-- Modal de Confirmación -->
-<div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <!-- Header del Modal -->
-            <div class="modal-header bg-success">
-                <h5 class="modal-title text-white">
-                    <i class="fa fa-check-circle"></i> Confirmar Creación de Evento
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <!-- Header del Modal -->
+                <div class="modal-header bg-success">
+                    <h5 class="modal-title text-white">
+                        <i class="fa fa-check-circle"></i>
+                        <?php echo $is_editing ? 'Confirmar Actualización de Evento' : 'Confirmar Creación de Evento'; ?>
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
 
-            <!-- Cuerpo del Modal -->
-            <div class="modal-body p-4">
-                <div id="resumenEvento">
-                    <h4 class="mb-3">Resumen del Evento</h4>
-                    <hr class="mb-4">
-                    
-                    <!-- Información Principal -->
-                    <div class="row mb-4">
-                        <!-- Columna Izquierda -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="text-muted">Gira:</label>
-                                <div id="resumen_gira" class="font-weight-bold"></div>
+                <!-- Cuerpo del Modal -->
+                <div class="modal-body p-4">
+                    <div id="resumenEvento">
+                        <h4 class="mb-3">Resumen del Evento</h4>
+                        <hr class="mb-4">
+
+                        <!-- Información Principal -->
+                        <div class="row mb-4">
+                            <!-- Columna Izquierda -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="text-muted">Gira:</label>
+                                    <div id="resumen_gira" class="font-weight-bold"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Artista:</label>
+                                    <div id="resumen_artista" class="font-weight-bold"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Cliente:</label>
+                                    <div id="resumen_cliente" class="font-weight-bold"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Nombre Evento:</label>
+                                    <div id="resumen_nombre_evento" class="font-weight-bold"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Tipo:</label>
+                                    <div id="resumen_tipo" class="font-weight-bold"></div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Artista:</label>
-                                <div id="resumen_artista" class="font-weight-bold"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Cliente:</label>
-                                <div id="resumen_cliente" class="font-weight-bold"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Nombre Evento:</label>
-                                <div id="resumen_nombre_evento" class="font-weight-bold"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Tipo:</label>
-                                <div id="resumen_tipo" class="font-weight-bold"></div>
+
+                            <!-- Columna Derecha -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="text-muted">Fecha y Hora:</label>
+                                    <div id="resumen_fecha_hora" class="font-weight-bold"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Lugar:</label>
+                                    <div id="resumen_lugar" class="font-weight-bold"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Valor:</label>
+                                    <div id="resumen_valor" class="font-weight-bold text-success"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="text-muted">Servicios:</label>
+                                    <div id="resumen_servicios" class="font-weight-bold"></div>
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Columna Derecha -->
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="text-muted">Fecha y Hora:</label>
-                                <div id="resumen_fecha_hora" class="font-weight-bold"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Lugar:</label>
-                                <div id="resumen_lugar" class="font-weight-bold"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Valor:</label>
-                                <div id="resumen_valor" class="font-weight-bold text-success"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="text-muted">Servicios:</label>
-                                <div id="resumen_servicios" class="font-weight-bold"></div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Mensaje de Confirmación -->
-                    <div class="alert alert-info text-center">
-                        <i class="fa fa-question-circle"></i>
-                        ¿Está seguro que desea crear este evento con la información mostrada?
+                        <!-- Mensaje de Confirmación -->
+                        <div class="alert alert-info text-center">
+                            <i class="fa fa-question-circle"></i>
+                            ¿Está seguro que desea crear este evento con la información mostrada?
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Footer del Modal -->
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fa fa-times"></i> Cancelar
-                </button>
-                <button type="button" class="btn btn-success" id="confirmCreateEvent">
-                    <i class="fa fa-check"></i> Confirmar
-                </button>
+                <!-- Footer del Modal -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fa fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="confirmCreateEvent">
+                        <i class="fa fa-check"></i> <?php echo $is_editing ? 'Actualizar' : 'Confirmar'; ?>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Modal de Error -->
     <div class="modal fade" id="errorModal" tabindex="-1" role="dialog">
@@ -508,7 +552,7 @@ $pageTitle = "Generador de Eventos";
             // Formatear fecha y hora
             function formatDateTime(date, time) {
                 if (!date) return 'Fecha no especificada';
-                
+
                 const options = {
                     weekday: 'long',
                     year: 'numeric',
@@ -593,7 +637,7 @@ $pageTitle = "Generador de Eventos";
                 $('#resumen_artista').text($('#artista_id option:selected').text());
                 $('#resumen_cliente').text($('#nombre_cliente').text());
                 $('#resumen_nombre_evento').text($('#nombre_evento').val());
-                
+
                 // Fecha y hora (hora es opcional)
                 const fecha = $('#fecha_evento').val();
                 const hora = $('#hora_evento').val();
@@ -617,7 +661,7 @@ $pageTitle = "Generador de Eventos";
                         servicios.push(servicio.charAt(0).toUpperCase() + servicio.slice(1));
                     }
                 });
-                $('#resumen_servicios').text(servicios.length ? servicios.join(', ') :'Ninguno');
+                $('#resumen_servicios').text(servicios.length ? servicios.join(', ') : 'Ninguno');
             }
 
             // Manejar envío del formulario
@@ -639,11 +683,13 @@ $pageTitle = "Generador de Eventos";
             });
 
             // Crear evento
+            // Crear o actualizar evento
             function crearEvento() {
                 var formData = new FormData(document.getElementById('eventoForm'));
+                const isEditing = formData.get('is_editing') === '1';
 
                 $.ajax({
-                    url: 'functions/crear_evento.php',
+                    url: isEditing ? 'functions/actualizar_evento.php' : 'functions/crear_evento.php',
                     type: 'POST',
                     data: formData,
                     processData: false,
@@ -651,10 +697,18 @@ $pageTitle = "Generador de Eventos";
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
-                            window.location.href = 'index.php?mensaje=' + encodeURIComponent('Evento creado exitosamente');
+                            Swal.fire({
+                                title: '¡Éxito!',
+                                text: isEditing ? 'El evento ha sido actualizado correctamente.' : 'El evento ha sido creado exitosamente.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.href = 'ver_evento.php?id=' + response.evento_id;
+                            });
                         } else {
                             $('#confirmationModal').modal('hide');
-                            showErrorMessage(response.message || 'Error desconocido al crear el evento');
+                            showErrorMessage(response.message || 'Error al procesar el evento');
                             console.error('Error en la respuesta:', response);
                         }
                     },
@@ -726,4 +780,5 @@ $pageTitle = "Generador de Eventos";
         });
     </script>
 </body>
+
 </html>

@@ -245,3 +245,67 @@ function eliminarArchivoEvento($conn, $archivo_id) {
     
     return true;
 }
+
+/**
+ * Obtiene los datos completos de un evento para su edición
+ * @param mysqli $conn Conexión a la base de datos
+ * @param int $evento_id ID del evento a editar
+ * @return array|null Datos del evento o null si no existe
+ */
+function obtenerEventoParaEditar($conn, $evento_id) {
+    error_log("Obteniendo evento ID: " . $evento_id); // Debug log
+    
+    $sql = "SELECT 
+                e.*,
+                c.nombres, 
+                c.apellidos,
+                c.correo,
+                c.celular,
+                em.nombre as nombre_empresa,
+                g.nombre as nombre_gira,
+                a.nombre as nombre_artista
+            FROM eventos e
+            LEFT JOIN clientes c ON e.cliente_id = c.id
+            LEFT JOIN empresas em ON c.id = em.cliente_id
+            LEFT JOIN giras g ON e.gira_id = g.id
+            LEFT JOIN artistas a ON e.artista_id = a.id
+            WHERE e.id = ?";
+    
+    try {
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            error_log("Error en preparación de consulta: " . $conn->error);
+            throw new Exception("Error en la preparación de la consulta: " . $conn->error);
+        }
+        
+        $stmt->bind_param("i", $evento_id);
+        
+        if (!$stmt->execute()) {
+            error_log("Error en ejecución de consulta: " . $stmt->error);
+            throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+        }
+        
+        $result = $stmt->get_result();
+        $evento = $result->fetch_assoc();
+        
+        if ($evento) {
+            error_log("Evento encontrado. Cliente ID: " . $evento['cliente_id']); // Debug log
+            // Formatear valores para el formulario
+            $evento['fecha_evento'] = date('Y-m-d', strtotime($evento['fecha_evento']));
+            if ($evento['hora_evento']) {
+                $evento['hora_evento'] = date('H:i', strtotime($evento['hora_evento']));
+            }
+        } else {
+            error_log("No se encontró el evento ID: " . $evento_id);
+        }
+        
+        return $evento;
+    } catch (Exception $e) {
+        error_log("Error al obtener evento para editar: " . $e->getMessage());
+        throw $e;
+    } finally {
+        if (isset($stmt)) {
+            $stmt->close();
+        }
+    }
+}
