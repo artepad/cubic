@@ -86,7 +86,7 @@ try {
 
         $is_editing = true;
         $pageTitle = "Editar Evento";
-        
+
         // Obtener datos del cliente del evento
         if (!empty($evento['cliente_id'])) {
             $cliente = obtenerDatosCliente($conn, $evento['cliente_id']);
@@ -140,7 +140,8 @@ $conn->close();
                             <div class="panel-heading"><?php echo $is_editing ? 'Editar Evento' : 'Generador de Eventos'; ?></div>
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body">
-                                    <form id="eventoForm" class="form-horizontal" role="form">
+                                <form id="eventoForm" class="form-horizontal" role="form">
+                                <?php echo getCSRFTokenField(); ?>
                                         <input type="hidden" name="is_editing" value="<?php echo $is_editing ? '1' : '0'; ?>">
                                         <?php if ($is_editing): ?>
                                             <input type="hidden" name="evento_id" value="<?php echo htmlspecialchars($evento_id); ?>">
@@ -244,12 +245,23 @@ $conn->close();
                                                 </div>
                                             </div>
                                         <?php else: ?>
+                                            <!-- Agregar este nuevo bloque para mostrar el nombre del cliente en modo edición -->
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="control-label col-md-3">Cliente:</label>
+                                                        <div class="col-md-9">
+                                                            <p class="form-control-static">
+                                                                <strong><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></strong>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <input type="hidden" name="cliente_id" value="<?php echo htmlspecialchars($evento['cliente_id']); ?>">
                                         <?php endif; ?>
 
-                                        <!-- Campo oculto para ID del evento -->
-                                        <input type="hidden" name="evento_id" id="evento_id" value="0">
-
+                                      
                                         <!-- Detalles del Evento -->
                                         <h3 class="box-title">Detalles del Evento</h3>
                                         <hr class="m-t-0 m-b-40">
@@ -288,7 +300,7 @@ $conn->close();
                                                         <input type="time" class="form-control" id="hora_evento"
                                                             name="hora_evento"
                                                             value="<?php echo $is_editing ? htmlspecialchars($evento['hora_evento']) : ''; ?>">
-                                                            <small class="help-block text-muted">Hora del evento (opcional)</small>
+                                                        <small class="help-block text-muted">Hora del evento (opcional)</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -574,14 +586,21 @@ $conn->close();
             function validateForm() {
                 let isValid = true;
                 const errors = [];
+                const isEditing = $('input[name="is_editing"]').val() === '1';
+
+                // Modificar los campos requeridos según si estamos editando o no
                 const requiredFields = {
                     'artista_id': 'Artista',
-                    'cliente_id': 'Cliente',
                     'nombre_evento': 'Nombre del Evento',
                     'fecha_evento': 'Fecha',
                     'valor_evento': 'Valor',
                     'tipo_evento': 'Tipo de Evento'
                 };
+
+                // Solo agregar la validación del cliente si NO estamos en modo edición
+                if (!isEditing) {
+                    requiredFields['cliente_id'] = 'Cliente';
+                }
 
                 // Limpiar validaciones previas
                 $('.is-invalid').removeClass('is-invalid');
@@ -598,7 +617,6 @@ $conn->close();
                         field.addClass('is-invalid');
                     }
                 });
-
                 // Validar valor del evento
                 const valorEvento = $('#valor_evento').val();
                 if (valorEvento) {
@@ -682,11 +700,17 @@ $conn->close();
                 }
             });
 
-            // Crear evento
             // Crear o actualizar evento
             function crearEvento() {
                 var formData = new FormData(document.getElementById('eventoForm'));
                 const isEditing = formData.get('is_editing') === '1';
+
+                // Debug: Mostrar los datos que se están enviando
+                console.log('Enviando datos:', {
+                    isEditing: isEditing,
+                    evento_id: formData.get('evento_id'),
+                    csrf_token: formData.get('csrf_token')
+                });
 
                 $.ajax({
                     url: isEditing ? 'functions/actualizar_evento.php' : 'functions/crear_evento.php',
@@ -695,8 +719,16 @@ $conn->close();
                     processData: false,
                     contentType: false,
                     dataType: 'json',
+                    beforeSend: function() {
+                        $('#confirmCreateEvent').prop('disabled', true)
+                            .html('<i class="fa fa-spinner fa-spin"></i> Procesando...');
+                        // Mostrar algún indicador de carga si es necesario
+                    },
                     success: function(response) {
+                        console.log('Respuesta del servidor:', response); // Debug
+
                         if (response.success) {
+                            $('#confirmationModal').modal('hide');
                             Swal.fire({
                                 title: '¡Éxito!',
                                 text: isEditing ? 'El evento ha sido actualizado correctamente.' : 'El evento ha sido creado exitosamente.',
@@ -709,28 +741,27 @@ $conn->close();
                         } else {
                             $('#confirmationModal').modal('hide');
                             showErrorMessage(response.message || 'Error al procesar el evento');
-                            console.error('Error en la respuesta:', response);
                         }
                     },
                     error: function(xhr, status, error) {
-                        $('#confirmationModal').modal('hide');
                         console.error('Error AJAX:', {
                             status: status,
                             error: error,
-                            response: xhr.responseText,
-                            state: xhr.state(),
-                            statusText: xhr.statusText
+                            response: xhr.responseText
                         });
+
+                        $('#confirmationModal').modal('hide');
 
                         let errorMessage = 'Error en la conexión';
                         try {
-                            const responseText = xhr.responseText;
-                            console.log('Respuesta completa:', responseText);
-                            const response = JSON.parse(responseText);
-                            errorMessage = response.message || errorMessage;
+                            if (xhr.responseText) {
+                                console.log('Respuesta de error:', xhr.responseText); // Debug
+                                const response = JSON.parse(xhr.responseText);
+                                errorMessage = response.message || errorMessage;
+                            }
                         } catch (e) {
                             console.error('Error al parsear respuesta:', e);
-                            errorMessage += ': ' + error;
+                            errorMessage = 'Error en el servidor: ' + xhr.responseText;
                         }
                         showErrorMessage(errorMessage);
                     },
@@ -738,6 +769,7 @@ $conn->close();
                         isSubmitting = false;
                         $('#confirmCreateEvent').prop('disabled', false)
                             .html('<i class="fa fa-check"></i> Confirmar');
+                        // Ocultar el indicador de carga si es necesario
                     }
                 });
             }
