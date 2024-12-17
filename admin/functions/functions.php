@@ -309,3 +309,69 @@ function obtenerEventoParaEditar($conn, $evento_id) {
         }
     }
 }
+
+
+/**
+ * Obtiene los eventos formateados para el calendario
+ * @param mysqli $conn Conexión a la base de datos
+ * @return array Eventos formateados para FullCalendar
+ */
+function obtenerEventosCalendario($conn) {
+    $sql = "SELECT 
+                e.id,
+                e.nombre_evento as title,
+                e.fecha_evento as start,
+                e.hora_evento,
+                e.estado_evento,
+                e.tipo_evento,
+                a.nombre as artista,
+                c.nombres,
+                c.apellidos
+            FROM eventos e
+            LEFT JOIN artistas a ON e.artista_id = a.id
+            LEFT JOIN clientes c ON e.cliente_id = c.id
+            ORDER BY e.fecha_evento ASC";
+    
+    $result = executeQuery($conn, $sql);
+    $eventos = array();
+    
+    while ($row = $result->fetch_assoc()) {
+        // Determinar el color según el estado del evento
+        $color = '';
+        switch ($row['estado_evento']) {
+            case 'Confirmado':
+                $color = '#28a745'; // Verde
+                break;
+            case 'Propuesta':
+                $color = '#ffc107'; // Amarillo
+                break;
+            case 'Cancelado':
+                $color = '#dc3545'; // Rojo
+                break;
+            case 'Reagendado':
+                $color = '#17a2b8'; // Azul claro
+                break;
+            default:
+                $color = '#6c757d'; // Gris
+        }
+        
+        // Formatear la fecha y hora
+        $start = $row['fecha_evento'];
+        if ($row['hora_evento']) {
+            $start .= 'T' . $row['hora_evento'];
+        }
+        
+        $eventos[] = array(
+            'id' => $row['id'],
+            'title' => $row['title'],
+            'start' => $start,
+            'backgroundColor' => $color,
+            'borderColor' => $color,
+            'estado' => $row['estado_evento'],
+            'artista' => $row['artista'],
+            'cliente' => $row['nombres'] . ' ' . $row['apellidos']
+        );
+    }
+    
+    return $eventos;
+}

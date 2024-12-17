@@ -24,8 +24,28 @@ $pageTitle = "Calendario";
 
 <head>
     <?php include 'includes/head.php'; ?>
+    <!-- FullCalendar CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css" rel="stylesheet">
+    <!-- Estilos personalizados para el calendario -->
+    <style>
+        .fc-event {
+            cursor: pointer;
+            padding: 2px 5px;
+        }
+
+        .calendar-container {
+            padding: 20px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            margin: 15px;
+        }
+
+        .fc-today {
+            background: #f8f9fa !important;
+        }
+    </style>
     <!-- Asegúrate de incluir los estilos necesarios para el calendario -->
-    <link href='assets/plugins/components/fullcalendar/fullcalendar.css' rel='stylesheet'>
 </head>
 
 <body class="mini-sidebar">
@@ -38,56 +58,99 @@ $pageTitle = "Calendario";
         <?php include 'includes/nav.php'; ?>
         <?php include 'includes/sidebar.php'; ?>
 
-        <!-- Page-Content -->
+        <!-- Content Page -->
         <div class="page-wrapper">
             <div class="container-fluid">
-                <!-- row -->
+                <!-- Breadcrumb -->
+                <div class="row bg-title">
+                    <div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
+                        <h4 class="page-title">Calendario de Eventos</h4>
+                    </div>
+                    <div class="col-lg-9 col-sm-8 col-md-8 col-xs-12">
+                        <ol class="breadcrumb">
+                            <li><a href="index.php">Dashboard</a></li>
+                            <li class="active">Calendario</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Calendario -->
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="white-box cal-event">
-                            <h3 class="box-title">Drag and drop your event</h3>
-                            <div class="m-t-20">
-                                <div class="calendar-event" data-class="bg-primary">My Event One <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
-                                <div class="calendar-event" data-class="bg-success">My Event Two <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
-                                <div class="calendar-event" data-class="bg-warning">My Event Three <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
-                                <div class="calendar-event" data-class="bg-custom">My Event Four <a href="javascript:void(0);" class="remove-calendar-event"><i class="ti-close"></i></a></div>
-                                <input type="text" placeholder="Add Event and hit enter" class="form-control add-event m-t-20">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
                         <div class="white-box">
-                            <div id="calendar"></div>
+                            <div id="calendario"></div>
                         </div>
                     </div>
                 </div>
-                <!-- /.row -->
             </div>
-
-            <?php include 'includes/footer.php'; ?>
         </div>
-        <!-- Page-Content-End -->
+
+        <?php include 'includes/footer.php'; ?>
     </div>
-    <!-- ===== Main-Wrapper-End ===== -->
-
-    <!-- ==============================
-        Required JS Files
-    =============================== -->
-    
-    <!-- Específicos del calendario -->
-    <script src='assets/plugins/components/moment/moment.js'></script>
-    <script src='assets/plugins/components/fullcalendar/fullcalendar.js'></script>
-    <script src="assets/js/db2.js"></script>
-    
-    <script>
-        $(document).ready(function() {
-            // Inicialización del calendario
-            $('#calendar').fullCalendar({
-                // Configuración del calendario
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
+    <!-- Después de los scripts de FullCalendar -->
+<script>
+$(document).ready(function() {
+    $('#calendario').fullCalendar({
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'month,agendaWeek,agendaDay'
+        },
+        defaultView: 'month',
+        locale: 'es',
+        timeFormat: 'HH:mm',
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana',
+            day: 'Día'
+        },
+        events: function(start, end, timezone, callback) {
+            $.ajax({
+                url: 'functions/obtener_eventos_calendario.php',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    callback(response);
+                }
             });
+        },
+        eventRender: function(event, element) {
+            // Personalizar la apariencia del evento
+            element.find('.fc-title').html(`
+                <strong>${event.title}</strong><br>
+                ${event.artista ? `<small>${event.artista}</small><br>` : ''}
+                <span class="badge" style="background-color: ${event.backgroundColor}">${event.estado}</span>
+            `);
+            
+            // Agregar tooltip con información adicional
+            element.attr('data-toggle', 'tooltip');
+            element.attr('data-html', 'true');
+            element.attr('title', `
+                <strong>Cliente:</strong> ${event.cliente}<br>
+                <strong>Estado:</strong> ${event.estado}<br>
+                ${event.artista ? `<strong>Artista:</strong> ${event.artista}` : ''}
+            `);
+        },
+        eventClick: function(event) {
+            window.location.href = `ver_evento.php?id=${event.id}`;
+        },
+        dayClick: function(date, jsEvent, view) {
+            window.location.href = `crear_evento.php?fecha=${date.format()}`;
+        }
+    });
 
-            // Otras funcionalidades específicas del calendario
-        });
-    </script>
+    // Inicializar tooltips
+    $('[data-toggle="tooltip"]').tooltip({
+        container: 'body',
+        html: true
+    });
+});
+</script>
 </body>
+
 </html>
