@@ -47,7 +47,7 @@ $totalRegistros = $fila['total'];
 $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
 
 // Agregar límites a la consulta principal
-$baseQuery .= " ORDER BY e.fecha_evento DESC LIMIT $registrosPorPagina OFFSET $offset";
+$baseQuery .= " ORDER BY e.fecha_creacion DESC, e.fecha_evento DESC LIMIT $registrosPorPagina OFFSET $offset";
 $result_eventos = $conn->query($baseQuery);
 
 // Cerrar la conexión después de obtener los datos necesarios
@@ -335,9 +335,7 @@ $pageTitle = "Listar Agenda";
                         "type": "date-eu"
                     }
                 ],
-                "order": [
-                    [2, 'desc']
-                ]
+                "order": []
             });
 
             // Implementación del buscador personalizado
