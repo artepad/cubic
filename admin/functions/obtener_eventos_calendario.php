@@ -22,16 +22,20 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 try {
     $conn = getDbConnection();
     
-    // Obtener eventos
+    // Obtener eventos y datos relacionados
     $sql = "SELECT 
-            id,
-            nombre_evento,
-            fecha_evento,
-            hora_evento,
-            estado_evento
-            FROM eventos 
-            WHERE fecha_evento IS NOT NULL 
-            ORDER BY fecha_evento ASC";
+            e.id,
+            e.nombre_evento,
+            e.fecha_evento,
+            e.hora_evento,
+            e.estado_evento,
+            CONCAT(c.nombres, ' ', c.apellidos) as cliente,
+            a.nombre as artista
+            FROM eventos e
+            LEFT JOIN clientes c ON e.cliente_id = c.id
+            LEFT JOIN artistas a ON e.artista_id = a.id
+            WHERE e.fecha_evento IS NOT NULL 
+            ORDER BY e.fecha_evento ASC";
             
     $result = $conn->query($sql);
     
@@ -39,16 +43,41 @@ try {
     
     if ($result) {
         while ($row = $result->fetch_assoc()) {
-            $fecha = $row['fecha_evento'];
-            $hora = $row['hora_evento'] ? $row['hora_evento'] : '00:00:00';
-            
+            // Determinar el color según el estado
+            $color = '#6c757d'; // Color por defecto (gris)
+            switch($row['estado_evento']) {
+                case 'Confirmado':
+                    $color = '#28a745'; // Verde
+                    break;
+                case 'Propuesta':
+                    $color = '#ffc107'; // Amarillo
+                    break;
+                case 'Cancelado':
+                    $color = '#dc3545'; // Rojo
+                    break;
+                case 'Reagendado':
+                    $color = '#17a2b8'; // Azul
+                    break;
+            }
+
+            // Construir el título con información adicional
+            $titulo = $row['nombre_evento'];
+            if (!empty($row['cliente'])) {
+                $titulo .= ' - ' . $row['cliente'];
+            }
+            if (!empty($row['artista'])) {
+                $titulo .= ' (' . $row['artista'] . ')';
+            }
+
             $eventos[] = [
                 'id' => (int)$row['id'],
-                'title' => $row['nombre_evento'],
-                'start' => $fecha . 'T' . $hora,
+                'title' => $titulo,
+                'start' => $row['fecha_evento'] . 
+                          (!empty($row['hora_evento']) ? 'T' . $row['hora_evento'] : ''),
                 'allDay' => empty($row['hora_evento']),
-                'backgroundColor' => '#28a745',
-                'borderColor' => '#28a745'
+                'backgroundColor' => $color,
+                'borderColor' => $color,
+                'estado' => $row['estado_evento']
             ];
         }
     }
@@ -62,8 +91,9 @@ try {
     echo json_encode($eventos);
     
 } catch (Exception $e) {
+    error_log("Error en calendario: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['error' => 'Error al cargar eventos']);
 } finally {
     if (isset($conn)) {
         $conn->close();
