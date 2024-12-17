@@ -317,61 +317,68 @@ function obtenerEventoParaEditar($conn, $evento_id) {
  * @return array Eventos formateados para FullCalendar
  */
 function obtenerEventosCalendario($conn) {
-    $sql = "SELECT 
+    try {
+        $sql = "SELECT 
                 e.id,
                 e.nombre_evento as title,
-                e.fecha_evento as start,
-                e.hora_evento,
+                e.fecha_evento as start_date,
+                e.hora_evento as start_time,
                 e.estado_evento,
                 e.tipo_evento,
                 a.nombre as artista,
                 c.nombres,
                 c.apellidos
             FROM eventos e
-            LEFT JOIN artistas a ON e.artista_id = a.id
+            LEFT JOIN artistas a ON e.artista_id = a.id 
             LEFT JOIN clientes c ON e.cliente_id = c.id
+            WHERE e.fecha_evento IS NOT NULL
             ORDER BY e.fecha_evento ASC";
-    
-    $result = executeQuery($conn, $sql);
-    $eventos = array();
-    
-    while ($row = $result->fetch_assoc()) {
-        // Determinar el color según el estado del evento
-        $color = '';
-        switch ($row['estado_evento']) {
-            case 'Confirmado':
-                $color = '#28a745'; // Verde
-                break;
-            case 'Propuesta':
-                $color = '#ffc107'; // Amarillo
-                break;
-            case 'Cancelado':
-                $color = '#dc3545'; // Rojo
-                break;
-            case 'Reagendado':
-                $color = '#17a2b8'; // Azul claro
-                break;
-            default:
-                $color = '#6c757d'; // Gris
+
+        $result = $conn->query($sql);
+
+        if (!$result) {
+            throw new Exception("Error en la consulta: " . $conn->error);
         }
-        
-        // Formatear la fecha y hora
-        $start = $row['fecha_evento'];
-        if ($row['hora_evento']) {
-            $start .= 'T' . $row['hora_evento'];
+
+        $eventos = array();
+
+        while ($row = $result->fetch_assoc()) {
+            // Formatear la fecha
+            $start = $row['start_date'];
+            if (!empty($row['start_time'])) {
+                $start .= 'T' . $row['start_time'];
+            }
+
+            // Crear el evento
+            $eventos[] = array(
+                'id' => (int)$row['id'],
+                'title' => $row['title'],
+                'start' => $start,
+                'allDay' => empty($row['start_time']),
+                'backgroundColor' => getEventColor($row['estado_evento']),
+                'borderColor' => getEventColor($row['estado_evento']),
+                'estado' => $row['estado_evento'],
+                'artista' => $row['artista'] ?? '',
+                'cliente' => trim(($row['nombres'] ?? '') . ' ' . ($row['apellidos'] ?? ''))
+            );
         }
-        
-        $eventos[] = array(
-            'id' => $row['id'],
-            'title' => $row['title'],
-            'start' => $start,
-            'backgroundColor' => $color,
-            'borderColor' => $color,
-            'estado' => $row['estado_evento'],
-            'artista' => $row['artista'],
-            'cliente' => $row['nombres'] . ' ' . $row['apellidos']
-        );
+
+        return $eventos;
+
+    } catch (Exception $e) {
+        error_log("Error en obtenerEventosCalendario: " . $e->getMessage());
+        return array();
     }
+}
+
+// Función auxiliar para obtener el color según el estado
+function getEventColor($estado) {
+    $colores = array(
+        'Confirmado' => '#28a745',
+        'Propuesta' => '#ffc107',
+        'Cancelado' => '#dc3545',
+        'Reagendado' => '#17a2b8'
+    );
     
-    return $eventos;
+    return isset($colores[$estado]) ? $colores[$estado] : '#6c757d';
 }

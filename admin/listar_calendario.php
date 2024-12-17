@@ -4,16 +4,14 @@ session_start();
 require_once 'config/config.php';
 require_once 'functions/functions.php';
 
-// Verificar autenticación
-checkAuthentication();
 
 // Obtener datos comunes
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
 
-// Cerrar la conexión después de obtener los datos necesarios
-$conn->close();
+// Verificar autenticación
+checkAuthentication();
 
 // Definir el título de la página
 $pageTitle = "Calendario";
@@ -32,24 +30,20 @@ $pageTitle = "Calendario";
             cursor: pointer;
             padding: 2px 5px;
         }
-
         .calendar-container {
             padding: 20px;
             background: #fff;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
             margin: 15px;
         }
-
         .fc-today {
             background: #f8f9fa !important;
         }
     </style>
-    <!-- Asegúrate de incluir los estilos necesarios para el calendario -->
 </head>
 
 <body class="mini-sidebar">
-    <!-- ===== Main-Wrapper ===== -->
     <div id="wrapper">
         <div class="preloader">
             <div class="cssload-speeding-wheel"></div>
@@ -73,7 +67,7 @@ $pageTitle = "Calendario";
                         </ol>
                     </div>
                 </div>
-
+                
                 <!-- Calendario -->
                 <div class="row">
                     <div class="col-md-12">
@@ -87,11 +81,13 @@ $pageTitle = "Calendario";
 
         <?php include 'includes/footer.php'; ?>
     </div>
-    </div>
+
+    <!-- FullCalendar Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
-    <!-- Después de los scripts de FullCalendar -->
+
+   
 <script>
 $(document).ready(function() {
     $('#calendario').fullCalendar({
@@ -109,48 +105,28 @@ $(document).ready(function() {
             week: 'Semana',
             day: 'Día'
         },
-        events: function(start, end, timezone, callback) {
-            $.ajax({
-                url: 'functions/obtener_eventos_calendario.php',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    callback(response);
-                }
-            });
+        events: {
+            url: 'functions/obtener_eventos_calendario.php',
+            error: function(xhr, status, error) {
+                console.log('Error al cargar eventos:');
+                console.log('Status:', status);
+                console.log('Error:', error);
+                console.log('Response:', xhr.responseText);
+            }
+        },
+        loading: function(isLoading) {
+            if (isLoading) {
+                console.log('Cargando eventos...');
+            } else {
+                console.log('Eventos cargados');
+            }
         },
         eventRender: function(event, element) {
-            // Personalizar la apariencia del evento
-            element.find('.fc-title').html(`
-                <strong>${event.title}</strong><br>
-                ${event.artista ? `<small>${event.artista}</small><br>` : ''}
-                <span class="badge" style="background-color: ${event.backgroundColor}">${event.estado}</span>
-            `);
-            
-            // Agregar tooltip con información adicional
-            element.attr('data-toggle', 'tooltip');
-            element.attr('data-html', 'true');
-            element.attr('title', `
-                <strong>Cliente:</strong> ${event.cliente}<br>
-                <strong>Estado:</strong> ${event.estado}<br>
-                ${event.artista ? `<strong>Artista:</strong> ${event.artista}` : ''}
-            `);
-        },
-        eventClick: function(event) {
-            window.location.href = `ver_evento.php?id=${event.id}`;
-        },
-        dayClick: function(date, jsEvent, view) {
-            window.location.href = `crear_evento.php?fecha=${date.format()}`;
+            element.find('.fc-title').html(event.title);
         }
-    });
-
-    // Inicializar tooltips
-    $('[data-toggle="tooltip"]').tooltip({
-        container: 'body',
-        html: true
     });
 });
 </script>
-</body>
 
+</body>
 </html>
