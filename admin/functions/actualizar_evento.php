@@ -67,36 +67,22 @@ try {
     }
 
     // Verificar que el evento existe antes de actualizarlo
-    $check_sql = "SELECT id FROM eventos WHERE id = ?";
-    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt = $conn->prepare("SELECT id FROM eventos WHERE id = ?");
+    if (!$check_stmt) {
+        throw new Exception("Error preparando la consulta de verificación: " . $conn->error);
+    }
+    
     $check_stmt->bind_param("i", $evento_id);
     $check_stmt->execute();
     $check_result = $check_stmt->get_result();
     
     if ($check_result->num_rows === 0) {
+        $check_stmt->close();
         throw new Exception("No se encontró el evento con ID: " . $evento_id);
     }
     $check_stmt->close();
 
-    // Debug: Imprimir valores antes de la actualización
-    error_log("Valores a actualizar: " . print_r([
-        'evento_id' => $evento_id,
-        'artista_id' => $artista_id,
-        'gira_id' => $gira_id,
-        'nombre_evento' => $nombre_evento,
-        'fecha_evento' => $fecha_evento,
-        'hora_evento' => $hora_evento,
-        'ciudad_evento' => $ciudad_evento,
-        'lugar_evento' => $lugar_evento,
-        'valor_evento' => $valor_evento,
-        'tipo_evento' => $tipo_evento,
-        'encabezado_evento' => $encabezado_evento,
-        'hotel' => $hotel,
-        'traslados' => $traslados,
-        'viaticos' => $viaticos
-    ], true));
-
-    // Preparar la consulta SQL
+    // Preparar la consulta SQL de actualización
     $sql = "UPDATE eventos SET 
             artista_id = ?,
             gira_id = ?,
@@ -114,7 +100,7 @@ try {
             WHERE id = ?";
 
     $stmt = $conn->prepare($sql);
-    if ($stmt === false) {
+    if (!$stmt) {
         throw new Exception("Error en la preparación de la consulta: " . $conn->error);
     }
 
@@ -136,23 +122,16 @@ try {
     );
 
     if (!$stmt->execute()) {
-        error_log("Error en la ejecución del query: " . $stmt->error);
         throw new Exception("Error al actualizar el evento: " . $stmt->error);
     }
 
-    if ($stmt->affected_rows < 0) {
-        error_log("Error en la actualización");
-        throw new Exception("Error al actualizar el evento");
-    }
+    $affected_rows = $stmt->affected_rows;
+    $stmt->close();
 
-    error_log("Evento actualizado correctamente. ID: " . $evento_id . ", Filas afectadas: " . $stmt->affected_rows);
-
-    // Devolver respuesta exitosa
     echo json_encode([
         'success' => true,
         'message' => 'Evento actualizado correctamente',
-        'evento_id' => $evento_id,
-        'affected_rows' => $stmt->affected_rows
+        'evento_id' => $evento_id
     ]);
 
 } catch (Exception $e) {
@@ -162,13 +141,6 @@ try {
         'message' => $e->getMessage()
     ]);
 } finally {
-    // Cerrar conexiones
-    if (isset($check_stmt)) {
-        $check_stmt->close();
-    }
-    if (isset($stmt)) {
-        $stmt->close();
-    }
     if (isset($conn)) {
         $conn->close();
     }

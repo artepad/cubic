@@ -119,6 +119,9 @@ $conn->close();
     <?php include 'includes/head.php'; ?>
     <!-- Estilos específicos para eventos -->
     <link href="assets/css/eventos.css" rel="stylesheet">
+    <!-- En el head de ingreso_evento.php -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 </head>
 
 <body class="mini-sidebar">
@@ -140,8 +143,8 @@ $conn->close();
                             <div class="panel-heading"><?php echo $is_editing ? 'Editar Evento' : 'Generador de Eventos'; ?></div>
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body">
-                                <form id="eventoForm" class="form-horizontal" role="form">
-                                <?php echo getCSRFTokenField(); ?>
+                                    <form id="eventoForm" class="form-horizontal" role="form">
+                                        <?php echo getCSRFTokenField(); ?>
                                         <input type="hidden" name="is_editing" value="<?php echo $is_editing ? '1' : '0'; ?>">
                                         <?php if ($is_editing): ?>
                                             <input type="hidden" name="evento_id" value="<?php echo htmlspecialchars($evento_id); ?>">
@@ -261,7 +264,7 @@ $conn->close();
                                             <input type="hidden" name="cliente_id" value="<?php echo htmlspecialchars($evento['cliente_id']); ?>">
                                         <?php endif; ?>
 
-                                      
+
                                         <!-- Detalles del Evento -->
                                         <h3 class="box-title">Detalles del Evento</h3>
                                         <hr class="m-t-0 m-b-40">
@@ -705,13 +708,6 @@ $conn->close();
                 var formData = new FormData(document.getElementById('eventoForm'));
                 const isEditing = formData.get('is_editing') === '1';
 
-                // Debug: Mostrar los datos que se están enviando
-                console.log('Enviando datos:', {
-                    isEditing: isEditing,
-                    evento_id: formData.get('evento_id'),
-                    csrf_token: formData.get('csrf_token')
-                });
-
                 $.ajax({
                     url: isEditing ? 'functions/actualizar_evento.php' : 'functions/crear_evento.php',
                     type: 'POST',
@@ -722,58 +718,64 @@ $conn->close();
                     beforeSend: function() {
                         $('#confirmCreateEvent').prop('disabled', true)
                             .html('<i class="fa fa-spinner fa-spin"></i> Procesando...');
-                        // Mostrar algún indicador de carga si es necesario
                     },
                     success: function(response) {
-                        console.log('Respuesta del servidor:', response); // Debug
-
                         if (response.success) {
                             $('#confirmationModal').modal('hide');
+
+                            // Mostrar mensaje de éxito usando SweetAlert2
                             Swal.fire({
                                 title: '¡Éxito!',
                                 text: isEditing ? 'El evento ha sido actualizado correctamente.' : 'El evento ha sido creado exitosamente.',
                                 icon: 'success',
-                                showConfirmButton: false,
-                                timer: 1500
+                                timer: 2000,
+                                showConfirmButton: false
                             }).then(() => {
-                                window.location.href = 'ver_evento.php?id=' + response.evento_id;
+                                // Redireccionar después de mostrar el mensaje
+                                window.location.href = 'listar_agenda.php';
                             });
                         } else {
                             $('#confirmationModal').modal('hide');
-                            showErrorMessage(response.message || 'Error al procesar el evento');
+                            // Mostrar mensaje de error
+                            Swal.fire({
+                                title: 'Error',
+                                text: response.message || 'Error al procesar el evento',
+                                icon: 'error'
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Error AJAX:', {
-                            status: status,
-                            error: error,
-                            response: xhr.responseText
+                            xhr,
+                            status,
+                            error
                         });
-
                         $('#confirmationModal').modal('hide');
 
                         let errorMessage = 'Error en la conexión';
                         try {
-                            if (xhr.responseText) {
-                                console.log('Respuesta de error:', xhr.responseText); // Debug
-                                const response = JSON.parse(xhr.responseText);
-                                errorMessage = response.message || errorMessage;
+                            if (xhr.responseJSON) {
+                                errorMessage = xhr.responseJSON.message || errorMessage;
                             }
                         } catch (e) {
                             console.error('Error al parsear respuesta:', e);
-                            errorMessage = 'Error en el servidor: ' + xhr.responseText;
+                            errorMessage = 'Error al procesar la solicitud';
                         }
-                        showErrorMessage(errorMessage);
+
+                        // Mostrar mensaje de error usando SweetAlert2
+                        Swal.fire({
+                            title: 'Error',
+                            text: errorMessage,
+                            icon: 'error'
+                        });
                     },
                     complete: function() {
                         isSubmitting = false;
                         $('#confirmCreateEvent').prop('disabled', false)
                             .html('<i class="fa fa-check"></i> Confirmar');
-                        // Ocultar el indicador de carga si es necesario
                     }
                 });
             }
-
             // Mostrar mensaje de error
             function showErrorMessage(message) {
                 $('#errorModalBody').html(`

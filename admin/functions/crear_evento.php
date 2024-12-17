@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 
 // Función para respuestas JSON
 function sendResponse($success, $message, $data = null) {
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => $success,
         'message' => $message,
