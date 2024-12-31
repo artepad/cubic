@@ -163,16 +163,6 @@ CREATE TABLE evento_archivos (
 INSERT INTO usuarios (username, password, nombre, email) VALUES 
 ('admin', '$2y$10$R65JBBwJOc3ZnLyqPHpeS.TXe1bsHfvjOXKl3YDFB87yl6nMT33E.', 'miguel', 'nuevo_admin@example.com');
 
--- Clientes de ejemplo
-INSERT INTO clientes (nombres, apellidos, rut, correo, celular, genero) VALUES 
-('Juan', 'Pérez', '12.345.678-9', 'juan@email.com', '+56912345678', 'Masculino'),
-('María', 'González', '98.765.432-1', 'maria@email.com', '+56987654321', 'Femenino');
-
--- Empresas de ejemplo
-INSERT INTO empresas (nombre, rut, direccion, cliente_id) VALUES 
-('Empresa A', '11.111.111-1', 'Calle 123, Santiago', 1),
-('Empresa B', '22.222.222-2', 'Avenida 456, Providencia', 2);
-
 -- Giras de ejemplo
 INSERT INTO giras (nombre) VALUES 
 ('Gira Verano 2025'),
@@ -181,4 +171,4 @@ INSERT INTO giras (nombre) VALUES
 -- Artistas de ejemplo
 INSERT INTO artistas (nombre, genero_musical, descripcion, presentacion) VALUES 
 ('Agrupación Marilyn', 'Cumbia Testimonial', 'Descripción detallada de Agrupación Marilyn...', 'Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial, narra historias que reflejan el cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos singles: Abismo, Siento, Piel y Huesos, que adelantan una propuesta fresca y poderosa, fiel a su estilo.'),
-('Flor Alvarez', 'Cumbia', 'Descripción detallada de Flor Alvarez...', 'gradecemos desde ya su interés en la talentosa cantante argentina Flor Álvarez, una joven promesa que ha conquistado corazones con su música. Desde sus inicios cantando en el subte de Buenos Aires, Flor ha logrado posicionarse como una figura destacada en la música urbana y cumbia romántica. Con éxitos como Con Vos, junto a Rusherking, y Sin Querer, con Fer Vázquez de Rombai, acumula millones de reproducciones, además de recibir elogios de artistas como La Joaqui. Su EP Etapas refleja una propuesta fresca y emotiva, consolidando su lugar en la escena musical. Actualmente, trabaja en nuevas colaboraciones que prometen sorprender, llevando su música a niveles internacionales');
+('Flor Alvarez', 'Cumbia', 'Descripción detallada de Flor Alvarez...', 'Agradecemos desde ya su interés en la talentosa cantante argentina Flor Álvarez, una joven promesa que ha conquistado corazones con su música. Desde sus inicios cantando en el subte de Buenos Aires, Flor ha logrado posicionarse como una figura destacada en la música urbana y cumbia romántica. Con éxitos como Con Vos, Tattoo, Me Toco Perder, El Amor de mi Vida, y Sin Querer, acumula millones de reproducciones. Su música refleja una propuesta fresca y emotiva, consolidando su lugar en la escena musical. Actualmente, trabaja en nuevas colaboraciones que prometen sorprender, llevando su música a niveles internacionales.');
