@@ -163,11 +163,6 @@ CREATE TABLE evento_archivos (
 INSERT INTO usuarios (username, password, nombre, email) VALUES 
 ('admin', '$2y$10$R65JBBwJOc3ZnLyqPHpeS.TXe1bsHfvjOXKl3YDFB87yl6nMT33E.', 'miguel', 'nuevo_admin@example.com');
 
--- Giras de ejemplo
-INSERT INTO giras (nombre) VALUES 
-('Gira Verano 2025'),
-('Gira Otoño 2025');
-
 -- Artistas de ejemplo
 INSERT INTO artistas (nombre, genero_musical, descripcion, presentacion) VALUES 
 ('Agrupación Marilyn', 'Cumbia Testimonial', 'Descripción detallada de Agrupación Marilyn...', 'Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial, narra historias que reflejan el cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos singles: Abismo, Siento, Piel y Huesos, que adelantan una propuesta fresca y poderosa, fiel a su estilo.'),
