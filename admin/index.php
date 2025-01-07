@@ -13,7 +13,7 @@ $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
 
 // Configuración de la paginación
-$registrosPorPagina = 8;
+$registrosPorPagina = 50;
 $paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $offset = ($paginaActual - 1) * $registrosPorPagina;
 
@@ -305,7 +305,7 @@ $pageTitle = "Lista de Eventos";
         $(document).ready(function() {
             const eventosTable = $('#eventosTable').DataTable({
                 "dom": '<"top">rt<"bottom"><"clear">',
-                "pageLength": 8,
+                "pageLength": 50,
                 "ordering": true,
                 "searching": true,
                 "language": {

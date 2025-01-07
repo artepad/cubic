@@ -13,7 +13,7 @@ $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
 
 // Configuración de la paginación
-$registrosPorPagina = 8;
+$registrosPorPagina = 50;
 $paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $offset = ($paginaActual - 1) * $registrosPorPagina;
 

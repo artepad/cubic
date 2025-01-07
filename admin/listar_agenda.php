@@ -13,7 +13,7 @@ $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
 
 // Configuración de la paginación
-$registrosPorPagina = 8;
+$registrosPorPagina = 50;
 $paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $busqueda = isset($_GET['search']) ? $_GET['search'] : '';
 $offset = ($paginaActual - 1) * $registrosPorPagina;
@@ -318,7 +318,7 @@ $pageTitle = "Listar Agenda";
                     "infoEmpty": "Mostrando 0 a 0 de 0 registros",
                     "infoFiltered": ""
                 },
-                "pageLength": 8, // Registros por página
+                "pageLength": 50, // Registros por página
                 "ordering": true,
                 "responsive": true,
                 "dom": 'rt<"bottom"<"custom-pagination">><"clear">',

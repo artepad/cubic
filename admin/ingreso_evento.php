@@ -153,7 +153,7 @@ $conn->close();
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Gira:</label>
+                                                    <label class="control-label col-md-3">Gira: <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <?php if (count($giras) > 0): ?>
                                                             <select class="form-control" id="gira_id" name="gira_id">
@@ -335,12 +335,12 @@ $conn->close();
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Valor <span class="text-danger">*</span></label>
+                                                    <label class="control-label col-md-3">Valor<span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <input type="number" class="form-control" id="valor_evento"
                                                             name="valor_evento" min="1000000" max="100000000" required
                                                             value="<?php echo $is_editing ? htmlspecialchars($evento['valor_evento']) : ''; ?>">
-                                                        <small class="help-block text-muted">Valor en pesos (entre 1.000.000 y 100.000.000)</small>
+                                                        <small class="help-block text-muted">Valor en pesos, con o sin IVA (entre 1.000.000 y 100.000.000).</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -355,7 +355,7 @@ $conn->close();
                                                         <select class="form-control" id="tipo_evento" name="tipo_evento" required>
                                                             <option value="">Seleccione tipo de evento</option>
                                                             <?php
-                                                            $tipos_evento = ['Privado', 'Municipal', 'Matrimonio'];
+                                                            $tipos_evento = ['Municipal','Privado','Empresarial','Matrimonio'];
                                                             foreach ($tipos_evento as $tipo):
                                                             ?>
                                                                 <option value="<?php echo $tipo; ?>"
@@ -375,7 +375,7 @@ $conn->close();
                                                         <input type="text" class="form-control" id="encabezado_evento"
                                                             name="encabezado_evento" maxlength="100"
                                                             value="<?php echo $is_editing ? htmlspecialchars($evento['encabezado_evento']) : ''; ?>">
-                                                        <small class="help-block text-muted">Título para documentos</small>
+                                                        <small class="help-block text-muted">Título alternativo para el documento de cotización (opcional si no desea usar el nombre).</small>
                                                     </div>
                                                 </div>
                                             </div>
