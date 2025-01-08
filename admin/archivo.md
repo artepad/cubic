@@ -40,10 +40,12 @@
 - [x] 📋 **Sistema de Cotizaciones**: Resolución de problemas en la creación.
 
 ## 📄 Generación de Contratos
+- [ ] 📄 **Nombre de Contrato**:Mejorar los Nombres del Documento.
 - [x] 🎭 **Integración de Artistas**: Obtener información del artista desde la base de datos.
 - [x]  ℹ️  **Gestión de Datos Nulos**: Implementar "N/A" para campos sin información.
 
 ## 📋 Generación de Cotizaciones
+- [ ] 📄 **Nombre de LA Cotizacion**:Mejorar los Nombres del Documento.
 - [x] 🎭 **Información de Artista**: Integrar nombre y descripción desde la base de datos.
 - [x] 🖼️ **Galería de Artistas**: Incorporar fotografías desde la base de datos.
 

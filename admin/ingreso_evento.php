@@ -273,7 +273,7 @@ $conn->close();
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Nombre Evento <span class="text-danger">*</span></label>
+                                                    <label class="control-label col-md-3">Nombre Evento: <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <input type="text" class="form-control" id="nombre_evento"
                                                             name="nombre_evento" maxlength="60" required
@@ -284,7 +284,7 @@ $conn->close();
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Fecha <span class="text-danger">*</span></label>
+                                                    <label class="control-label col-md-3">Fecha: <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <input type="date" class="form-control" id="fecha_evento"
                                                             name="fecha_evento" required
@@ -298,7 +298,7 @@ $conn->close();
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Hora</label>
+                                                    <label class="control-label col-md-3">Hora:</label>
                                                     <div class="col-md-9">
                                                         <input type="time" class="form-control" id="hora_evento"
                                                             name="hora_evento"
@@ -309,7 +309,7 @@ $conn->close();
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Ciudad</label>
+                                                    <label class="control-label col-md-3">Ciudad:</label>
                                                     <div class="col-md-9">
                                                         <input type="text" class="form-control" id="ciudad_evento"
                                                             name="ciudad_evento" maxlength="100"
@@ -324,7 +324,7 @@ $conn->close();
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Lugar</label>
+                                                    <label class="control-label col-md-3">Lugar:</label>
                                                     <div class="col-md-9">
                                                         <input type="text" class="form-control" id="lugar_evento"
                                                             name="lugar_evento" maxlength="150"
@@ -335,7 +335,7 @@ $conn->close();
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Valor<span class="text-danger">*</span></label>
+                                                    <label class="control-label col-md-3">Valor: <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <input type="number" class="form-control" id="valor_evento"
                                                             name="valor_evento" min="1000000" max="100000000" required
@@ -350,7 +350,7 @@ $conn->close();
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Tipo de Evento <span class="text-danger">*</span></label>
+                                                    <label class="control-label col-md-3">Tipo de Evento: <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <select class="form-control" id="tipo_evento" name="tipo_evento" required>
                                                             <option value="">Seleccione tipo de evento</option>
@@ -370,7 +370,7 @@ $conn->close();
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label class="control-label col-md-3">Encabezado</label>
+                                                    <label class="control-label col-md-3">Encabezado:</label>
                                                     <div class="col-md-9">
                                                         <input type="text" class="form-control" id="encabezado_evento"
                                                             name="encabezado_evento" maxlength="100"
@@ -387,9 +387,9 @@ $conn->close();
 
                                         <?php
                                         $additional_options = [
-                                            'hotel' => 'Incluir servicio de hotel para el artista',
-                                            'traslados' => 'Incluir servicio de traslados',
-                                            'viaticos' => 'Incluir viáticos'
+                                            'hotel:' => 'Incluir servicio de hotel para el artista',
+                                            'traslados:' => 'Incluir servicio de traslados',
+                                            'viaticos:' => 'Incluir viáticos'
                                         ];
                                         foreach (array_chunk($additional_options, 2, true) as $row): ?>
                                             <div class="row">
