@@ -138,12 +138,14 @@ function generarEstadoEvento($estado) {
         'En Producción' => ['class' => 'primary', 'icon' => 'fa-cogs'],
         'Finalizado' => ['class' => 'default', 'icon' => 'fa-flag-checkered'],
         'Reagendado' => ['class' => 'warning', 'icon' => 'fa-calendar'],
-        'Cancelado' => ['class' => 'danger', 'icon' => 'fa-times']
+        'Cancelado' => ['class' => 'danger', 'icon' => 'fa-times'],
+        'Solicitado' => ['class' => 'info', 'icon' => 'fa-question-circle'] // Cambiado a Solicitado
     ];
 
     $info = $estadosInfo[$estado] ?? ['class' => 'default', 'icon' => 'fa-question'];
     return "<span class=\"label label-{$info['class']}\"><i class=\"fa {$info['icon']}\"></i> $estado</span>";
 }
+
 
 function formatearFecha($fecha, $formato = 'd/m/Y') {
     return date($formato, strtotime($fecha));
@@ -377,7 +379,8 @@ function getEventColor($estado) {
         'Confirmado' => '#28a745',
         'Propuesta' => '#ffc107',
         'Cancelado' => '#dc3545',
-        'Reagendado' => '#17a2b8'
+        'Reagendado' => '#17a2b8',
+        'Solicitado' => '#5bc0de'  // Cambiado a Solicitado
     );
     
     return isset($colores[$estado]) ? $colores[$estado] : '#6c757d';

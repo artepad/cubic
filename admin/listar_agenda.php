@@ -151,6 +151,16 @@ $pageTitle = "Listar Agenda";
                 max-width: none;
             }
         }
+
+        /* Estilos para el nuevo estado */
+        .label-info {
+            background-color: #5bc0de;
+        }
+
+        .label-info[href]:hover,
+        .label-info[href]:focus {
+            background-color: #31b0d5;
+        }
     </style>
 </head>
 
@@ -290,6 +300,7 @@ $pageTitle = "Listar Agenda";
                                 <option value="Confirmado">Confirmado</option>
                                 <option value="Finalizado">Finalizado</option>
                                 <option value="Reagendado">Reagendado</option>
+                                <option value="Solicitado">Solicitado</option>
                                 <option value="Cancelado">Cancelado</option>
                             </select>
                         </div>

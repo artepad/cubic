@@ -58,12 +58,18 @@ $pageTitle = "Calendario";
             padding: 20px;
             background: #fff;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
             margin: 15px;
         }
-        
+
         .fc-today {
             background: #f8f9fa !important;
+        }
+
+        .evento-solicitado {
+            background-color: #5bc0de !important;
+            border-color: #5bc0de !important;
+            color: #fff !important;
         }
     </style>
 </head>

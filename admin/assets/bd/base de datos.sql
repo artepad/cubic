@@ -112,7 +112,7 @@ CREATE TABLE eventos (
     valor_evento INT COMMENT 'Valor monetario del evento',
     tipo_evento VARCHAR(100) COMMENT 'Tipo o categoría del evento',
     encabezado_evento VARCHAR(255) COMMENT 'Encabezado o título promocional del evento',
-    estado_evento ENUM('Propuesta', 'Confirmado', 'Finalizado', 'Reagendado', 'Cancelado') 
+    estado_evento ENUM('Propuesta', 'Confirmado', 'Finalizado', 'Reagendado', 'Solicitado', 'Cancelado') 
         NOT NULL DEFAULT 'Propuesta' COMMENT 'Estado actual del evento',
     hotel ENUM('Si', 'No') DEFAULT 'No' COMMENT 'Indica si incluye hotel',
     traslados ENUM('Si', 'No') DEFAULT 'No' COMMENT 'Indica si incluye traslados',

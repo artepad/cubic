@@ -6,7 +6,8 @@ require_once '../functions/functions.php';
 header('Content-Type: application/json');
 
 // Función para respuestas JSON
-function sendResponse($success, $message, $data = null) {
+function sendResponse($success, $message, $data = null)
+{
     header('Content-Type: application/json');
     echo json_encode([
         'success' => $success,
@@ -75,13 +76,14 @@ try {
     // Verificar si el evento ya existe
     $check_sql = "SELECT id FROM eventos WHERE nombre_evento = ? AND fecha_evento = ? AND cliente_id = ?";
     $check_stmt = $conn->prepare($check_sql);
-    $check_stmt->bind_param("ssi", 
+    $check_stmt->bind_param(
+        "ssi",
         $evento['nombre_evento'],
         $evento['fecha_evento'],
         $evento['cliente_id']
     );
     $check_stmt->execute();
-    
+
     if ($check_stmt->get_result()->num_rows > 0) {
         throw new Exception("Ya existe un evento con este nombre para este cliente en la fecha especificada");
     }
@@ -100,7 +102,8 @@ try {
     }
 
     // Vincular parámetros
-    $stmt->bind_param("iiisssssisssss",
+    $stmt->bind_param(
+        "iiisssssisssss",
         $evento['cliente_id'],
         $evento['gira_id'],
         $evento['artista_id'],
@@ -128,7 +131,6 @@ try {
         'evento_id' => $evento_id,
         'nombre_evento' => $evento['nombre_evento']
     ]);
-
 } catch (Exception $e) {
     if (isset($conn) && $conn->ping()) {
         $conn->rollback();

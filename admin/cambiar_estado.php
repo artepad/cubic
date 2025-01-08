@@ -33,7 +33,7 @@ try {
     }
 
     // Validar estado válido
-    $estados_validos = ['Propuesta', 'Confirmado', 'Finalizado', 'Reagendado', 'Cancelado'];
+    $estados_validos = ['Propuesta', 'Confirmado', 'Finalizado', 'Reagendado', 'Solicitado', 'Cancelado'];
     if (!in_array($nuevo_estado, $estados_validos)) {
         throw new Exception('Estado inválido');
     }
