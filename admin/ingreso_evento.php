@@ -387,25 +387,25 @@ $conn->close();
 
                                         <?php
                                         $additional_options = [
-                                            'hotel:' => 'Incluir servicio de hotel para el artista',
-                                            'traslados:' => 'Incluir servicio de traslados',
-                                            'viaticos:' => 'Incluir viáticos'
+                                            'hotel' => 'Incluir servicio de hotel para el artista',
+                                            'traslados' => 'Incluir servicio de traslados',
+                                            'viaticos' => 'Incluir viáticos'
                                         ];
                                         foreach (array_chunk($additional_options, 2, true) as $row): ?>
                                             <div class="row">
                                                 <?php foreach ($row as $key => $description): ?>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label class="control-label col-md-3"><?php echo ucfirst($key); ?></label>
+                                                            <label class="control-label col-md-3"><?php echo ucfirst($key); ?>:</label>
                                                             <div class="col-md-9">
                                                                 <div class="radio-list">
                                                                     <label class="radio-inline">
                                                                         <input type="radio" name="<?php echo $key; ?>" value="Si"
-                                                                            <?php echo ($is_editing && $evento[$key] == 'Si') ? 'checked' : ''; ?>> Sí
+                                                                            <?php echo ($is_editing && isset($evento[$key]) && $evento[$key] == 'Si') ? 'checked' : ''; ?>> Sí
                                                                     </label>
                                                                     <label class="radio-inline">
                                                                         <input type="radio" name="<?php echo $key; ?>" value="No"
-                                                                            <?php echo (!$is_editing || $evento[$key] != 'Si') ? 'checked' : ''; ?>> No
+                                                                            <?php echo (!$is_editing || !isset($evento[$key]) || $evento[$key] != 'Si') ? 'checked' : ''; ?>> No
                                                                     </label>
                                                                 </div>
                                                                 <small class="help-block text-muted"><?php echo $description; ?></small>

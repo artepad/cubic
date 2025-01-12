@@ -2,6 +2,7 @@
 # 🎯 Tareas Pendientes en Cubic
 
 ## Panel de Control
+
 - [x] 📈 Ampliación de Visualización: Incrementar límite de eventos mostrados de 10 a 50
 - [x] 🔍 Mejora del Buscador: Implementación y corrección del filtro en tabla principal
 - [x] ⏱️ Gestión de Horarios: Implementar texto "Por definir" en campos de hora vacíos
@@ -10,18 +11,8 @@
 - [x] 👀 Visualización: Implementación del sistema de visualización de eventos
 - [x] 🔢 Contador de Eventos: Optimización del sistema de conteo
 
-## Gestión de Agenda
-- [ ] 🔍 Optimización de Tabla: Implementar búsqueda avanzada y paginación
-- [x] ✔️ Estado de Consulta: Implementar estado para consultas de fechas por clientes
-- [x] 📋 Ampliación de Registros: Incrementar límite de eventos mostrados de 10 a 50
-- [x] ⏱️ Gestión de Horarios: Implementar texto "Por definir" en campos vacíos
-- [x] 📋 Información de Artistas: Expandir datos mostrados en tabla
-- [x] 🔄 Estados del Sistema: Corrección del sistema de cambios de estado
-
-## Gestión de Clientes
-- [x] 📋 Ampliación de Registros: Incrementar límite de clientes mostrados de 10 a 50
-
 ## Gestión de Eventos
+- [ ] 🐛 Error no guarda los Servicios: En Produccion no se esta guardando los Servicios.
 - [ ] ➕ Registro Rápido de Artistas: Implementar botón de creación junto al selector
 - [x] ❗ Campo Obligatorio: Agregar indicador (*) en campo de gira
 - [x] 💰 Valor del Evento: Agregar indicador de IVA incluido
@@ -30,7 +21,30 @@
 - [x] 🗑️ Eliminación: Implementar sistema de eliminación de eventos
 - [x] 👥 Selector de Artistas: Integrar menú desplegable en formulario
 
-## Gestión de Artistas
+## Tabla Agenda
+- [ ] 🔍 Optimización de Tabla: Implementar búsqueda avanzada y paginación
+- [x] ✔️ Estado de Consulta: Implementar estado para consultas de fechas por clientes
+- [x] 📋 Ampliación de Registros: Incrementar límite de eventos mostrados de 10 a 50
+- [x] ⏱️ Gestión de Horarios: Implementar texto "Por definir" en campos vacíos
+- [x] 📋 Información de Artistas: Expandir datos mostrados en tabla
+- [x] 🔄 Estados del Sistema: Corrección del sistema de cambios de estado
+
+
+## Tabla de Clientes
+- [x] 📋 Ampliación de Registros: Incrementar límite de clientes mostrados de 10 a 50
+
+
+## Gestión de Clientes (Formulario)
+- [ ] 🐛 Corrección: Resolver problema con validación de RUT empresarial
+- [x] 📱 Formato Teléfono: Estandarizar formato a +56987879312
+- [x] ✏️ Edición: Resolver errores en sistema de edición
+- [x] 📝 Campos Opcionales: Implementar RUT, correo y celular como opcionales
+- [x] 👀 Vista Detallada: Nueva interfaz accesible desde tabla principal
+- [x] ✏️ Edición: Implementación completa del sistema
+- [x] 🗑️ Eliminación: Sistema de eliminación implementado
+- [x] 💾 Exportación: Sistema de exportación de base de datos implementado
+
+## Gestión de Artistas (Formulario)
 - [ ] 📝 Formulario: Desarrollo del formulario para creación de artistas
 
 ## Visualización de Eventos
@@ -54,16 +68,7 @@
 - [x] 👥 Datos de Artista: Integrar nombre y descripción desde base de datos
 - [x] 🖼️ Imágenes: Incorporar fotografías desde base de datos
 
-## Gestión de Clientes (Formulario)
-- [ ] 🐛 Corrección: Resolver problema con validación de RUT empresarial
-- [x] 📱 Formato Teléfono: Estandarizar formato a +56987879312
-- [x] ✏️ Edición: Resolver errores en sistema de edición
-- [x] 📝 Campos Opcionales: Implementar RUT, correo y celular como opcionales
-- [x] 👀 Vista Detallada: Nueva interfaz accesible desde tabla principal
-- [x] ✏️ Edición: Implementación completa del sistema
-- [x] 🗑️ Eliminación: Sistema de eliminación implementado
-- [x] 💾 Exportación: Sistema de exportación de base de datos implementado
-
 ## Calendario
 - [ ] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📅 Vista Principal: Desarrollo de interfaz con integración de eventos
+
