@@ -156,7 +156,7 @@ $conn->close();
                                                     <label class="control-label col-md-3">Gira: <span class="text-danger">*</span></label>
                                                     <div class="col-md-9">
                                                         <?php if (count($giras) > 0): ?>
-                                                            <select class="form-control" id="gira_id" name="gira_id">
+                                                            <select class="form-control" id="gira_id" name="gira_id" required>
                                                                 <option value="">Seleccione una gira</option>
                                                                 <?php foreach ($giras as $gira): ?>
                                                                     <option value="<?php echo $gira['id']; ?>"
@@ -166,7 +166,7 @@ $conn->close();
                                                                 <?php endforeach; ?>
                                                             </select>
                                                         <?php else: ?>
-                                                            <p class="form-control-static">No hay giras disponibles.</p>
+                                                            <p class="form-control-static">No hay giras disponibles. Por favor, cree una gira primero.</p>
                                                         <?php endif; ?>
                                                     </div>
                                                 </div>
@@ -355,7 +355,7 @@ $conn->close();
                                                         <select class="form-control" id="tipo_evento" name="tipo_evento" required>
                                                             <option value="">Seleccione tipo de evento</option>
                                                             <?php
-                                                            $tipos_evento = ['Municipal','Privado','Empresarial','Matrimonio'];
+                                                            $tipos_evento = ['Municipal', 'Privado', 'Empresarial', 'Matrimonio'];
                                                             foreach ($tipos_evento as $tipo):
                                                             ?>
                                                                 <option value="<?php echo $tipo; ?>"
@@ -593,6 +593,7 @@ $conn->close();
 
                 // Modificar los campos requeridos según si estamos editando o no
                 const requiredFields = {
+                    'gira_id': 'Gira', // Agregar esta línea
                     'artista_id': 'Artista',
                     'nombre_evento': 'Nombre del Evento',
                     'fecha_evento': 'Fecha',

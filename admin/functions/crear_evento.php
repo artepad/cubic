@@ -42,6 +42,7 @@ try {
     ];
 
     // Validaciones básicas (solo para campos obligatorios)
+    if (empty($evento['gira_id'])) throw new Exception("La gira es requerida");
     if (empty($evento['cliente_id'])) throw new Exception("El cliente es requerido");
     if (empty($evento['artista_id'])) throw new Exception("El artista es requerido");
     if (empty($evento['nombre_evento'])) throw new Exception("El nombre del evento es requerido");

@@ -32,7 +32,7 @@ try {
     error_log("Datos recibidos: " . print_r($_POST, true));
 
     // Validar campos requeridos
-    $required_fields = ['artista_id', 'nombre_evento', 'fecha_evento', 'valor_evento', 'tipo_evento'];
+    $required_fields = ['gira_id', 'artista_id', 'nombre_evento', 'fecha_evento', 'valor_evento', 'tipo_evento'];
     foreach ($required_fields as $field) {
         if (!isset($_POST[$field]) || empty($_POST[$field])) {
             throw new Exception("El campo " . str_replace('_', ' ', $field) . " es requerido");
