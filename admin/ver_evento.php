@@ -678,7 +678,7 @@ $pageTitle = "Detalles del Evento";
                                     showConfirmButton: false,
                                     timer: 1500
                                 }).then(() => {
-                                    window.location.href = 'index.php';
+                                    window.location.href = 'listar_agenda.php';
                                 });
                             } else {
                                 Swal.fire({
