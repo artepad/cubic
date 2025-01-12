@@ -54,7 +54,7 @@ CREATE TABLE clientes (
 CREATE TABLE empresas (
     id INT AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL COMMENT 'Nombre de la empresa',
-    rut VARCHAR(12) NOT NULL UNIQUE COMMENT 'RUT de la empresa en formato XX.XXX.XXX-X',
+    rut VARCHAR(12) NULL COMMENT 'RUT de la empresa en formato XX.XXX.XXX-X (Opcional)',
     direccion VARCHAR(255) NOT NULL COMMENT 'Dirección de la empresa',
     cliente_id INT COMMENT 'ID del cliente asociado',
     PRIMARY KEY (id),
@@ -106,7 +106,7 @@ CREATE TABLE eventos (
     artista_id INT COMMENT 'ID del artista que se presenta',
     nombre_evento VARCHAR(255) NOT NULL COMMENT 'Nombre del evento',
     fecha_evento DATE NOT NULL COMMENT 'Fecha programada del evento',
-    hora_evento TIME  NULL COMMENT 'Hora programada del evento',
+    hora_evento TIME NULL COMMENT 'Hora programada del evento',
     ciudad_evento VARCHAR(100) COMMENT 'Ciudad donde se realiza el evento',
     lugar_evento VARCHAR(255) COMMENT 'Lugar específico del evento',
     valor_evento INT COMMENT 'Valor monetario del evento',

@@ -35,7 +35,7 @@
 - [x] 👥 Selector de Artistas: Integrar menú desplegable en formulario
 
 ## Ing/edi de Clientes (Formulario)
-- [ ] 🐛 Corrección: Resolver problema con validación de RUT empresarial
+- [x] 🐛 Corrección: Resolver problema con validación de RUT empresarial
 - [x] 📱 Formato Teléfono: Estandarizar formato a +56987879312
 - [x] ✏️ Edición: Resolver errores en sistema de edición
 - [x] 📝 Campos Opcionales: Implementar RUT, correo y celular como opcionales

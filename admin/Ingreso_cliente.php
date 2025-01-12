@@ -522,7 +522,7 @@ $conn->close();
                 const rutEmpresa = $('#rut_empresa').val().trim();
                 let rutEmpresaValido = true;
 
-                if (nombreEmpresa && rutEmpresa) {
+                if (rutEmpresa) {
                     rutEmpresaValido = validarCampo('#rut_empresa', REGEX.rut, 'Formato de RUT de empresa inválido');
                 }
 
