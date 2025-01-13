@@ -9,6 +9,7 @@ require_once 'functions/functions.php';
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
+$totalArtistas = getTotalArtistas($conn);
 
 // Verificar autenticación
 checkAuthentication();

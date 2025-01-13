@@ -11,6 +11,7 @@ checkAuthentication();
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
+$totalArtistas = getTotalArtistas($conn);
 
 // Lógica específica de ingreso-giras.php
 $mensaje = '';

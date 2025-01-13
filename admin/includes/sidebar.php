@@ -35,7 +35,15 @@ function active_class($page_name) {
                         </span>
                     </a>
                 </li>
-                <li <?php echo active_class('listar_clientes'); ?>>
+                <li <?php echo active_class('listar_agenda.php'); ?>>
+                    <a href="listar_agenda.php" aria-expanded="false">
+                        <i class="icon-notebook fa-fw"></i>
+                        <span class="hide-menu <?php echo is_active('listar_agenda.php') ? 'font-bold' : ''; ?>">Agenda
+                            <span class="label label-rounded label-warning pull-right"><?php echo $totalEventosAnioActual; ?></span>
+                        </span>
+                    </a>
+                </li>
+                <li <?php echo active_class('listar_clientes.php'); ?>>
                     <a class="waves-effect" href="listar_clientes.php" aria-expanded="false">
                         <i class="icon-user fa-fw"></i>
                         <span class="hide-menu <?php echo is_active('listar_clientes.php') ? 'font-bold' : ''; ?>"> Clientes
@@ -43,11 +51,11 @@ function active_class($page_name) {
                         </span>
                     </a>
                 </li>
-                <li <?php echo active_class('listar_agenda.php'); ?>>
-                    <a href="listar_agenda.php" aria-expanded="false">
-                        <i class="icon-notebook fa-fw"></i>
-                        <span class="hide-menu <?php echo is_active('listar_agenda.php') ? 'font-bold' : ''; ?>">Agenda
-                            <span class="label label-rounded label-warning pull-right"><?php echo $totalEventosAnioActual; ?></span>
+                <li <?php echo active_class('listar_artistas.php'); ?>>
+                    <a class="waves-effect" href="listar_artistas.php" aria-expanded="false">
+                        <i class="icon-microphone fa-fw"></i>
+                        <span class="hide-menu <?php echo is_active('listar_artistas.php') ? 'font-bold' : ''; ?>">Artistas
+                            <span class="label label-rounded label-primary pull-right"><?php echo isset($totalArtistas) ? $totalArtistas : '0'; ?></span>
                         </span>
                     </a>
                 </li>
@@ -57,12 +65,19 @@ function active_class($page_name) {
                         <span class="hide-menu <?php echo is_active('listar_calendario.php') ? 'font-bold' : ''; ?>">Calendario</span>
                     </a>
                 </li>
+                <li <?php echo active_class('configuracion.php'); ?>>
+                    <a href="configuracion.php" aria-expanded="false">
+                        <i class="icon-settings fa-fw"></i>
+                        <span class="hide-menu <?php echo is_active('configuracion.php') ? 'font-bold' : ''; ?>">Configuración</span>
+                    </a>
+                </li>
             </ul>
         </nav>
         <div class="p-30">
             <span class="hide-menu">
-                <a href="ingreso_evento.php" class="btn btn-success">Nuevo Evento</a>
-                <a href="logout.php" class="btn btn-default m-t-15">Cerrar Sesión</a>
+                <a href="ingreso_cliente.php" class="btn btn-info m-b-10 btn-block">Nuevo Cliente</a>
+                <a href="ingreso_evento.php" class="btn btn-success btn-block">Nuevo Evento</a>
+                <a href="logout.php" class="btn btn-default m-t-15 btn-block">Cerrar Sesión</a>
             </span>
         </div>
     </div>

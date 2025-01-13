@@ -387,3 +387,24 @@ function getEventColor($estado) {
     
     return isset($colores[$estado]) ? $colores[$estado] : '#6c757d';
 }
+
+/**
+ * Funciones para manejo de artistas
+ */
+
+ function getTotalArtistas($conn) {
+    $sql = "SELECT COUNT(*) as total FROM artistas";
+    $result = executeQuery($conn, $sql);
+    return $result->fetch_assoc()['total'];
+}
+
+function getAllArtistas($conn) {
+    $sql = "SELECT * FROM artistas ORDER BY nombre ASC";
+    return executeQuery($conn, $sql);
+}
+
+function getArtistaById($conn, $id) {
+    $sql = "SELECT * FROM artistas WHERE id = ?";
+    $result = executeQuery($conn, $sql, [$id]);
+    return $result->fetch_assoc();
+}

@@ -11,6 +11,7 @@ checkAuthentication();
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
+$totalArtistas = getTotalArtistas($conn);
 
 // Obtener detalles del evento si se proporciona un ID
 $evento = [];

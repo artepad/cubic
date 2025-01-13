@@ -11,6 +11,7 @@ checkAuthentication();
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
+$totalArtistas = getTotalArtistas($conn);
 
 // Determinar si es edición o nuevo registro
 $esEdicion = isset($_GET['id']);

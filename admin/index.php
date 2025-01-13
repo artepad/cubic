@@ -11,6 +11,7 @@ checkAuthentication();
 $totalClientes = getTotalClientes($conn);
 $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
+$totalArtistas = getTotalArtistas($conn);
 
 // Configuración de la paginación
 $registrosPorPagina = 50;
