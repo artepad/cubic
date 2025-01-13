@@ -121,6 +121,28 @@ $pageTitle = "Detalles del Evento";
         .file-item:hover {
             background: #f5f5f5;
         }
+
+        .valor-verde {
+            color: #66BB6A;
+            font-weight: 500;
+            font-size: 0.85em;
+            letter-spacing: -0.2px;
+            line-height: 1;
+        }
+
+        .valor-sin-iva {
+            color: #666;
+            font-size: 0.85em;
+            /* Ajustado ligeramente */
+            margin-left: 6px;
+            /* Reducido de 8px a 6px para mejor proporción */
+        }
+
+        .valor-evento-container {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 
@@ -250,7 +272,19 @@ $pageTitle = "Detalles del Evento";
                                                                                     $value = date('H:i', strtotime($value));
                                                                                 }
                                                                             } elseif ($field['name'] === 'valor_evento' && $value !== 'N/A') {
-                                                                                $value = '$' . number_format($value, 0, ',', '.');
+                                                                                // Asegurarse de que estamos trabajando con un número limpio
+                                                                                $valorBase = (int)$evento['valor_evento'];
+                                                                                $valorConIVA = number_format($valorBase, 0, ',', '.');
+                                                                                $valorSinIVA = number_format($valorBase / 1.19, 0, ',', '.');
+
+                                                                                // Solo mostrar los valores formateados
+                                                                                echo "<span class='valor-evento-container'>";
+                                                                                echo "<strong class='valor-verde'>$" . $valorConIVA . "</strong>";
+                                                                                echo "<span class='valor-sin-iva'>(Neto: $" . $valorSinIVA . ")</span>";
+                                                                                echo "</span>";
+
+                                                                                // No imprimir nada más para este campo
+                                                                                $value = ''; // Esto evitará que se muestre el valor raw
                                                                             } elseif ($field['name'] === 'encabezado_evento') {
                                                                                 $value = empty($value) || $value === null ? 'N/A' : $value;
                                                                             } elseif ($field['name'] === 'artista_id') {
@@ -353,7 +387,7 @@ $pageTitle = "Detalles del Evento";
                                                         <div class="btn-group dropup m-r-10">
                                                             <button aria-expanded="false" data-toggle="dropdown" class="btn btn-warning dropdown-toggle waves-effect waves-light" type="button">Opciones <span class="caret"></span></button>
                                                             <ul role="menu" class="dropdown-menu">
-                                                            <li><a href="ingreso_evento.php?id=<?php echo $evento_id; ?>">Editar</a></li>
+                                                                <li><a href="ingreso_evento.php?id=<?php echo $evento_id; ?>">Editar</a></li>
                                                                 <li><a href="eliminar_evento.php?id=<?php echo $evento_id; ?>">Eliminar</a></li>
                                                                 <li class="divider"></li>
                                                                 <li><a href="agenda.php">Volver</a></li>
@@ -697,6 +731,14 @@ $pageTitle = "Detalles del Evento";
                         }
                     });
                 }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('.valor-sin-iva').tooltip({
+                title: 'Valor sin IVA (19%)',
+                placement: 'right'
             });
         });
     </script>

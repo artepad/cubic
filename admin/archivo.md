@@ -53,7 +53,7 @@
 
 ## Visualización de Eventos (Ver)
 - [ ] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
-- [ ] 💰 Valores: Mostrar precio sin IVA y renombrar campo a "Valor Total"
+- [x] 💰 Valores: Mostrar precio sin IVA y renombrar campo a "Valor Total"
 - [x] 📎 Documentos: Sistema de archivos adjuntos implementado
 - [x] 👀 Visor: Sistema de visualización de documentos implementado
 - [x] 👥 Datos de Artista: Mostrar información del artista asociado
@@ -62,7 +62,7 @@
 - [x] 📄 Contratos: Corrección de errores en generación
 - [x] 📋 Cotizaciones: Resolución de problemas en creación
 
-## Visualización de Calendario
+## Visualización de Calendario (Ver)
 - [ ] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📅 Vista Principal: Desarrollo de interfaz con integración de eventos
 

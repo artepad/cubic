@@ -160,7 +160,9 @@ function formatearHora($hora, $formato = 'H:i') {
  */
 function obtenerDetallesEvento($conn, $evento_id) {
     $sql = "SELECT e.*, c.nombres, c.apellidos, c.correo, c.celular, 
-                   em.nombre as nombre_empresa, g.nombre as nombre_gira
+                   em.nombre as nombre_empresa, g.nombre as nombre_gira,
+                   e.valor_evento as valor_con_iva,
+                   ROUND(e.valor_evento / 1.19) as valor_sin_iva
             FROM eventos e
             LEFT JOIN clientes c ON e.cliente_id = c.id
             LEFT JOIN empresas em ON c.id = em.cliente_id
