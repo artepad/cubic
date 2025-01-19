@@ -731,25 +731,61 @@ class QuoteGenerator
                 throw new Exception("Imagen no encontrada: $imagePath");
             }
 
-            $section->addImage(
-                $imagePath,
-                [
-                    'width' => 612,
-                    'height' => 792,
-                    'positioning' => Image::POSITION_ABSOLUTE,
-                    'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
-                    'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
-                    'posVertical' => Image::POSITION_VERTICAL_TOP,
-                    'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
-                    'wrappingStyle' => 'behind'
-                ]
-            );
+            // Configuración específica para la imagen de presentación del artista
+            if ($imageName === 'hoja2') {
+                // Obtener las dimensiones originales de la imagen
+                list($originalWidth, $originalHeight) = getimagesize($imagePath);
+
+                // Calcular la relación de aspecto
+                $ratio = $originalWidth / $originalHeight;
+
+                // Ajustar el ancho máximo según la orientación
+                if ($ratio > 1) {
+                    // Imagen horizontal
+                    $maxWidth = 400; // Más ancho para imágenes horizontales
+                } else {
+                    // Imagen vertical o cuadrada
+                    $maxWidth = 250; // Ancho original para imágenes verticales
+                }
+
+                // Calcular la altura proporcional
+                $newHeight = $maxWidth / $ratio;
+
+                $section->addImage(
+                    $imagePath,
+                    [
+                        'width' => $maxWidth,
+                        'height' => $newHeight,
+                        'positioning' => Image::POSITION_ABSOLUTE,
+                        'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
+                        'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+                        'posVertical' => Image::POSITION_VERTICAL_BOTTOM,
+                        'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+                        'marginBottom' => 50,
+                        'wrappingStyle' => 'behind'
+                    ]
+                );
+            } else {
+                // Mantener la configuración original para las demás imágenes
+                $section->addImage(
+                    $imagePath,
+                    [
+                        'width' => 612,
+                        'height' => 792,
+                        'positioning' => Image::POSITION_ABSOLUTE,
+                        'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
+                        'posHorizontalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+                        'posVertical' => Image::POSITION_VERTICAL_TOP,
+                        'posVerticalRel' => Image::POSITION_RELATIVE_TO_PAGE,
+                        'wrappingStyle' => 'behind'
+                    ]
+                );
+            }
         } catch (Exception $e) {
             $this->logger->log("Error al añadir imagen de fondo: " . $e->getMessage());
             throw new Exception("Error al añadir imagen de fondo: " . $e->getMessage());
         }
     }
-
     /**
      * Formatea la fecha al estilo español
      */
