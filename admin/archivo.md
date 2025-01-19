@@ -2,7 +2,6 @@
 # 🎯 Tareas Pendientes en Cubic
 
 ##  Tabla Panel de Control
-
 - [x] 📈 Ampliación de Visualización: Incrementar límite de eventos mostrados de 10 a 50
 - [x] 🔍 Mejora del Buscador: Implementación y corrección del filtro en tabla principal
 - [x] ⏱️ Gestión de Horarios: Implementar texto "Por definir" en campos de hora vacíos
@@ -23,9 +22,12 @@
 ## Tabla de Clientes
 - [x] 📋 Ampliación de Registros: Incrementar límite de clientes mostrados de 10 a 50
 
+## Ing/edi de Artistas (Formulario)
+- [x] ➕ Registro Rápido de Artistas: Implementar botón de creación junto al selector
+
 
 ## Ing/edi de Eventos (Formulario)
-- [ ] ➕ Registro Rápido de Artistas: Implementar botón de creación junto al selector
+- [x] ➕ Registro Rápido de Artistas: Implementar botón de creación junto al selector
 - [x] 🐛 Error no guarda los Servicios: En Producción no se esta guardando los Servicios.
 - [x] ❗ Campo Obligatorio: Agregar indicador (*) en campo de gira
 - [x] 💰 Valor del Evento: Agregar indicador de IVA incluido
@@ -45,7 +47,12 @@
 - [x] 💾 Exportación: Sistema de exportación de base de datos implementado
 
 ## Ing/edi de Artistas (Formulario)
-- [ ] 📝 Formulario: Desarrollo del formulario para creación de artistas
+- [x] 📝 Formulario: Desarrollo del formulario para creación de artistas
+
+## Visualización de Artista (Ver)
+- [ ] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
+- [ ] ✏️ Edición: crear la edición  de artistas
+- [ ] 🗑️ Eliminación: Sistema de eliminación artistas
 
 
 ## Visualización de Clientes (Ver)
