@@ -403,12 +403,47 @@ function getAllArtistas($conn) {
     return executeQuery($conn, $sql);
 }
 
+/**
+ * Obtiene los detalles de un artista por su ID
+ * @param mysqli $conn Conexión a la base de datos
+ * @param int $id ID del artista
+ * @return array|null
+ */
 function getArtistaById($conn, $id) {
-    $id = intval($id);
-    $sql = "SELECT * FROM artistas WHERE id = ?";
-    $stmt = $conn->prepare($sql);
+    $stmt = $conn->prepare("SELECT * FROM artistas WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_assoc();
+    $artista = $result->fetch_assoc();
+    $stmt->close();
+    
+    if ($artista) {
+        // Asegurarse de que las rutas de las imágenes sean correctas
+        if (!empty($artista['imagen_presentacion'])) {
+            $artista['imagen_presentacion'] = formatImagePath($artista['imagen_presentacion']);
+        }
+        if (!empty($artista['logo_artista'])) {
+            $artista['logo_artista'] = formatImagePath($artista['logo_artista']);
+        }
+    }
+    
+    return $artista;
+}
+
+/**
+ * Formatea la ruta de la imagen para su correcta visualización
+ * @param string $path Ruta de la imagen almacenada en la base de datos
+ * @return string
+ */
+function formatImagePath($path) {
+    // Si la ruta ya comienza con 'uploads/', no agregar el prefijo
+    if (strpos($path, 'uploads/') === 0) {
+        return $path;
+    }
+    // Si la ruta ya es una URL completa, devolverla tal cual
+    if (filter_var($path, FILTER_VALIDATE_URL)) {
+        return $path;
+    }
+    // En caso contrario, asegurarnos de que tenga el prefijo correcto
+    return 'uploads/' . ltrim($path, '/');
 }

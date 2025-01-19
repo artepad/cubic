@@ -3,6 +3,7 @@
 session_start();
 require_once 'config/config.php';
 require_once 'functions/functions.php';
+require_once 'config/paths.php';
 
 // Verificar autenticación
 checkAuthentication();
@@ -200,7 +201,7 @@ $pageTitle = "Detalles del Artista";
                                                     <div class="col-md-6">
                                                         <div class="imagen-container">
                                                             <label class="imagen-label">Imagen de Presentación:</label>
-                                                            <img src="assets/img/<?php echo htmlspecialchars($artista['imagen_presentacion']); ?>"
+                                                            <img src="<?php echo htmlspecialchars($artista['imagen_presentacion']); ?>"
                                                                 alt="Imagen de Presentación"
                                                                 class="imagen-preview"
                                                                 onerror="this.src='assets/img/placeholder.jpg'">
@@ -212,7 +213,7 @@ $pageTitle = "Detalles del Artista";
                                                     <div class="col-md-6">
                                                         <div class="imagen-container">
                                                             <label class="imagen-label">Logo del Artista:</label>
-                                                            <img src="assets/img/<?php echo htmlspecialchars($artista['logo_artista']); ?>"
+                                                            <img src="<?php echo htmlspecialchars($artista['logo_artista']); ?>"
                                                                 alt="Logo del Artista"
                                                                 class="imagen-preview"
                                                                 onerror="this.src='assets/img/placeholder.jpg'">
