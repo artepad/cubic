@@ -9,7 +9,6 @@ ini_set('memory_limit', '256M');
 require_once 'config/config.php';
 require_once 'vendor/autoload.php';
 
-
 // Importar clases necesarias
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
@@ -20,21 +19,22 @@ use PhpOffice\PhpWord\Style\ListItem;
 use PhpOffice\PhpWord\Style\Font;
 use PhpOffice\PhpWord\Style\Paragraph;
 
+// Definición de constantes
 if (!defined('FONT_LATO')) define('FONT_LATO', 'Lato');
 if (!defined('FONT_LATO_LIGHT')) define('FONT_LATO_LIGHT', 'Lato Light');
 if (!defined('COLOR_BLUE')) define('COLOR_BLUE', '1F4E79');
 if (!defined('DEFAULT_FONT_SIZE')) define('DEFAULT_FONT_SIZE', 18);
 
-// Configuración
+// Configuración inicial
 $config = [
     'background_images' => [
         'portada' => 'assets/img/portada.png',
-        'hoja2' => '', // Se establecerá dinámicamente
+        'hoja2' => '', // Se establecerá dinámicamente según el artista
         'hoja3' => 'assets/img/hoja3.png',
         'hoja4' => 'assets/img/hoja4.png',
     ],
     'temp_directory' => sys_get_temp_dir(),
-    'base_artist_path' => 'C:/xampp/htdocs/cubic/admin/assets/img/'
+    'base_path' => dirname(__FILE__) // Ruta base del proyecto
 ];
 
 try {
@@ -46,17 +46,25 @@ try {
         $db = new DatabaseConnection();
         $evento = $db->getEventData($evento_id);
 
-        // Establecer la ruta de la imagen del artista
+        // Obtener la ruta de la imagen del artista
         if (!empty($evento['artista_id'])) {
-            $artistImagePath = $config['base_artist_path'] . $evento['artista_id'] . '/presentacion.png';
+            // Obtener la imagen usando el método de la clase DatabaseConnection
+            $imagePath = $db->getArtistaImagen($evento['artista_id']);
 
-            // Verificar que la imagen existe
-            if (file_exists($artistImagePath)) {
-                $config['background_images']['hoja2'] = $artistImagePath;
+            if (!empty($imagePath)) {
+                // Construir la ruta completa de la imagen
+                $fullImagePath = $config['base_path'] . '/' . ltrim($imagePath, '/');
+
+                if (file_exists($fullImagePath)) {
+                    $config['background_images']['hoja2'] = $fullImagePath;
+                } else {
+                    // Si no existe la imagen, usar la imagen por defecto
+                    $config['background_images']['hoja2'] = 'assets/img/hoja2.png';
+                    error_log("Imagen de artista no encontrada: " . $fullImagePath);
+                }
             } else {
-                // Si no existe la imagen del artista, usar una imagen por defecto
+                // Si no se encuentra la imagen, usar imagen por defecto
                 $config['background_images']['hoja2'] = 'assets/img/hoja2.png';
-                error_log("Imagen de artista no encontrada: " . $artistImagePath);
             }
         } else {
             // Si no hay artista_id, usar imagen por defecto
@@ -873,6 +881,41 @@ class DatabaseConnection
         $this->conn = getDbConnection();
         $this->logger->log("Conexión a base de datos establecida exitosamente");
     }
+
+    /**
+     * Obtiene la ruta de la imagen de presentación de un artista
+     * 
+     * @param int $artista_id ID del artista
+     * @return string|null Ruta de la imagen o null si no se encuentra
+     */
+    public function getArtistaImagen($artista_id)
+    {
+        try {
+            $sql = "SELECT imagen_presentacion FROM artistas WHERE id = ?";
+            $stmt = $this->conn->prepare($sql);
+
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $this->conn->error);
+            }
+
+            $stmt->bind_param("i", $artista_id);
+
+            if (!$stmt->execute()) {
+                throw new Exception("Error al ejecutar la consulta: " . $stmt->error);
+            }
+
+            $result = $stmt->get_result();
+            $row = $result->fetch_assoc();
+
+            $stmt->close();
+
+            return $row ? $row['imagen_presentacion'] : null;
+        } catch (Exception $e) {
+            $this->logger->log("Error al obtener imagen del artista: " . $e->getMessage());
+            return null;
+        }
+    }
+
 
     /**
      * Obtiene los datos completos del evento
