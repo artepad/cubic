@@ -50,16 +50,17 @@
 - [x] 📝 Formulario: Desarrollo del formulario para creación de artistas
 
 ## Visualización de Artista (Ver)
-- [ ] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
 - [ ] ✏️ Edición: crear la edición  de artistas
 - [ ] 🗑️ Eliminación: Sistema de eliminación artistas
+- [x] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
+
 
 
 ## Visualización de Clientes (Ver)
 - [ ] 🖼️ Mejorar interfaz: Algunos botones tiene problemas con las imágenes
 
 ## Visualización de Eventos (Ver)
-- [ ] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
+- [x] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
 - [x] 💰 Valores: Mostrar precio sin IVA y renombrar campo a "Valor Total"
 - [x] 📎 Documentos: Sistema de archivos adjuntos implementado
 - [x] 👀 Visor: Sistema de visualización de documentos implementado
@@ -79,7 +80,7 @@
 - [x] ❓ Datos Vacíos: Implementar "N/A" para campos sin información
 
 ## Función de Cotizaciones (Crear DOC)
-- [ ] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
+- [x] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
 - [x] 👥 Datos de Artista: Integrar nombre y descripción desde base de datos
 - [x] 🖼️ Imágenes: Incorporar fotografías desde base de datos
 
