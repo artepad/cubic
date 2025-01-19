@@ -63,26 +63,26 @@ try {
         if (empty($archivo['tmp_name'])) {
             return '';
         }
-
+    
         // Validar tipo de archivo
         $tipo = mime_content_type($archivo['tmp_name']);
         if (!in_array($tipo, ['image/jpeg', 'image/png', 'image/gif'])) {
             throw new Exception("Tipo de archivo no permitido para {$prefijo}");
         }
-
-        // Validar tamaño (2MB)
-        if ($archivo['size'] > 2 * 1024 * 1024) {
-            throw new Exception("El archivo {$prefijo} excede el tamaño máximo permitido");
+    
+        // Validar tamaño (10MB)
+        if ($archivo['size'] > 10 * 1024 * 1024) {
+            throw new Exception("El archivo {$prefijo} excede el tamaño máximo permitido (10MB)");
         }
-
+    
         $extension = pathinfo($archivo['name'], PATHINFO_EXTENSION);
         $nombre_archivo = $prefijo . '_' . uniqid() . '.' . $extension;
         $ruta_archivo = $ruta_carpeta . '/' . $nombre_archivo;
-
+    
         if (!move_uploaded_file($archivo['tmp_name'], $ruta_archivo)) {
             throw new Exception("Error al guardar el archivo {$prefijo}");
         }
-
+    
         return 'artistas/' . $nombre_carpeta . '/' . $nombre_archivo;
     }
 

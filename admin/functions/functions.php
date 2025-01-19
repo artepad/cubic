@@ -404,7 +404,11 @@ function getAllArtistas($conn) {
 }
 
 function getArtistaById($conn, $id) {
+    $id = intval($id);
     $sql = "SELECT * FROM artistas WHERE id = ?";
-    $result = executeQuery($conn, $sql, [$id]);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
     return $result->fetch_assoc();
 }

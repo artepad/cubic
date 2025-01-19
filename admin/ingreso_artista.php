@@ -115,7 +115,7 @@ $pageTitle = "Ingresar Nuevo Artista";
                                                                     <div class="file-label">
                                                                         <i class="fa fa-cloud-upload"></i>
                                                                         <span>Arrastra aquí tu imagen o haz clic para seleccionar</span>
-                                                                        <small class="text-muted d-block">Tamaño máximo: 2MB</small>
+                                                                        <small class="text-muted d-block">Tamaño máximo: 10MB</small>
                                                                     </div>
                                                                     <div class="preview-container">
                                                                         <img id="preview_imagen" src="#" alt="Previsualización">
@@ -136,7 +136,7 @@ $pageTitle = "Ingresar Nuevo Artista";
                                                                     <div class="file-label">
                                                                         <i class="fa fa-cloud-upload"></i>
                                                                         <span>Arrastra aquí el logo o haz clic para seleccionar</span>
-                                                                        <small class="text-muted d-block">Tamaño máximo: 2MB</small>
+                                                                        <small class="text-muted d-block">Tamaño máximo: 10MB</small>
                                                                     </div>
                                                                     <div class="preview-container">
                                                                         <img id="preview_logo" src="#" alt="Previsualización Logo">

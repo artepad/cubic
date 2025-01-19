@@ -35,40 +35,83 @@ $pageTitle = "Detalles del Artista";
     <?php include 'includes/head.php'; ?>
     <style>
         .imagen-preview {
-            max-width: 300px;
-            max-height: 300px;
-            margin: 10px 0;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            max-width: 350px;
+            /* Reducimos el ancho máximo */
+            max-height: 250px;
+            /* Establecemos una altura máxima */
+            width: auto;
+            /* Mantenemos la proporción */
+            height: auto;
+            /* Mantenemos la proporción */
+            margin: 15px 0;
+            border-radius: 6px;
+            /* Bordes redondeados más sutiles */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* Sombra más sutil */
+            object-fit: contain;
+            /* Asegura que la imagen completa sea visible */
+            background-color: #f8f8f8;
+            /* Fondo claro para imágenes transparentes */
+            padding: 5px;
+            /* Pequeño padding para separar del borde */
         }
+
+        /* Contenedor de la imagen para mejor organización */
+        .imagen-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+
+        /* Estilo para las etiquetas de las imágenes */
+        .imagen-label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
         .descripcion-texto {
             white-space: pre-line;
             line-height: 1.6;
             color: #555;
         }
+
         .panel-artista {
             margin-bottom: 20px;
             background-color: #fff;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
+
         .panel-artista .panel-heading {
             padding: 15px;
             border-bottom: 1px solid #ddd;
             background-color: #f5f5f5;
         }
+
         .form-horizontal .control-label {
             text-align: left;
             margin-bottom: 5px;
             padding-top: 7px;
         }
+
         .form-control-static {
             min-height: 34px;
             padding-top: 7px;
             padding-bottom: 7px;
             margin-bottom: 0;
         }
+
         .section-title {
             margin-top: 30px;
             margin-bottom: 20px;
@@ -154,29 +197,27 @@ $pageTitle = "Detalles del Artista";
                                             <h3 class="box-title section-title">Imágenes</h3>
                                             <div class="row">
                                                 <?php if (!empty($artista['imagen_presentacion'])): ?>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-12">Imagen de Presentación:</label>
-                                                        <div class="col-md-12">
-                                                            <img src="<?php echo htmlspecialchars($artista['imagen_presentacion']); ?>" 
-                                                                 alt="Imagen de Presentación" 
-                                                                 class="imagen-preview">
+                                                    <div class="col-md-6">
+                                                        <div class="imagen-container">
+                                                            <label class="imagen-label">Imagen de Presentación:</label>
+                                                            <img src="assets/img/<?php echo htmlspecialchars($artista['imagen_presentacion']); ?>"
+                                                                alt="Imagen de Presentación"
+                                                                class="imagen-preview"
+                                                                onerror="this.src='assets/img/placeholder.jpg'">
                                                         </div>
                                                     </div>
-                                                </div>
                                                 <?php endif; ?>
 
                                                 <?php if (!empty($artista['logo_artista'])): ?>
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label class="control-label col-md-12">Logo del Artista:</label>
-                                                        <div class="col-md-12">
-                                                            <img src="<?php echo htmlspecialchars($artista['logo_artista']); ?>" 
-                                                                 alt="Logo del Artista" 
-                                                                 class="imagen-preview">
+                                                    <div class="col-md-6">
+                                                        <div class="imagen-container">
+                                                            <label class="imagen-label">Logo del Artista:</label>
+                                                            <img src="assets/img/<?php echo htmlspecialchars($artista['logo_artista']); ?>"
+                                                                alt="Logo del Artista"
+                                                                class="imagen-preview"
+                                                                onerror="this.src='assets/img/placeholder.jpg'">
                                                         </div>
                                                     </div>
-                                                </div>
                                                 <?php endif; ?>
                                             </div>
 
@@ -185,9 +226,9 @@ $pageTitle = "Detalles del Artista";
                                                 <div class="row">
                                                     <div class="col-md-12 text-center">
                                                         <div class="btn-group dropup m-r-10">
-                                                            <button aria-expanded="false" data-toggle="dropdown" 
-                                                                    class="btn btn-warning dropdown-toggle waves-effect waves-light" 
-                                                                    type="button">
+                                                            <button aria-expanded="false" data-toggle="dropdown"
+                                                                class="btn btn-warning dropdown-toggle waves-effect waves-light"
+                                                                type="button">
                                                                 Opciones <span class="caret"></span>
                                                             </button>
                                                             <ul role="menu" class="dropdown-menu">
@@ -197,8 +238,8 @@ $pageTitle = "Detalles del Artista";
                                                                     </a>
                                                                 </li>
                                                                 <li>
-                                                                    <a href="javascript:void(0)" class="eliminar-artista" 
-                                                                       data-id="<?php echo $artista_id; ?>">
+                                                                    <a href="javascript:void(0)" class="eliminar-artista"
+                                                                        data-id="<?php echo $artista_id; ?>">
                                                                         <i class="fa fa-trash m-r-5"></i> Eliminar
                                                                     </a>
                                                                 </li>
@@ -291,6 +332,15 @@ $pageTitle = "Detalles del Artista";
                             }
                         });
                     }
+                });
+            });
+            document.addEventListener('DOMContentLoaded', function() {
+                const images = document.querySelectorAll('.imagen-preview');
+                images.forEach(img => {
+                    img.addEventListener('error', function() {
+                        this.src = 'assets/img/placeholder.jpg';
+                        this.classList.add('imagen-error');
+                    });
                 });
             });
         });
