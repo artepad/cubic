@@ -52,28 +52,44 @@ class FileUploadManager {
     }
     
     handleFile(file) {
-        // Validar tipo de archivo
-        if (!this.options.allowedTypes.includes(file.type)) {
-            this.showError('Tipo de archivo no permitido. Solo se aceptan imágenes (JPG, PNG, GIF)');
-            return false;
-        }
+        // Mostrar indicador de carga
+        this.container.classList.add('loading');
         
-        // Validar tamaño
-        if (file.size > this.options.maxSize) {
-            this.showError(`El archivo excede el tamaño máximo permitido (${this.formatSize(this.options.maxSize)})`);
-            return false;
-        }
-        
-        // Previsualizar imagen
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            this.preview.src = e.target.result;
-            this.container.classList.add('has-file');
-            this.triggerEvent('fileSelected', { file });
-        };
-        reader.readAsDataURL(file);
-        
-        return true;
+        return new Promise((resolve, reject) => {
+            // Validar tipo de archivo
+            if (!this.options.allowedTypes.includes(file.type)) {
+                this.showError('Tipo de archivo no permitido. Solo se aceptan imágenes (JPG, PNG, GIF)');
+                this.container.classList.remove('loading');
+                reject(new Error('Tipo de archivo no válido'));
+                return;
+            }
+            
+            // Validar tamaño
+            if (file.size > this.options.maxSize) {
+                this.showError(`El archivo excede el tamaño máximo permitido (${this.formatSize(this.options.maxSize)})`);
+                this.container.classList.remove('loading');
+                reject(new Error('Tamaño de archivo excedido'));
+                return;
+            }
+            
+            // Previsualizar imagen
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.preview.src = e.target.result;
+                this.container.classList.add('has-file');
+                this.container.classList.remove('loading');
+                this.triggerEvent('fileSelected', { file });
+                resolve(file);
+            };
+            
+            reader.onerror = () => {
+                this.showError('Error al leer el archivo');
+                this.container.classList.remove('loading');
+                reject(new Error('Error de lectura'));
+            };
+            
+            reader.readAsDataURL(file);
+        });
     }
     
     removeFile() {
@@ -107,21 +123,78 @@ class FileUploadManager {
         }));
     }
 }
-
-// Inicialización del gestor para cada campo de archivo
 document.addEventListener('DOMContentLoaded', () => {
+    // Primero inicializamos los manejadores de archivos
     const managers = [
         new FileUploadManager({
             inputSelector: '#imagen_presentacion',
             previewSelector: '#preview_imagen',
             containerSelector: '#container_imagen_presentacion',
-            maxSize: 10 * 1024 * 1024 // 10MB
+            maxSize: 10 * 1024 * 1024,
+            allowedTypes: ['image/jpeg', 'image/png', 'image/gif']
         }),
         new FileUploadManager({
             inputSelector: '#logo_artista',
             previewSelector: '#preview_logo',
             containerSelector: '#container_logo_artista',
-            maxSize: 10 * 1024 * 1024 // 10MB
+            maxSize: 10 * 1024 * 1024,
+            allowedTypes: ['image/jpeg', 'image/png', 'image/gif']
         })
     ];
+
+    // Luego configuramos el manejador del formulario
+    const form = document.getElementById('artistaForm');
+    
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Mostrar loader
+            Swal.fire({
+                title: 'Guardando artista...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const formData = new FormData(form);
+
+                const response = await fetch('functions/procesar_artista.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Éxito
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: data.message || 'Artista guardado correctamente',
+                        confirmButtonText: 'Ok'
+                    });
+                    
+                    // Redireccionar a la lista de artistas
+                    window.location.href = 'listar_artistas.php';
+                } else {
+                    // Error con mensaje del servidor
+                    throw new Error(data.error || 'Error al guardar el artista');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Mostrar error
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'Ocurrió un error al procesar la solicitud',
+                    footer: 'Por favor, intente nuevamente'
+                });
+            }
+        });
+    }
 });
