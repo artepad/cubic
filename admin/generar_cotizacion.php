@@ -274,37 +274,77 @@ class QuoteGenerator
                 ? $this->formData['fecha']
                 : date('Y-m-d');
 
-            // Manejo especial para el horario
-            if (empty($this->formData['horario'])) {
+            // Manejo mejorado para el horario
+            if (empty($this->formData['horario']) || $this->formData['horario'] === null) {
                 $this->formData['horario'] = 'Por definir';
             } else {
-                // Solo validar el formato si hay un horario especificado
                 $hora = trim($this->formData['horario']);
 
-                if (stripos($hora, 'am') !== false || stripos($hora, 'pm') !== false) {
-                    $timestamp = strtotime($hora);
-                    if ($timestamp !== false) {
-                        $hora = date('H:i', $timestamp);
-                    }
-                }
-
-                if (
-                    $hora !== 'Por definir' &&
-                    !preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])$/', $hora) &&
-                    !preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3])[:.]([0-5][0-9])$/', $hora)
-                ) {
-                    $this->formData['horario'] = 'Por definir';
+                // Si es un objeto DateTime o string de fecha/hora válido
+                if ($hora instanceof DateTime || strtotime($hora) !== false) {
+                    // Convertir a formato 24 horas
+                    $timestamp = $hora instanceof DateTime ? $hora->getTimestamp() : strtotime($hora);
+                    $this->formData['horario'] = date('H:i', $timestamp);
+                } else if (preg_match('/^([0-9]|0[0-9]|1[0-9]|2[0-3])[:.]([0-5][0-9])$/', $hora)) {
+                    // Si ya está en formato válido HH:mm, solo asegurarse que use ':'
+                    $this->formData['horario'] = str_replace('.', ':', $hora);
                 } else {
+                    // Si no es un formato reconocido, mantener el valor original
                     $this->formData['horario'] = $hora;
                 }
             }
 
             // Validar valor monetario
-            if (!is_numeric($this->formData['valor']) || $this->formData['valor'] <= 0) {
-                throw new Exception("El valor debe ser un número positivo");
+            if (!is_numeric($this->formData['valor'])) {
+                throw new Exception("El valor debe ser numérico");
+            }
+
+            if ($this->formData['valor'] <= 0) {
+                throw new Exception("El valor debe ser mayor que cero");
+            }
+
+            // Validar y sanitizar campos booleanos
+            $booleanFields = ['hotel', 'transporte', 'viaticos'];
+            foreach ($booleanFields as $field) {
+                if (isset($this->formData[$field])) {
+                    $this->formData[$field] = $this->formData[$field] === 'Si' ? 'Si' : 'No';
+                } else {
+                    $this->formData[$field] = 'No';
+                }
+            }
+
+            // Sanitizar strings
+            $stringFields = ['encabezado', 'evento', 'ciudad'];
+            foreach ($stringFields as $field) {
+                if (isset($this->formData[$field])) {
+                    $this->formData[$field] = htmlspecialchars(
+                        trim($this->formData[$field]),
+                        ENT_QUOTES,
+                        'UTF-8'
+                    );
+                }
+            }
+
+            // Validar fecha
+            if (!empty($this->formData['fecha'])) {
+                $fecha = DateTime::createFromFormat('Y-m-d', $this->formData['fecha']);
+                if (!$fecha || $fecha->format('Y-m-d') !== $this->formData['fecha']) {
+                    throw new Exception("El formato de fecha no es válido");
+                }
+            }
+
+            // Validar presentación del artista
+            if (isset($this->formData['presentacion_artista'])) {
+                $this->formData['presentacion_artista'] = trim($this->formData['presentacion_artista']);
+                if (empty($this->formData['presentacion_artista'])) {
+                    $this->formData['presentacion_artista'] = "Agradecemos desde ya su interés en el espectáculo...";
+                }
+            } else {
+                $this->formData['presentacion_artista'] = "Agradecemos desde ya su interés en el espectáculo...";
             }
 
             $this->logger->log("Datos del formulario validados correctamente");
+            return true;
         } catch (Exception $e) {
             $this->logger->log("Error en validación de datos: " . $e->getMessage());
             throw $e;
@@ -607,13 +647,13 @@ class QuoteGenerator
     {
         $items = [];
         if ($this->formData['hotel'] !== 'Si') {
-            $items[] = "Hotel para 12 personas.";
+            $items[] = "Hotel.";
         }
         if ($this->formData['transporte'] !== 'Si') {
-            $items[] = "Traslados de la Banda y Staff, ida y vuelta (12 personas).";
+            $items[] = "Traslados de la Banda y Staff, ida y vuelta.";
         }
         if ($this->formData['viaticos'] !== 'Si') {
-            $items[] = "Viáticos para (12 personas).";
+            $items[] = "Viáticos.";
         }
         return $items;
     }
@@ -623,17 +663,23 @@ class QuoteGenerator
      */
     private function setFileName()
     {
-        // Usar solo nombres y apellidos del cliente
-        $clientName = trim($this->formData['nombres'] . ' ' . $this->formData['apellidos']);
+        try {
+            // Obtener y formatear el nombre del cliente
+            $clientName = trim($this->formData['nombres'] . ' ' . $this->formData['apellidos']);
+            // Capitalizar cada palabra del nombre del cliente
+            $clientName = mb_convert_case($clientName, MB_CASE_TITLE, 'UTF-8');
 
-        // Limpia el nombre del cliente de caracteres especiales y espacios
-        $cleanName = preg_replace('/[^A-Za-z0-9\s]/', '', $clientName);
-        // Reemplaza espacios múltiples por uno solo y convierte a minúsculas
-        $cleanName = mb_strtolower(trim(preg_replace('/\s+/', ' ', $cleanName)));
-        // Reemplaza espacios por guiones bajos
-        $cleanName = str_replace(' ', '_', $cleanName);
-        // Construye el nombre final del archivo
-        $this->fileName = 'cotizacion_' . $cleanName . '.docx';
+            // Construir el nombre del archivo con el formato deseado
+            $nombreArchivo = "Cotización " . $clientName;
+
+            // Asegurarse de que el nombre del archivo sea válido para el sistema de archivos
+            // pero manteniendo tildes y ñ
+            $nombreArchivo = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '', $nombreArchivo);
+
+            $this->fileName = $nombreArchivo . '.docx';
+        } catch (Exception $e) {
+            $this->fileName = "Cotización.docx";
+        }
     }
     /**
      * Obtiene la configuración de página
@@ -816,39 +862,65 @@ class QuoteGenerator
 /**
  * Clase para manejar la conexión a la base de datos
  */
-class DatabaseConnection {
+class DatabaseConnection
+{
     private $conn;
     private $logger;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->logger = new Logger();
         $this->conn = getDbConnection();
         $this->logger->log("Conexión a base de datos establecida exitosamente");
     }
 
     /**
-     * Obtiene los datos del evento
+     * Obtiene los datos completos del evento
+     * 
+     * @param int $evento_id ID del evento a consultar
+     * @return array Datos del evento
+     * @throws Exception Si hay error en la consulta o no se encuentra el evento
      */
     public function getEventData($evento_id)
     {
         try {
-            $sql = "SELECT e.*, 
-                       COALESCE(c.nombres, '') as nombres,
-                       COALESCE(c.apellidos, '') as apellidos,
-                       COALESCE(c.rut, '') as rut_cliente,
-                       COALESCE(c.correo, '') as correo,
-                       COALESCE(c.celular, '') as celular,
-                       COALESCE(emp.nombre, '') as nombre_empresa,
-                       COALESCE(emp.rut, '') as rut_empresa,
-                       COALESCE(e.encabezado_evento, '') as encabezado_evento,
-                       COALESCE(a.presentacion, '') as presentacion_artista,
-                       e.artista_id
-                FROM eventos e 
-                LEFT JOIN clientes c ON e.cliente_id = c.id 
-                LEFT JOIN empresas emp ON c.id = emp.cliente_id
-                LEFT JOIN artistas a ON e.artista_id = a.id
-                WHERE e.id = ?";
+            // Validar el ID del evento
+            $evento_id = filter_var($evento_id, FILTER_VALIDATE_INT);
+            if ($evento_id === false) {
+                throw new Exception("ID de evento inválido");
+            }
 
+            // Consulta principal con todos los JOINs necesarios
+            $sql = "SELECT 
+                e.*,
+                COALESCE(c.nombres, '') as nombres,
+                COALESCE(c.apellidos, '') as apellidos,
+                COALESCE(c.rut, '') as rut_cliente,
+                COALESCE(c.correo, '') as correo,
+                COALESCE(c.celular, '') as celular,
+                COALESCE(emp.nombre, '') as nombre_empresa,
+                COALESCE(emp.rut, '') as rut_empresa,
+                COALESCE(e.encabezado_evento, '') as encabezado_evento,
+                COALESCE(a.presentacion, '') as presentacion_artista,
+                CASE 
+                    WHEN e.hora_evento IS NULL THEN 'Por definir'
+                    WHEN e.hora_evento = '' THEN 'Por definir'
+                    ELSE TIME_FORMAT(e.hora_evento, '%H:%i')
+                END as hora_evento,
+                e.artista_id,
+                COALESCE(e.ciudad_evento, 'Por definir') as ciudad_evento,
+                COALESCE(e.lugar_evento, 'Por definir') as lugar_evento,
+                COALESCE(e.valor_evento, 0) as valor_evento,
+                COALESCE(e.hotel, 'No') as hotel,
+                COALESCE(e.traslados, 'No') as traslados,
+                COALESCE(e.viaticos, 'No') as viaticos
+            FROM eventos e 
+            LEFT JOIN clientes c ON e.cliente_id = c.id 
+            LEFT JOIN empresas emp ON c.id = emp.cliente_id
+            LEFT JOIN artistas a ON e.artista_id = a.id
+            WHERE e.id = ?";
+
+            // Preparar y ejecutar la consulta
             $stmt = $this->conn->prepare($sql);
             if (!$stmt) {
                 throw new Exception("Error en la preparación de la consulta: " . $this->conn->error);
@@ -861,16 +933,58 @@ class DatabaseConnection {
 
             $result = $stmt->get_result();
             if ($result->num_rows === 0) {
-                throw new Exception("No se encontró el evento especificado");
+                throw new Exception("No se encontró el evento especificado (ID: $evento_id)");
             }
 
+            // Obtener los datos
             $evento = $result->fetch_assoc();
             $stmt->close();
 
-            // Asignar valores por defecto solo para ciudad y lugar
-            $evento['ciudad_evento'] = $evento['ciudad_evento'] ?? 'Por definir';
-            $evento['lugar_evento'] = $evento['lugar_evento'] ?? 'Por definir';
-            // Mantener hora_evento como NULL si es NULL
+            // Procesamiento adicional de datos
+
+            // Formatear la hora si existe
+            if ($evento['hora_evento'] !== 'Por definir') {
+                $hora = DateTime::createFromFormat('H:i', $evento['hora_evento']);
+                if ($hora) {
+                    $evento['hora_evento'] = $hora->format('H:i');
+                }
+            }
+
+            // Formatear la fecha si existe
+            if (!empty($evento['fecha_evento'])) {
+                $fecha = DateTime::createFromFormat('Y-m-d', $evento['fecha_evento']);
+                if ($fecha) {
+                    $evento['fecha_evento'] = $fecha->format('Y-m-d');
+                }
+            } else {
+                $evento['fecha_evento'] = date('Y-m-d');
+            }
+
+            // Asegurar valores booleanos correctos
+            $booleanFields = ['hotel', 'traslados', 'viaticos'];
+            foreach ($booleanFields as $field) {
+                $evento[$field] = $evento[$field] === 'Si' ? 'Si' : 'No';
+            }
+
+            // Asegurar que el valor del evento sea numérico
+            $evento['valor_evento'] = is_numeric($evento['valor_evento'])
+                ? (int)$evento['valor_evento']
+                : 0;
+
+            // Sanitizar campos de texto
+            $textFields = ['nombres', 'apellidos', 'ciudad_evento', 'lugar_evento', 'encabezado_evento'];
+            foreach ($textFields as $field) {
+                if (isset($evento[$field])) {
+                    $evento[$field] = htmlspecialchars(
+                        trim($evento[$field]),
+                        ENT_QUOTES,
+                        'UTF-8'
+                    );
+                }
+            }
+
+            // Log del éxito de la operación
+            $this->logger->log("Datos del evento $evento_id recuperados exitosamente");
 
             return $evento;
         } catch (Exception $e) {
