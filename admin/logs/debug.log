@@ -1,0 +1,94 @@
+[2025-01-19 05:31:44] Intentando crear directorio en: C:\xampp\htdocs\cubic\admin\config/../uploads
+[2025-01-19 05:31:44] Permisos del directorio base: 40777
+[2025-01-19 05:31:44] POST Data: Array
+(
+    [csrf_token] => fc0d2c4180f2a7675c4ca17515527edaf8191e5c8d8813b4563eb2ee70812fbf
+    [nombre] => Prueba
+    [genero_musical] => prueba
+    [descripcion] => asd 1
+    [presentacion] => asd 2
+)
+
+[2025-01-19 05:31:44] FILES Data: Array
+(
+    [imagen_presentacion] => Array
+        (
+            [name] => 1- Agrupación Marilyn.png
+            [full_path] => 1- Agrupación Marilyn.png
+            [type] => image/png
+            [tmp_name] => C:\xampp\tmp\php7118.tmp
+            [error] => 0
+            [size] => 8252855
+        )
+
+    [logo_artista] => Array
+        (
+            [name] => 2-Logo Marilyn (blanco fondo negro).png
+            [full_path] => 2-Logo Marilyn (blanco fondo negro).png
+            [type] => image/png
+            [tmp_name] => C:\xampp\tmp\php7168.tmp
+            [error] => 0
+            [size] => 354203
+        )
+
+)
+
+[2025-01-19 05:38:14] POST Data: Array
+(
+    [csrf_token] => fc0d2c4180f2a7675c4ca17515527edaf8191e5c8d8813b4563eb2ee70812fbf
+    [nombre] => Prueba
+    [genero_musical] => prueba
+    [descripcion] => asd1
+    [presentacion] => asd2
+)
+
+[2025-01-19 05:38:14] FILES Data: Array
+(
+    [imagen_presentacion] => Array
+        (
+            [name] => 1- Agrupación Marilyn.png
+            [full_path] => 1- Agrupación Marilyn.png
+            [type] => image/png
+            [tmp_name] => C:\xampp\tmp\php6304.tmp
+            [error] => 0
+            [size] => 8252855
+        )
+
+    [logo_artista] => Array
+        (
+            [name] => 2-Logo Marilyn (blanco fondo negro).png
+            [full_path] => 2-Logo Marilyn (blanco fondo negro).png
+            [type] => image/png
+            [tmp_name] => C:\xampp\tmp\php6343.tmp
+            [error] => 0
+            [size] => 354203
+        )
+
+)
+
+[2025-01-19 05:38:14] Estructura de directorios: Array
+(
+    [UPLOAD_BASE_DIR] => C:\xampp\htdocs\cubic\admin\config/../uploads
+    [exists] => 1
+    [is_writable] => 1
+    [permisos] => 40777
+)
+
+[2025-01-19 05:38:14] Intentando crear directorio en: C:\xampp\htdocs\cubic\admin\config/../uploadsprueba_1737261494
+[2025-01-19 05:38:14] Intentando guardar archivo en: C:\xampp\htdocs\cubic\admin\config/../uploadsprueba_1737261494\presentacion_678c81b687956.png
+[2025-01-19 05:38:14] Intentando guardar archivo en: C:\xampp\htdocs\cubic\admin\config/../uploadsprueba_1737261494\logo_678c81b687af9.png
+[2025-01-19 05:38:14] Response Data: Array
+(
+    [success] => 1
+    [data] => Array
+        (
+            [artista_id] => 10
+            [nombre] => Prueba
+            [imagen_presentacion] => assets/img/artistas/prueba_1737261494/presentacion_678c81b687956.png
+            [logo_artista] => assets/img/artistas/prueba_1737261494/logo_678c81b687af9.png
+        )
+
+    [error] => 
+    [message] => Artista guardado exitosamente
+)
+

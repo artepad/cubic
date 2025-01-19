@@ -3,62 +3,71 @@
 ob_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
 session_start();
 require_once '../config/config.php';
 require_once 'functions.php';
 
-// Asegurar que la respuesta sea JSON
-header('Content-Type: application/json');
+// Definir constantes
+define('UPLOAD_BASE_DIR', dirname(__DIR__) . '/assets/img/artistas/');
+define('MAX_FILE_SIZE', 10 * 1024 * 1024); // 10MB
+define('ALLOWED_TYPES', ['image/jpeg', 'image/png', 'image/gif']);
 
-// Función para registrar errores
-function logError($error) {
-    $logFile = "../logs/error.log";
+// Configurar headers
+header('Content-Type: application/json');
+header('Cache-Control: no-cache, must-revalidate');
+
+// Función para debug
+function debug($message, $data = null) {
+    $logFile = dirname(__DIR__) . '/logs/debug.log';
     $logDir = dirname($logFile);
     
     if (!is_dir($logDir)) {
         mkdir($logDir, 0755, true);
     }
     
-    error_log(date('[Y-m-d H:i:s] ') . "Error: " . $error . "\n", 3, $logFile);
+    $output = date('[Y-m-d H:i:s] ') . $message . 
+        ($data ? ': ' . print_r($data, true) : '') . "\n";
+    error_log($output, 3, $logFile);
 }
 
-// Función helper para enviar respuestas JSON
+// Función para enviar respuestas JSON
 function sendJsonResponse($success, $data = null, $error = null) {
-    ob_clean(); // Limpiar cualquier salida anterior
-    header('Content-Type: application/json'); // Asegurar header JSON
-    echo json_encode([
+    // Limpiar cualquier salida previa
+    if (ob_get_length()) ob_clean();
+    while (ob_get_level()) ob_end_clean();
+    
+    $response = [
         'success' => $success,
         'data' => $data,
         'error' => $error,
         'message' => $success ? 'Artista guardado exitosamente' : 'Error al guardar el artista'
-    ]);
+    ];
+    
+    debug('Response Data', $response);
+    echo json_encode($response);
     exit;
 }
 
-// Verificar que sea una petición POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    sendJsonResponse(false, null, 'Método no permitido');
+// Función para asegurar la existencia y permisos de un directorio
+function asegurarDirectorio($ruta) {
+    if (!file_exists($ruta)) {
+        if (!mkdir($ruta, 0755, true)) {
+            throw new Exception("No se pudo crear el directorio: " . $ruta);
+        }
+    } elseif (!is_writable($ruta)) {
+        throw new Exception("El directorio no tiene permisos de escritura: " . $ruta);
+    }
+    return true;
 }
 
-// Verificar CSRF token
-if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || 
-    $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    sendJsonResponse(false, null, 'Token CSRF inválido');
-}
-
-// Configuración de límites y tipos de archivo permitidos
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
-const UPLOAD_BASE_DIR = '../assets/img/artistas/';
-
-// Función para validar un archivo subido
+// Función para validar archivo
 function validarArchivo($file) {
     if (empty($file['tmp_name'])) {
         return true; // Archivo opcional
     }
 
-    // Verificar errores de subida
     if ($file['error'] !== UPLOAD_ERR_OK) {
         $errores = [
             UPLOAD_ERR_INI_SIZE => 'El archivo excede el tamaño máximo permitido por el servidor',
@@ -72,12 +81,10 @@ function validarArchivo($file) {
         throw new Exception($errores[$file['error']] ?? 'Error desconocido al subir el archivo');
     }
 
-    // Validar tamaño
     if ($file['size'] > MAX_FILE_SIZE) {
         throw new Exception('El archivo excede el tamaño máximo permitido de 10MB');
     }
 
-    // Validar tipo MIME real del archivo
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime_type = finfo_file($finfo, $file['tmp_name']);
     finfo_close($finfo);
@@ -89,24 +96,34 @@ function validarArchivo($file) {
     return true;
 }
 
-// Función para procesar y guardar una imagen
+// Función para procesar imagen
 function procesarImagen($file, $ruta_carpeta, $prefijo, $nombre_carpeta) {
     if (empty($file['tmp_name'])) {
         return '';
     }
 
-    // Generar nombre único para el archivo
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $nombre_archivo = $prefijo . '_' . uniqid() . '.' . $extension;
-    $ruta_archivo = $ruta_carpeta . '/' . $nombre_archivo;
+    $ruta_archivo = $ruta_carpeta . DIRECTORY_SEPARATOR . $nombre_archivo;
 
-    // Intentar mover el archivo
+    debug("Intentando guardar archivo en", $ruta_archivo);
+
     if (!move_uploaded_file($file['tmp_name'], $ruta_archivo)) {
-        throw new Exception("Error al guardar el archivo {$prefijo}");
+        throw new Exception("Error al guardar el archivo {$prefijo}. Ruta: {$ruta_archivo}");
     }
 
-    // Devolver ruta relativa para la base de datos
-    return 'artistas/' . $nombre_carpeta . '/' . $nombre_archivo;
+    return 'assets/img/artistas/' . $nombre_carpeta . '/' . $nombre_archivo;
+}
+
+// Verificar método HTTP
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    sendJsonResponse(false, null, 'Método no permitido');
+}
+
+// Verificar CSRF token
+if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || 
+    $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    sendJsonResponse(false, null, 'Token CSRF inválido');
 }
 
 try {
@@ -114,6 +131,10 @@ try {
     if (!$conn || $conn->connect_error) {
         throw new Exception("Error de conexión a la base de datos: " . ($conn ? $conn->connect_error : "No hay conexión"));
     }
+
+    // Debug de datos recibidos
+    debug('POST Data', $_POST);
+    debug('FILES Data', $_FILES);
 
     // Validar campos requeridos
     $campos_requeridos = ['nombre', 'genero_musical', 'descripcion', 'presentacion'];
@@ -139,19 +160,23 @@ try {
     validarArchivo($_FILES['imagen_presentacion']);
     validarArchivo($_FILES['logo_artista']);
 
+    // Verificar y crear directorios
+    debug("Estructura de directorios", [
+        'UPLOAD_BASE_DIR' => UPLOAD_BASE_DIR,
+        'exists' => file_exists(UPLOAD_BASE_DIR),
+        'is_writable' => is_writable(UPLOAD_BASE_DIR),
+        'permisos' => decoct(fileperms(UPLOAD_BASE_DIR))
+    ]);
+
+    // Asegurar directorio base
+    asegurarDirectorio(UPLOAD_BASE_DIR);
+
     // Crear carpeta para el artista
     $nombre_carpeta = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $nombre)) . '_' . time();
     $ruta_completa = UPLOAD_BASE_DIR . $nombre_carpeta;
     
-    if (!file_exists(UPLOAD_BASE_DIR)) {
-        if (!mkdir(UPLOAD_BASE_DIR, 0755, true)) {
-            throw new Exception("Error al crear el directorio base de artistas");
-        }
-    }
-    
-    if (!mkdir($ruta_completa, 0755, true)) {
-        throw new Exception("Error al crear el directorio del artista");
-    }
+    debug("Intentando crear directorio en", $ruta_completa);
+    asegurarDirectorio($ruta_completa);
 
     // Procesar imágenes
     $imagen_presentacion = procesarImagen(
@@ -172,7 +197,6 @@ try {
     $conn->begin_transaction();
 
     try {
-        // Preparar la consulta SQL
         $sql = "INSERT INTO artistas (
                     nombre, 
                     genero_musical, 
@@ -197,7 +221,6 @@ try {
             $logo_artista
         );
 
-        // Ejecutar la consulta
         if (!$stmt->execute()) {
             throw new Exception("Error al guardar el artista: " . $stmt->error);
         }
@@ -205,10 +228,8 @@ try {
         $artista_id = $stmt->insert_id;
         $stmt->close();
 
-        // Confirmar la transacción
         $conn->commit();
 
-        // Devolver respuesta exitosa
         sendJsonResponse(true, [
             'artista_id' => $artista_id,
             'nombre' => $nombre,
@@ -217,24 +238,21 @@ try {
         ]);
 
     } catch (Exception $e) {
-        // Revertir la transacción en caso de error
         $conn->rollback();
         throw $e;
     }
 
 } catch (Exception $e) {
-    // Log del error
-    logError($e->getMessage());
+    debug("Error", $e->getMessage());
     
-    // Limpiar archivos en caso de error
     if (isset($ruta_completa) && is_dir($ruta_completa)) {
         array_map('unlink', glob("$ruta_completa/*.*"));
         rmdir($ruta_completa);
     }
     
     sendJsonResponse(false, null, $e->getMessage());
+    
 } finally {
-    // Cerrar la conexión
     if (isset($conn) && $conn) {
         $conn->close();
     }
