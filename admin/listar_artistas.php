@@ -193,7 +193,7 @@ $pageTitle = "Lista de Artistas";
                                     </table>
                                 <?php else: ?>
                                     <div class="alert alert-info">
-                                        <i class="fa fa-info-circle"></i> No se encontraron artistas.
+                                        <i class="fa fa-info-circle"></i> No se encontraron <b>artistas</b>.
                                     </div>
                                 <?php endif; ?>
                             </div>

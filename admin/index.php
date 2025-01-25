@@ -175,12 +175,12 @@ $pageTitle = "Lista de Eventos";
                             <div class="titulo-busqueda">
                                 <h3 class="box-title">Eventos Activos</h3>
                                 <div class="search-container">
-                                    <input type="text" id="searchInput" placeholder="Buscar en todos los campos...">
+                                    <input type="text" id="searchInput" placeholder="Buscar eventos activos...">
                                 </div>
                             </div>
                             <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
                                 <div class="alert alert-info">
-                                    <i class="fa fa-info-circle"></i> No se encontraron eventos activos.
+                                    <i class="fa fa-info-circle"></i> No se encontraron <b>eventos activos</b>.
                                 </div>
                             <?php else: ?>
                                 <div class="table-responsive">

@@ -201,7 +201,7 @@ $pageTitle = "Lista de Clientes";
                                     </table>
                                 <?php else: ?>
                                     <div class="alert alert-info">
-                                        <i class="fa fa-info-circle"></i> No se encontraron clientes.
+                                        <i class="fa fa-info-circle"></i> No se encontraron <b>clientes</b>.
                                     </div>
                                 <?php endif; ?>
                             </div>

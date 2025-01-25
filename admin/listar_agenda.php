@@ -199,7 +199,7 @@ $pageTitle = "Listar Agenda";
                             <div class="table-responsive">
                                 <?php if (!$result_eventos || $result_eventos->num_rows === 0): ?>
                                     <div class="alert alert-info">
-                                        <i class="fa fa-info-circle"></i> No se encontraron Eventos.
+                                        <i class="fa fa-info-circle"></i> No se encontraron <b>eventos</b>.
                                     </div>
                                 <?php else: ?>
                                     <table id="eventosTable" class="table table-striped">
