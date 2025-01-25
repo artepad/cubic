@@ -155,15 +155,3 @@ CREATE TABLE evento_archivos (
     INDEX idx_evento_archivos (evento_id) COMMENT 'Índice para búsquedas por evento'
 ) ENGINE=InnoDB COMMENT='Tabla para almacenar referencias a archivos de eventos';
 
--- ========================================
--- Datos iniciales
--- ========================================
-
--- Usuario administrador inicial (password: admin123)
-INSERT INTO usuarios (username, password, nombre, email) VALUES 
-('admin', '$2y$10$R65JBBwJOc3ZnLyqPHpeS.TXe1bsHfvjOXKl3YDFB87yl6nMT33E.', 'miguel', 'nuevo_admin@example.com');
-
--- Artistas de ejemplo
-INSERT INTO artistas (nombre, genero_musical, descripcion, presentacion) VALUES 
-('Agrupación Marilyn', 'Cumbia Testimonial', 'Descripción detallada de Agrupación Marilyn...', 'Agrupación Marilyn ha conseguido un lugar especial en el corazón de seguidores tanto a nivel nacional como internacional. Su música, definida por la cumbia romántica y testimonial, narra historias que reflejan el cotidiano vivir con las cuales todos podemos identificarnos. Entre sus éxitos destacan Su florcita, Me enamoré, Te falta sufrir y Madre soltera. Actualmente, Agrupación Marilyn trabaja en su sexto disco, del cual ya han lanzado los exitosos singles: Abismo, Siento, Piel y Huesos, que adelantan una propuesta fresca y poderosa, fiel a su estilo.'),
-('Flor Alvarez', 'Cumbia', 'Descripción detallada de Flor Alvarez...', 'Agradecemos desde ya su interés en la talentosa cantante argentina Flor Álvarez, una joven promesa que ha conquistado corazones con su música. Desde sus inicios cantando en el subte de Buenos Aires, Flor ha logrado posicionarse como una figura destacada en la música urbana y cumbia romántica. Con éxitos como Con Vos, Tattoo, Me Toco Perder, El Amor de mi Vida, y Sin Querer, acumula millones de reproducciones. Su música refleja una propuesta fresca y emotiva, consolidando su lugar en la escena musical. Actualmente, trabaja en nuevas colaboraciones que prometen sorprender, llevando su música a niveles internacionales.');
