@@ -57,6 +57,7 @@
 
 
 ## Visualización de Clientes (Ver)
+- [ ] 🐛 Eventos Activos: Solo contar los evento que están con estado Confirmado
 - [ ] 🖼️ Mejorar interfaz: Algunos botones tiene problemas con las imágenes
 
 ## Visualización de Eventos (Ver)
@@ -75,7 +76,7 @@
 - [x] 📅 Vista Principal: Desarrollo de interfaz con integración de eventos
 
 ## Función de Contratos (Crear DOC)
-- [ ] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
+- [x] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
 - [x] 👥 Integración: Obtener datos de artistas desde base de datos
 - [x] ❓ Datos Vacíos: Implementar "N/A" para campos sin información
 

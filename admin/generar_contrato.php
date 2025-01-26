@@ -24,12 +24,12 @@ class ContractGenerator
     private const DOCUMENT_STYLES = [
         'default_font' => [
             'name' => 'Lato Light',
-            'size' => 10
+            'size' => 9
         ],
         'margins' => [
             'left' => 800,
             'right' => 800,
-            'top' => 800,
+            'top' => 400,
             'bottom' => 800
         ]
     ];
@@ -139,14 +139,13 @@ class ContractGenerator
     }
 
     // Función para guardar el documento
-    public function saveDocument()
-    {
+    public function saveDocument() {
         try {
-            // Limpiar cualquier salida previa
             if (ob_get_level()) ob_end_clean();
-
-            $fileName = "Contrato_Evento_" . date('Y-m-d') . ".docx";
-
+            
+            $nombreCompleto = trim($this->eventData['nombres'] . " " . $this->eventData['apellidos']);
+            $fileName = "Contrato " . $nombreCompleto . ".docx";
+            
             // Configurar headers con codificación
             header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=UTF-8');
             header('Content-Disposition: attachment; filename="' . $fileName . '"');
@@ -202,8 +201,8 @@ class ContractGenerator
     private function addTitle()
     {
         $titleStyle = [
-            'font' => ['name' => 'Lato', 'size' => 15, 'bold' => true, 'color' => '1F4E79'],
-            'paragraph' => ['alignment' => 'center', 'spaceAfter' => 500]
+            'font' => ['name' => 'Lato', 'size' => 14, 'bold' => true, 'color' => '1F4E79'],
+            'paragraph' => ['alignment' => 'center', 'spaceBefore' => 200, 'spaceAfter' => 300]
         ];
 
         try {
