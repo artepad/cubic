@@ -30,6 +30,11 @@ $pageTitle = "Ingresar Nuevo Artista";
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        .btn-default {
+            color: #000000 !important;
+        }
+    </style>
 </head>
 
 <body class="mini-sidebar">
@@ -173,7 +178,7 @@ $pageTitle = "Ingresar Nuevo Artista";
                                                             <i class="fa fa-check"></i> Crear Artista
                                                         </button>
                                                         <a href="listar_artistas.php" class="btn btn-default">
-                                                            <i class="fa fa-times"></i> Cancelar
+                                                            Cancelar
                                                         </a>
                                                     </div>
                                                 </div>

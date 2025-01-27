@@ -123,6 +123,11 @@ $conn->close();
     <!-- En el head de ingreso_evento.php -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <style>
+        .btn-default {
+            color: #000000 !important;
+        }
+    </style>
 </head>
 
 <body class="mini-sidebar">
@@ -424,9 +429,7 @@ $conn->close();
                                                     <button type="submit" id="crearEventoBtn" class="btn btn-success">
                                                         <i class="fa fa-check"></i> <?php echo $is_editing ? 'Actualizar Evento' : 'Crear Evento'; ?>
                                                     </button>
-                                                    <a href="index.php" class="btn btn-default">
-                                                        <i class="fa fa-times"></i> Cancelar
-                                                    </a>
+                                                    <a href="index.php" class="btn btn-default">Cancelar</a>
                                                 </div>
                                             </div>
                                         </div>

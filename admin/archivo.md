@@ -54,11 +54,13 @@
 - [ ] 🗑️ Eliminación: Sistema de eliminación artistas
 - [x] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
 
-
-
 ## Visualización de Clientes (Ver)
 - [ ] 🐛 Eventos Activos: Solo contar los evento que están con estado Confirmado
 - [ ] 🖼️ Mejorar interfaz: Algunos botones tiene problemas con las imágenes
+
+## Visualización de Giras (Ver)
+- [ ] 📋 Crear Tablas: Mostrar todos las giras en una tabla para poder editar y ver cuanta cantidad de eventos tienen
+- [ ] 📝 Crear editor de giras como popup
 
 ## Visualización de Eventos (Ver)
 - [x] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
@@ -76,11 +78,14 @@
 - [x] 📅 Vista Principal: Desarrollo de interfaz con integración de eventos
 
 ## Función de Contratos (Crear DOC)
+
+- [ ] 👀 Genero: Tomar el genero de la bd y modificar el saludos en el documento.
 - [x] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
 - [x] 👥 Integración: Obtener datos de artistas desde base de datos
 - [x] ❓ Datos Vacíos: Implementar "N/A" para campos sin información
 
 ## Función de Cotizaciones (Crear DOC)
+- [ ] 👀 Genero: Tomar el genero de la bd y modificar el saludos en el documento.
 - [x] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
 - [x] 👥 Datos de Artista: Integrar nombre y descripción desde base de datos
 - [x] 🖼️ Imágenes: Incorporar fotografías desde base de datos

@@ -277,6 +277,10 @@ $conn->close();
             font-size: 0.875em;
             margin-top: 0.25rem;
         }
+
+        .btn-default {
+            color: #000000 !important;
+        }
     </style>
 </head>
 
@@ -299,138 +303,145 @@ $conn->close();
                 }
                 ?>
                 <div class="row">
-                    <div class="col-md-12">
-                        <div class="white-box">
-                            <h3 class="box-title m-b-0"><?php echo $esEdicion ? 'Editar Cliente' : 'Ingresar Nuevo Cliente'; ?></h3>
-                            <p class="text-muted m-b-30 font-13">Información del Cliente y Empresa o Municipalidad</p>
-                            <form id="clienteForm" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . ($esEdicion ? "?id=" . $id : "")); ?>" class="form-horizontal">
-                                <div class="form-body">
-                                    <h3 class="box-title">Información Personal</h3>
-                                    <hr class="m-t-0 m-b-40">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Nombres</label>
-                                                <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombres" id="nombres"
-                                                        value="<?php echo htmlspecialchars($nombres); ?>" maxlength="20" required>
-                                                    <span class="error-message" id="nombresError">
-                                                        <?php echo isset($errores['nombres']) ? $errores['nombres'] : ''; ?>
-                                                    </span>
+                    <div class="panel panel-info">
+                        <div class="panel-heading"><?php echo $esEdicion ? 'Editar Cliente' : 'Ingresar Nuevo Cliente'; ?></div>
+                        <div class="panel-wrapper collapse in" aria-expanded="true">
+                            <div class="panel-body">
+                                <form id="clienteForm" method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"] . ($esEdicion ? "?id=" . $id : "")); ?>" class="form-horizontal">
+                                    <div class="form-body">
+                                        <h3 class="box-title">Información Personal</h3>
+                                        <hr class="m-t-0 m-b-40">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Nombres: <span class="text-danger">*</span></label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="nombres" id="nombres"
+                                                            value="<?php echo htmlspecialchars($nombres); ?>" maxlength="20" required>
+                                                        <span class="error-message" id="nombresError">
+                                                            <?php echo isset($errores['nombres']) ? $errores['nombres'] : ''; ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Apellidos: <span class="text-danger">*</span></label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="apellidos" id="apellidos"
+                                                            value="<?php echo htmlspecialchars($apellidos); ?>" maxlength="20" required>
+                                                        <span class="error-message" id="apellidosError">
+                                                            <?php echo isset($errores['apellidos']) ? $errores['apellidos'] : ''; ?>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Apellidos</label>
-                                                <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="apellidos" id="apellidos"
-                                                        value="<?php echo htmlspecialchars($apellidos); ?>" maxlength="20" required>
-                                                    <span class="error-message" id="apellidosError">
-                                                        <?php echo isset($errores['apellidos']) ? $errores['apellidos'] : ''; ?>
-                                                    </span>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">RUT:</label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="rut" id="rut"
+                                                            value="<?php echo htmlspecialchars($rut); ?>" maxlength="12">
+                                                        <span class="error-message" id="rutError">
+                                                            <?php echo isset($errores['rut']) ? $errores['rut'] : ''; ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Correo Electrónico:</label>
+                                                    <div class="col-md-9">
+                                                        <input type="email" class="form-control" name="email"
+                                                            value="<?php echo htmlspecialchars($email); ?>" maxlength="60">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">RUT</label>
-                                                <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut" id="rut"
-                                                        value="<?php echo htmlspecialchars($rut); ?>" maxlength="12">
-                                                    <span class="error-message" id="rutError">
-                                                        <?php echo isset($errores['rut']) ? $errores['rut'] : ''; ?>
-                                                    </span>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Celular:</label>
+                                                    <div class="col-md-9">
+                                                        <input type="tel" class="form-control" name="celular"
+                                                            value="<?php echo htmlspecialchars($celular); ?>" maxlength="16">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Género: <span class="text-danger">*</span></label>
+                                                    <div class="col-md-9">
+                                                        <select class="form-control" name="genero" required>
+                                                            <option value="">Seleccione un género</option>
+                                                            <option value="Masculino" <?php echo $genero === 'Masculino' ? 'selected' : ''; ?>>Masculino</option>
+                                                            <option value="Femenino" <?php echo $genero === 'Femenino' ? 'selected' : ''; ?>>Femenino</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Correo Electrónico</label>
-                                                <div class="col-md-9">
-                                                    <input type="email" class="form-control" name="email"
-                                                        value="<?php echo htmlspecialchars($email); ?>" maxlength="60">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Celular</label>
-                                                <div class="col-md-9">
-                                                    <input type="tel" class="form-control" name="celular"
-                                                        value="<?php echo htmlspecialchars($celular); ?>" maxlength="16">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Género</label>
-                                                <div class="col-md-9">
-                                                    <select class="form-control" name="genero" required>
-                                                        <option value="">Seleccione un género</option>
-                                                        <option value="Masculino" <?php echo $genero === 'Masculino' ? 'selected' : ''; ?>>Masculino</option>
-                                                        <option value="Femenino" <?php echo $genero === 'Femenino' ? 'selected' : ''; ?>>Femenino</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    <h3 class="box-title">Información de la Empresa o Municipalidad (Opcional)</h3>
-                                    <hr class="m-t-0 m-b-40">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Nombre Empresa o Muni</label>
-                                                <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="nombre_empresa"
-                                                        value="<?php echo htmlspecialchars($nombre_empresa); ?>" maxlength="100">
+                                        <h3 class="box-title">Información de la Empresa o Municipalidad (Opcional)</h3>
+                                        <hr class="m-t-0 m-b-40">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Nombre Empresa o Muni:</label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="nombre_empresa"
+                                                            value="<?php echo htmlspecialchars($nombre_empresa); ?>" maxlength="100">
+                                                        <small class="help-block text-muted">Nombre de la empresa o municipalidad (Opcional)</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">RUT Empresa o Muni:</label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="rut_empresa" id="rut_empresa"
+                                                            value="<?php echo htmlspecialchars($rut_empresa); ?>" maxlength="12">
+                                                        <small class="help-block text-muted">Rut de la empresa o municipalidad (Opcional)</small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">RUT Empresa o Muni</label>
-                                                <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="rut_empresa" id="rut_empresa"
-                                                        value="<?php echo htmlspecialchars($rut_empresa); ?>" maxlength="12">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="control-label col-md-3">Dirección Empresa o Muni:</label>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" name="direccion_empresa"
+                                                            value="<?php echo htmlspecialchars($direccion_empresa); ?>" maxlength="250">
+                                                        <small class="help-block text-muted">Dirección de la empresa o municipalidad (Opcional)</small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="control-label col-md-3">Dirección Empresa o Muni</label>
-                                                <div class="col-md-9">
-                                                    <input type="text" class="form-control" name="direccion_empresa"
-                                                        value="<?php echo htmlspecialchars($direccion_empresa); ?>" maxlength="250">
-                                                </div>
+                                    <div class="form-actions">
+                                        <div class="row">
+                                            <div class="col-md-12 text-center">
+                                                <button type="submit" class="btn btn-success" id="submitBtn">
+                                                    <i class="fa fa-check"></i> <?php echo $esEdicion ? 'Actualizar' : 'Guardar'; ?>
+                                                </button>
+                                                <a href="listar_clientes.php" class="btn btn-default">Cancelar</a>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="form-actions">
-                                    <div class="row">
-                                        <div class="col-md-12 text-center">
-                                            <button type="submit" class="btn btn-success" id="submitBtn">
-                                                <i class="fa fa-check"></i> <?php echo $esEdicion ? 'Actualizar' : 'Guardar'; ?>
-                                            </button>
-                                            <a href="listar_clientes.php" class="btn btn-default">Cancelar</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <?php include 'includes/footer.php'; ?>
         </div>
+    </div>
+    </div>
+    <?php include 'includes/footer.php'; ?>
+    </div>
     </div>
 
     <script>
