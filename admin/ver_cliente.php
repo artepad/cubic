@@ -22,7 +22,12 @@ if ($cliente_id > 0) {
     $sql = "SELECT c.*, e.nombre as nombre_empresa, e.rut as rut_empresa, 
             e.direccion as direccion_empresa,
             COUNT(ev.id) as total_eventos,
-            SUM(CASE WHEN ev.fecha_evento >= CURDATE() THEN 1 ELSE 0 END) as eventos_activos
+            SUM(CASE 
+    WHEN ev.fecha_evento >= CURDATE() 
+    AND ev.estado_evento = 'Confirmado' 
+    THEN 1 
+    ELSE 0 
+END) as eventos_activos
             FROM clientes c
             LEFT JOIN empresas e ON c.id = e.cliente_id
             LEFT JOIN eventos ev ON c.id = ev.cliente_id
@@ -93,6 +98,23 @@ $pageTitle = "Detalles del Cliente";
             font-size: 24px;
             font-weight: bold;
             color: #2196F3;
+        }
+
+        .btn-info {
+            color: #ffffff !important;
+            /* Asegura que el texto sea blanco */
+            background-color: #2196F3;
+            border-color: #2196F3;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            border-radius: 4px;
+        }
+
+        .btn-info:hover {
+            color: #ffffff !important;
+            background-color: #0d8aee;
+            border-color: #0c7cd5;
         }
     </style>
 </head>
