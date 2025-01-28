@@ -228,6 +228,13 @@ $pageTitle = "Lista de Eventos";
                                     </table>
                                 </div>
 
+                                <!-- Botón para generar PDF -->
+                                <div class="text-right mt-3">
+                                    <a href="generar_itinerario.php" class="btn btn-primary">
+                                        <i class="fa fa-file-pdf-o"></i> Generar Itinerario PDF
+                                    </a>
+                                </div>
+
                                 <!-- Paginación personalizada -->
                                 <div class="custom-pagination">
                                     <?php
