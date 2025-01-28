@@ -215,10 +215,10 @@ $pageTitle = "Detalles del Cliente";
                                         <?php endif; ?>
 
                                         <!-- Últimos Eventos -->
-                                        <div class="info-box">
-                                            <h3 class="box-title">Últimos Eventos</h3>
-                                            <div class="eventos-list">
-                                                <?php if (isset($eventos_cliente) && $eventos_cliente->num_rows > 0): ?>
+                                        <?php if (isset($eventos_cliente) && $eventos_cliente->num_rows > 0): ?>
+                                            <div class="info-box">
+                                                <h3 class="box-title">Últimos Eventos</h3>
+                                                <div class="eventos-list">
                                                     <?php while ($evento = $eventos_cliente->fetch_assoc()): ?>
                                                         <div class="evento-item">
                                                             <div class="row">
@@ -232,17 +232,15 @@ $pageTitle = "Detalles del Cliente";
                                                                     <?php echo generarEstadoEvento($evento['estado_evento']); ?>
                                                                 </div>
                                                                 <div class="col-md-2">
-                                                                    <a href="ver_evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-info btn-sm">Ver Detalles</a>
+                                                                    <a href="ver_evento.php?id=<?php echo $evento['id']; ?>"
+                                                                        class="btn btn-info btn-sm">Ver Detalles</a>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     <?php endwhile; ?>
-                                                <?php else: ?>
-                                                    <p>No hay eventos registrados para este cliente.</p>
-                                                <?php endif; ?>
+                                                </div>
                                             </div>
-                                        </div>
-
+                                        <?php endif; ?>
                                         <!-- Botones de Acción -->
                                         <div class="form-actions">
                                             <div class="row">
