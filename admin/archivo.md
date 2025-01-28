@@ -59,8 +59,8 @@
 - [x] 🖼️ Mejorar interfaz: Algunos botones tiene problemas con las imágenes
 
 ## Visualización de Giras (Ver)
-- [ ] 📋 Crear Tablas: Mostrar todos las giras en una tabla para poder editar y ver cuanta cantidad de eventos tienen
-- [ ] 📝 Crear editor de giras como popup
+- [x] 📋 Crear Tablas: Mostrar todos las giras en una tabla para poder editar y ver cuanta cantidad de eventos tienen
+- [x] 📝 Crear editor de giras como popup
 
 ## Visualización de Eventos (Ver)
 - [x] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
