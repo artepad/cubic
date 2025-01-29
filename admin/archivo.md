@@ -79,7 +79,6 @@
 - [x] 📅 Vista Principal: Desarrollo de interfaz con integración de eventos
 
 ## Función de Contratos (Crear DOC)
-- [ ] 👀 Genero: Tomar el genero de la bd y modificar el saludos en el documento.
 - [x] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
 - [x] 👥 Integración: Obtener datos de artistas desde base de datos
 - [x] ❓ Datos Vacíos: Implementar "N/A" para campos sin información

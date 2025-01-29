@@ -78,6 +78,7 @@ try {
                 : ($evento['nombres'] . ' ' . $evento['apellidos']),
             'nombres' => $evento['nombres'],
             'apellidos' => $evento['apellidos'],
+            'genero' => $evento['genero'],
             'es_encabezado_evento' => !empty($evento['encabezado_evento']),
             'ciudad' => $evento['ciudad_evento'],
             'fecha' => $evento['fecha_evento'],
@@ -385,7 +386,23 @@ class QuoteGenerator
         );
         $section->addTextBreak(1);
 
-        $saludo = $this->formData['es_encabezado_evento'] ? 'Señores(as):' : 'Señor(a):';
+        // Determinar el saludo basado en el género y si es encabezado de evento
+        if ($this->formData['es_encabezado_evento']) {
+            $saludo = 'Señores(as):';
+        } else {
+            // Verificar el género del cliente
+            $genero = isset($this->formData['genero']) ? $this->formData['genero'] : '';
+            switch ($genero) {
+                case 'Femenino':
+                    $saludo = 'Señora:';
+                    break;
+                case 'Masculino':
+                    $saludo = 'Señor:';
+                    break;
+                default:
+                    $saludo = 'Señor(a):';
+            }
+        }
         $section->addText($saludo, 'subtitleStyle', ['alignment' => Jc::LEFT]);
         $section->addText(
             htmlspecialchars($this->formData['encabezado']),
@@ -974,6 +991,7 @@ class DatabaseConnection
                 e.*,
                 COALESCE(c.nombres, '') as nombres,
                 COALESCE(c.apellidos, '') as apellidos,
+                COALESCE(c.genero, '') as genero,
                 COALESCE(c.rut, '') as rut_cliente,
                 COALESCE(c.correo, '') as correo,
                 COALESCE(c.celular, '') as celular,
@@ -1236,6 +1254,7 @@ try {
                 : ($evento['nombres'] . ' ' . $evento['apellidos']),
             'nombres' => $evento['nombres'],
             'apellidos' => $evento['apellidos'],
+            'genero' => $evento['genero'],
             'es_encabezado_evento' => !empty($evento['encabezado_evento']),
             'ciudad' => $evento['ciudad_evento'],
             'fecha' => $evento['fecha_evento'],
