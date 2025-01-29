@@ -64,7 +64,6 @@
 - [x] 📝 Crear editor de giras como popup
 
 ## Visualización de Eventos (Ver)
-- [ ] 👀 Ruta: Cambiar el nombre de la ruta donde se suben los documentos adjuntos a "Docs".
 - [x] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
 - [x] 💰 Valores: Mostrar precio sin IVA y renombrar campo a "Valor Total"
 - [x] 📎 Documentos: Sistema de archivos adjuntos implementado
@@ -84,7 +83,7 @@
 - [x] ❓ Datos Vacíos: Implementar "N/A" para campos sin información
 
 ## Función de Cotizaciones (Crear DOC)
-- [ ] 👀 Genero: Tomar el genero de la bd y modificar el saludos en el documento.
+- [x] 👀 Genero: Tomar el genero de la bd y modificar el saludos en el documento.
 - [x] 📄 Nomenclatura: Optimizar sistema de nombres de documentos
 - [x] 👥 Datos de Artista: Integrar nombre y descripción desde base de datos
 - [x] 🖼️ Imágenes: Incorporar fotografías desde base de datos

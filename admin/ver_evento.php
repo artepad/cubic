@@ -144,6 +144,38 @@ $pageTitle = "Detalles del Evento";
             align-items: center;
             flex-wrap: wrap;
         }
+
+        .btn-download {
+            color: #fff !important;
+        }
+
+        .btn-download i {
+            color: #fff !important;
+        }
+
+        .btn i {
+            line-height: 1;
+            vertical-align: middle;
+        }
+
+        .text-white {
+            color: #fff !important;
+        }
+
+        /* Mejora la apariencia de los botones de acción */
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 3px;
+        }
+
+        /* Añade un efecto hover suave */
+        .btn-download:hover {
+            background-color: #31b0d5;
+            border-color: #269abc;
+            opacity: 0.9;
+        }
     </style>
 </head>
 
@@ -348,9 +380,9 @@ $pageTitle = "Detalles del Evento";
                                                                             <td><?php echo date('d/m/Y H:i', strtotime($archivo['fecha_subida'])); ?></td>
                                                                             <td class="text-center">
                                                                                 <a href="descargar_archivo.php?id=<?php echo $archivo['id']; ?>"
-                                                                                    class="btn btn-info btn-sm m-r-5"
+                                                                                    class="btn btn-info btn-sm m-r-5 btn-download"
                                                                                     title="Descargar">
-                                                                                    <i class="fa fa-download"></i>
+                                                                                    <i class="fa fa-download text-white"></i>
                                                                                 </a>
                                                                                 <button type="button"
                                                                                     class="btn btn-danger btn-sm eliminar-archivo"
