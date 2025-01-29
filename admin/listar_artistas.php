@@ -175,18 +175,28 @@ $pageTitle = "Lista de Artistas";
                                                 <th>Nombre</th>
                                                 <th>Género Musical</th>
                                                 <th>Descripción</th>
+                                                <th>Presentación</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php while ($row = $result_artistas->fetch_assoc()): ?>
                                                 <tr>
                                                     <td>
-                                                        <a href='ver_artista.php?id=<?php echo $row['id']; ?>' class='btn btn-info btn-sm' title='Ver Artista'><i class='fa fa-eye'></i></a>
-                                                        <a href='ingreso_artista.php?id=<?php echo $row['id']; ?>' class='btn btn-warning btn-sm' title='Editar'><i class='fa fa-pencil'></i></a>
+                                                        <a href='ver_artista.php?id=<?php echo $row['id']; ?>' class='btn btn-info btn-sm' title='Ver Artista'>
+                                                            <i class='fa fa-eye'></i>
+                                                        </a>
+                                                        <a href='ingreso_artista.php?id=<?php echo $row['id']; ?>' class='btn btn-warning btn-sm' title='Editar'>
+                                                            <i class='fa fa-pencil'></i>
+                                                        </a>
                                                     </td>
                                                     <td><?php echo htmlspecialchars($row['nombre']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['genero_musical']); ?></td>
-                                                    <td><?php echo htmlspecialchars(substr($row['descripcion'], 0, 100)) . '...'; ?></td>
+                                                    <td title="<?php echo htmlspecialchars($row['descripcion']); ?>">
+                                                        <?php echo htmlspecialchars(substr($row['descripcion'], 0, 100)) . (strlen($row['descripcion']) > 100 ? '...' : ''); ?>
+                                                    </td>
+                                                    <td title="<?php echo htmlspecialchars($row['presentacion']); ?>">
+                                                        <?php echo htmlspecialchars(substr($row['presentacion'], 0, 100)) . (strlen($row['presentacion']) > 100 ? '...' : ''); ?>
+                                                    </td>
                                                 </tr>
                                             <?php endwhile; ?>
                                         </tbody>
@@ -201,7 +211,7 @@ $pageTitle = "Lista de Artistas";
                             <div class="custom-pagination">
                                 <?php
                                 $rango = 2; // Número de páginas a mostrar antes y después de la página actual
-                                
+
                                 for ($i = max(1, $paginaActual - $rango); $i <= min($totalPaginas, $paginaActual + $rango); $i++) {
                                     if ($i == $paginaActual) {
                                         echo "<span class='page-number active'>$i</span>";
