@@ -2,6 +2,7 @@
 # 🎯 Tareas Pendientes en Cubic
 
 ##  Tabla Panel de Control
+- [x] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📈 Ampliación de Visualización: Incrementar límite de eventos mostrados de 10 a 50
 - [x] 🔍 Mejora del Buscador: Implementación y corrección del filtro en tabla principal
 - [x] ⏱️ Gestión de Horarios: Implementar texto "Por definir" en campos de hora vacíos
@@ -63,6 +64,7 @@
 - [x] 📝 Crear editor de giras como popup
 
 ## Visualización de Eventos (Ver)
+- [ ] 👀 Ruta: Cambiar el nombre de la ruta donde se suben los documentos adjuntos a "Docs".
 - [x] 🖼️ Corrección de Imágenes: Resolver problema con documentos de cotización
 - [x] 💰 Valores: Mostrar precio sin IVA y renombrar campo a "Valor Total"
 - [x] 📎 Documentos: Sistema de archivos adjuntos implementado
@@ -74,7 +76,6 @@
 - [x] 📋 Cotizaciones: Resolución de problemas en creación
 
 ## Visualización de Calendario (Ver)
-- [ ] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📅 Vista Principal: Desarrollo de interfaz con integración de eventos
 
 ## Función de Contratos (Crear DOC)
