@@ -7,27 +7,21 @@ require_once 'vendor/tecnickcom/tcpdf/tcpdf.php';
 session_start();
 checkAuthentication();
 
-// Crear nueva instancia de TCPDF
 class MYPDF extends TCPDF {
-    // Cabecera de página
     public function Header() {
-        // Logo
         $image_file = K_PATH_IMAGES.'logo.jpg';
         if(file_exists($image_file)) {
             $this->Image($image_file, 10, 10, 30, '', 'JPG', '', 'T', false, 300, '', false, false, 0, false, false, false);
         }
         
-        // Título
         $this->SetFont('helvetica', 'B', 16);
         $this->Cell(0, 15, 'Itinerario de Eventos', 0, false, 'C', 0, '', 0, false, 'M', 'M');
         
-        // Fecha de generación
         $this->SetFont('helvetica', 'I', 8);
         $this->SetXY(10, 20);
         $this->Cell(0, 10, 'Generado el: ' . date('d/m/Y H:i'), 0, false, 'R', 0, '', 0, false, 'T', 'M');
     }
 
-    // Pie de página
     public function Footer() {
         $this->SetY(-15);
         $this->SetFont('helvetica', 'I', 8);
@@ -57,7 +51,7 @@ $pdf->AddPage();
 // Establecer fuente
 $pdf->SetFont('helvetica', '', 10);
 
-// Consulta SQL para obtener eventos activos
+// Consulta SQL mejorada para obtener eventos activos con nombre de artista
 $sql = "SELECT e.*, a.nombre as nombre_artista 
         FROM eventos e 
         LEFT JOIN artistas a ON e.artista_id = a.id
@@ -66,36 +60,70 @@ $sql = "SELECT e.*, a.nombre as nombre_artista
 
 $result = $conn->query($sql);
 
-// Crear tabla
-$html = '<table border="1" cellpadding="5">
+// Definir el ancho de las columnas para mejor alineación
+$html = '<style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                table-layout: fixed;
+            }
+            td, th {
+                border: 1px solid #000;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding: 6px 4px;
+            }
+            thead tr {
+                background-color: #f5f5f5;
+            }
+         </style>
+         <table cellpadding="0" cellspacing="0">
             <thead>
-                <tr style="background-color: #f5f5f5;">
-                    <th width="20%"><b>Fecha</b></th>
-                    <th width="15%"><b>Hora</b></th>
-                    <th width="25%"><b>Ciudad</b></th>
-                    <th width="40%"><b>Evento</b></th>
+                <tr>
+                    <th width="20%" align="center" style="font-weight: bold; font-size: 11px;">Fecha</th>
+                    <th width="20%" align="center" style="font-weight: bold; font-size: 11px;">Hora</th>
+                    <th width="20%" align="center" style="font-weight: bold; font-size: 11px;">Ciudad</th>
+                    <th width="20%" align="center" style="font-weight: bold; font-size: 11px;">Evento</th>
+                    <th width="20%" align="center" style="font-weight: bold; font-size: 11px;">Artista</th>
                 </tr>
             </thead>
             <tbody>';
 
-// Agregar datos a la tabla
+// Agregar datos a la tabla con mejor formato
 while ($evento = $result->fetch_assoc()) {
     $fecha = date('d/m/Y', strtotime($evento['fecha_evento']));
     $hora = $evento['hora_evento'] ? date('H:i', strtotime($evento['hora_evento'])) : 'Por definir';
     $ciudad = htmlspecialchars($evento['ciudad_evento']);
     $nombreEvento = htmlspecialchars($evento['nombre_evento']);
+    $nombreArtista = htmlspecialchars($evento['nombre_artista'] ?: 'Por confirmar');
     
-    $html .= "<tr>
-                <td>{$fecha}</td>
-                <td>{$hora}</td>
-                <td>{$ciudad}</td>
-                <td>{$nombreEvento}</td>
-              </tr>";
+    // Preparar los datos para evitar saltos de línea
+    $nombreEvento = str_replace(' ', '&nbsp;', $nombreEvento);
+    $nombreArtista = str_replace(' ', '&nbsp;', $nombreArtista);
+    $ciudad = str_replace(' ', '&nbsp;', $ciudad);
+
+    $html .= sprintf(
+        '<tr>
+            <td align="center" style="font-size: 10px;">%s</td>
+            <td align="center" style="font-size: 10px;">%s</td>
+            <td align="center" style="font-size: 10px;">%s</td>
+            <td align="left" style="font-size: 10px;">%s</td>
+            <td align="left" style="font-size: 10px;">%s</td>
+        </tr>',
+        $fecha,
+        $hora,
+        $ciudad,
+        $nombreEvento,
+        $nombreArtista
+    );
 }
 
 $html .= '</tbody></table>';
 
-// Escribir la tabla HTML
+// Ajustar el estilo de la tabla
 $pdf->writeHTML($html, true, false, true, false, '');
 
 // Cerrar y generar el PDF
