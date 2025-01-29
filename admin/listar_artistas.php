@@ -133,6 +133,25 @@ $pageTitle = "Lista de Artistas";
         .alert i {
             margin-right: 8px;
         }
+
+
+
+        /* Añade esto a tu archivo CSS o en la sección <style> del HTML */
+.btn {
+    margin-right: 1px; /* Espacio entre botones */
+}
+
+/* Si los botones están dentro de la celda de la tabla */
+td .btn {
+    margin-bottom: 0;
+    display: inline-block;
+}
+
+/* Para asegurar que la celda de acciones tenga suficiente espacio */
+td:first-child {
+    min-width: 10px; /* Ajusta este valor según necesites */
+    white-space: nowrap;
+}
     </style>
 </head>
 

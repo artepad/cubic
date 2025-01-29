@@ -127,7 +127,8 @@ $html .= '</tbody></table>';
 $pdf->writeHTML($html, true, false, true, false, '');
 
 // Cerrar y generar el PDF
-$pdf->Output('itinerario_eventos.pdf', 'D');
+$fecha_actual = date('d-m-Y');
+$pdf->Output('Itinerario Eventos ' . $fecha_actual . '.pdf', 'D');
 
 // Cerrar la conexión a la base de datos
 $conn->close();
