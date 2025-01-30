@@ -13,6 +13,9 @@ $totalEventosActivos = getTotalEventosConfirmadosActivos($conn);
 $totalEventosAnioActual = getTotalEventos($conn);
 $totalArtistas = getTotalArtistas($conn);
 
+$sqlGiras = "SELECT id, nombre FROM giras ORDER BY fecha_creacion DESC";
+$resultGiras = $conn->query($sqlGiras);
+
 // Configuración de la paginación
 $registrosPorPagina = 50;
 $paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
@@ -21,10 +24,11 @@ $offset = ($paginaActual - 1) * $registrosPorPagina;
 
 // Construir la consulta base
 $baseQuery = "
-   SELECT e.*, c.nombres, c.apellidos, a.nombre as nombre_artista 
+    SELECT e.*, c.nombres, c.apellidos, a.nombre as nombre_artista, g.nombre as nombre_gira 
     FROM eventos e
     LEFT JOIN clientes c ON e.cliente_id = c.id
     LEFT JOIN artistas a ON e.artista_id = a.id
+    LEFT JOIN giras g ON e.gira_id = g.id
     WHERE 1=1
 ";
 
@@ -162,6 +166,40 @@ $pageTitle = "Listar Agenda";
         .label-info[href]:focus {
             background-color: #31b0d5;
         }
+
+        .filters-container {
+            display: flex;
+            gap: 15px;
+            flex-grow: 1;
+            max-width: 500px;
+            margin-left: 20px;
+        }
+
+        .filter-select {
+            min-width: 150px;
+            padding: 8px 12px;
+            border: 1px solid #e4e7ea;
+            border-radius: 3px;
+            box-shadow: none;
+            color: #565656;
+            height: 38px;
+            transition: all 300ms linear 0s;
+        }
+
+        .filter-select:focus {
+            border-color: #7ace4c;
+            box-shadow: none;
+            outline: 0 none;
+        }
+
+        @media (max-width: 767px) {
+            .filters-container {
+                margin-left: 0;
+                margin-top: 10px;
+                max-width: none;
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 
@@ -190,9 +228,18 @@ $pageTitle = "Listar Agenda";
                         <div class="white-box">
                             <div class="titulo-busqueda">
                                 <h3 class="box-title">Agenda de Eventos</h3>
-                                <div class="search-container">
-                                    <input type="text" id="searchInput" placeholder="Buscar evento..."
-                                        value="<?php echo htmlspecialchars($busqueda); ?>">
+                                <div class="filters-container">
+                                    <select class="filter-select" id="filterGira">
+                                        <option value="">Todas las giras</option>
+                                        <?php while ($gira = $resultGiras->fetch_assoc()): ?>
+                                            <option value="<?php echo $gira['id']; ?>">
+                                                <?php echo htmlspecialchars($gira['nombre']); ?>
+                                            </option>
+                                        <?php endwhile; ?>
+                                    </select>
+                                    <div class="search-container">
+                                        <input type="text" id="searchInput" placeholder="Buscar evento..." value="<?php echo htmlspecialchars($busqueda); ?>">
+                                    </div>
                                 </div>
                             </div>
 
@@ -212,6 +259,7 @@ $pageTitle = "Listar Agenda";
                                                 <th>Fecha</th>
                                                 <th>Hora</th>
                                                 <th>Cliente</th>
+                                                <th>Gira</th>
                                                 <th>Estado</th>
                                             </tr>
                                         </thead>
@@ -239,6 +287,9 @@ $pageTitle = "Listar Agenda";
                                                     <td><?php echo $evento['fecha_evento'] ? date('d/m/Y', strtotime($evento['fecha_evento'])) : 'Por definir'; ?></td>
                                                     <td><?php echo $evento['hora_evento'] ? date('H:i', strtotime($evento['hora_evento'])) : 'Por definir'; ?></td>
                                                     <td><?php echo htmlspecialchars($evento['nombres'] . ' ' . $evento['apellidos']); ?></td>
+                                                    <td data-gira-id="<?php echo $evento['gira_id'] ?? ''; ?>">
+                                                        <?php echo htmlspecialchars($evento['nombre_gira'] ?? 'Sin gira'); ?>
+                                                    </td>
                                                     <td><?php echo generarEstadoEvento($evento['estado_evento']); ?></td>
                                                 </tr>
                                             <?php endwhile; ?>
@@ -458,6 +509,53 @@ $pageTitle = "Listar Agenda";
                     table.destroy();
                 }
                 $('[data-toggle="tooltip"]').tooltip('dispose');
+            });
+            // Función para combinar los filtros de búsqueda y gira
+            function aplicarFiltros() {
+                var searchValue = $('#searchInput').val().toLowerCase();
+                var giraValue = $('#filterGira').val();
+
+                // Aplicar filtros a cada fila
+                $('#eventosTable tbody tr').each(function() {
+                    var $row = $(this);
+                    var mostrar = true;
+
+                    // Aplicar filtro de gira
+                    if (giraValue) {
+                        var giraId = $row.find('td:eq(7)').data('gira-id');
+                        if (giraId != giraValue) {
+                            mostrar = false;
+                        }
+                    }
+
+                    // Aplicar filtro de búsqueda
+                    if (searchValue && mostrar) {
+                        mostrar = false;
+                        $row.find('td').each(function() {
+                            if ($(this).text().toLowerCase().indexOf(searchValue) > -1) {
+                                mostrar = true;
+                                return false; // Salir del bucle each
+                            }
+                        });
+                    }
+
+                    // Mostrar u ocultar la fila
+                    $row.toggle(mostrar);
+                });
+            }
+
+
+            // Manejadores de eventos para los filtros
+            $('#filterGira').on('change', function() {
+                aplicarFiltros();
+            });
+
+            // Modificar el manejador existente del searchInput
+            $('#searchInput').off('keyup').on('keyup', function() {
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(function() {
+                    aplicarFiltros();
+                }, 300);
             });
         });
     </script>
