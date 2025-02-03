@@ -1,18 +1,24 @@
-# Sistema de Gestión de Eventos - Productora de Eventos
+# Sistema de Gestión de Eventos - Cubic
 
 ## 📋 Descripción
-Sistema web desarrollado en PHP para la gestión integral de eventos, diseñado específicamente para productoras de eventos. Permite administrar clientes, eventos, cotizaciones y seguimiento de producción en tiempo real.
+Sistema web especializado en la gestión integral de la industria del entretenimiento, desarrollado en PHP. Diseñado para optimizar las operaciones diarias de managers, representantes artísticos y productoras de eventos.
 
-## 🚀 Características Principales
-- Gestión de eventos y agenda
-- Administración de clientes
-- Sistema de cotizaciones automatizado
-- Seguimiento de estado de eventos
-- Panel de control con métricas
-- Generación de reportes
-- Sistema de autenticación y roles de usuario
+### 🎯 Objetivo Principal
+Proporcionar una plataforma centralizada para la administración eficiente de eventos, artistas y relaciones con clientes, facilitando la generación automatizada de documentación esencial y el seguimiento en tiempo real de shows.
 
-## 🔧 Requisitos del Sistema
+### 🚀 Características Principales
+- **Gestión de Eventos**: Seguimiento completo desde la planificación hasta la ejecución, incluyendo estado y agenda
+- **Administración de Artistas**: Perfiles detallados y gestión integral de representación artística
+- **Gestión de Clientes**: Base de datos centralizada con exportación en formato CSV
+- **Calendario Interactivo**: Visualización y seguimiento de eventos en tiempo real
+- **Documentación Automatizada**:
+  - Generación de contratos automatizada
+  - Generación de cotizaciones automatizada
+  - Generación de itinerarios en formato PDF
+- **Panel Administrativo**: Interface intuitiva para gestión de recursos
+- **Sistema de Autenticación**: Control de acceso y seguridad de la plataforma
+
+### 🔧 Requisitos del Sistema
 - PHP 7.4 o superior
 - MySQL 5.7 o superior
 - Servidor web Apache/Nginx
@@ -23,123 +29,106 @@ Sistema web desarrollado en PHP para la gestión integral de eventos, diseñado 
   - json
   - mbstring
 
-## 💻 Instalación
-
-1. Clonar el repositorio
-```bash
-git clone [URL_DEL_REPOSITORIO]
-cd sistema-eventos
+###  📁 Estructura del Proyecto
 ```
-
-2. Configurar la base de datos
-- Importar el archivo `database/schema.sql`
-- Copiar el archivo de configuración
-```bash
-cp config/config.example.php config/config.php
-```
-- Editar `config/config.php` con los datos de conexión a la base de datos
-
-3. Configurar el servidor web
-- Asegurar que el directorio del proyecto sea accesible por el servidor web
-- Configurar los permisos necesarios
-```bash
-chmod 755 -R /ruta/al/proyecto
-chmod 777 -R /ruta/al/proyecto/uploads
-```
-
-4. Acceder al sistema
-- URL: `http://tu-dominio/sistema-eventos`
-- Usuario por defecto: `admin`
-- Contraseña por defecto: `admin123`
-
-## 📁 Estructura del Proyecto
-```
-sistema-eventos/
+admin/
+├── assets/
+│   ├── bd/
+│   ├── bootstrap/
+│   ├── css/
+│   ├── img/
+│   ├── js/
+│   ├── less/
+│   └── plugins/
+│
 ├── config/
 │   ├── config.php
-│   └── database.php
+│   ├── paths.php
+│   └── test.php
+│
 ├── functions/
+│   ├── actualizar_evento.php
+│   ├── crear_evento.php
 │   ├── functions.php
-│   ├── auth_functions.php
-│   └── event_functions.php
+│   ├── obtener_cliente.php
+│   ├── obtener_eventos_calendario.php
+│   ├── plantilla.php
+│   ├── plantilla3.php
+│   └── procesar_artista.php
+│
 ├── includes/
-│   ├── header.php
 │   ├── footer.php
+│   ├── head.php
+│   ├── header.php
 │   ├── nav.php
+│   ├── scripts.php
 │   └── sidebar.php
-├── assets/
-│   ├── css/
-│   ├── js/
-│   └── img/
+│
+├── logs/
 ├── uploads/
-├── database/
-│   └── schema.sql
-└── index.php
+└── vendor/
+    ├── .htaccess
+    ├── archivo.md
+    ├── cambiar_estado.php
+    ├── composer.json
+    ├── composer.lock
+    ├── configuracion.php
+    ├── descargar_archivo.php
+    ├── eliminar_archivo.php
+    ├── eliminar_cliente.php
+    ├── eliminar_evento.php
+    ├── exportar_clientes.php
+    ├── generar_contrato.php
+    ├── generar_cotizacion.php
+    ├── generar_itinerario.php
+    ├── index.php
+    ├── ingreso_artista.php
+    ├── ingreso_cliente.php
+    ├── ingreso_evento.php
+    ├── ingreso_giras.php
+    ├── listar_agenda.php
+    ├── listar_artistas.php
+    ├── listar_calendario.php
+    ├── listar_clientes.php
+    ├── login.php
+    ├── logout.php
+    ├── subir_archivos.php
+    ├── ver_artista.php
+    ├── ver_cliente.php
+    ├── ver_evento.php
+    └── verificar_eventos.php
 ```
 
-## 🔐 Seguridad
-- Implementación de consultas preparadas para prevenir SQL Injection
-- Escape de salida HTML para prevenir XSS
-- Control de acceso basado en roles
-- Validación de entrada de datos
-- Protección contra CSRF
-- Sesiones seguras
+###  📋 Descripción del Sistema
 
-## 📊 Módulos del Sistema
-1. **Gestión de Eventos**
-   - Creación y edición de eventos
-   - Seguimiento de estado
-   - Calendario de eventos
-   - Asignación de recursos
+Este sistema está organizado en los siguientes componentes principales:
 
-2. **Gestión de Clientes**
-   - Base de datos de clientes
-   - Historial de eventos por cliente
-   - Información de contacto
-   - Preferencias y notas
+### 🔧 Módulos Core
+- 📅 Gestión de eventos
+- 🎭 Gestión de artistas
+- 👥 Gestión de clientes
+- 📄 Generación de documentos
+- 🔐 Sistema de autenticación
 
-3. **Cotizaciones**
-   - Generación automática
-   - Plantillas personalizables
-   - Historial de versiones
-   - Exportación a PDF
+### 📂 Directorios Principales
+- 🎨 `assets/`: Recursos estáticos (CSS, JS, imágenes)
+- ⚙️ `config/`: Archivos de configuración
+- 💻 `functions/`: Lógica de negocio
+- 🧩 `includes/`: Componentes reutilizables
+- 📦 `vendor/`: Dependencias y archivos principales
 
-4. **Reportes**
-   - Eventos por período
-   - Rendimiento financiero
-   - Estadísticas de clientes
-   - Análisis de recursos
+### ⚡ Funcionalidades
+- 🔑 Sistema de login/logout
+- 📝 CRUD de eventos, artistas y clientes
+- 📊 Generación de documentos (contratos, cotizaciones, itinerarios)
+- 📁 Gestión de archivos
+- 📅 Visualización de calendario
+- 📤 Exportación de datos
 
-## 🛠️ Tecnologías Utilizadas
-- PHP 7.4
-- MySQL
-- JavaScript/jQuery
-- Bootstrap
-- DataTables
-- Font Awesome
-- Chart.js
-
-## 📝 Mantenimiento
-Para mantener el sistema actualizado y funcionando correctamente:
-1. Realizar respaldos regulares de la base de datos
-2. Mantener actualizado PHP y sus extensiones
-3. Revisar los logs del sistema periódicamente
-4. Actualizar las dependencias cuando sea necesario
-
-## 🤝 Contribución
-Si deseas contribuir al proyecto:
-1. Haz un Fork del repositorio
-2. Crea una nueva rama para tu característica
-3. Envía un Pull Request
-
-## 📄 Licencia
-Este proyecto está bajo la Licencia [TU_LICENCIA] - ver el archivo LICENSE.md para más detalles
 
 ## 👥 Soporte
 Para soporte y consultas:
-- Email: [TU_EMAIL]
-- Issues: GitHub Issues
-- Documentación: [URL_DOCUMENTACION]
+- 📧 Email: mi.saavedra.q@gmail.com
 
-## ⚙️ Configuración Adicional
-Para configuraciones específicas o personalizaciones, consultar la documentación detallada en la wiki del proyecto.
+
+
