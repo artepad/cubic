@@ -470,23 +470,23 @@ $conn->close();
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="text-muted">Gira:</label>
-                                    <div id="resumen_gira" class="font-weight-bold"></div>
+                                    <div id="resumen_gira" style="font-weight: 700;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Artista:</label>
-                                    <div id="resumen_artista" class="font-weight-bold"></div>
+                                    <div id="resumen_artista" style="font-weight: 700;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Cliente:</label>
-                                    <div id="resumen_cliente" class="font-weight-bold"></div>
+                                    <div id="resumen_cliente" style="font-weight: 700;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Nombre Evento:</label>
-                                    <div id="resumen_nombre_evento" class="font-weight-bold"></div>
+                                    <div id="resumen_nombre_evento" style="font-weight: 700;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Tipo:</label>
-                                    <div id="resumen_tipo" class="font-weight-bold"></div>
+                                    <div id="resumen_tipo" style="font-weight: 700;"></div>
                                 </div>
                             </div>
 
@@ -494,19 +494,19 @@ $conn->close();
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="text-muted">Fecha y Hora:</label>
-                                    <div id="resumen_fecha_hora" class="font-weight-bold"></div>
+                                    <div id="resumen_fecha_hora" style="font-weight: 700;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Lugar:</label>
-                                    <div id="resumen_lugar" class="font-weight-bold"></div>
+                                    <div id="resumen_lugar" style="font-weight: 700;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Valor:</label>
-                                    <div id="resumen_valor" class="font-weight-bold text-success"></div>
+                                    <div id="resumen_valor" style="font-weight: 700; color: #28a745;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="text-muted">Servicios:</label>
-                                    <div id="resumen_servicios" class="font-weight-bold"></div>
+                                    <div id="resumen_servicios" style="font-weight: 700;"></div>
                                 </div>
                             </div>
                         </div>
@@ -572,13 +572,21 @@ $conn->close();
             function formatDateTime(date, time) {
                 if (!date) return 'Fecha no especificada';
 
-                const options = {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                };
-                const formattedDate = new Date(date).toLocaleDateString('es-CL', options);
+                // Crear array de nombres de días y meses en español
+                const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+                // Parsear la fecha manualmente
+                const [year, month, day] = date.split('-');
+
+                // Crear objeto Date solo para obtener el día de la semana
+                const tempDate = new Date(year, month - 1, day);
+                const diaSemana = diasSemana[tempDate.getDay()];
+                const mes = meses[parseInt(month) - 1];
+
+                // Formatear la fecha manualmente
+                const formattedDate = `${diaSemana} ${day} de ${mes} de ${year}`;
+
                 return time ? `${formattedDate} a las ${time} hrs.` : formattedDate;
             }
 
