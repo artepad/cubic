@@ -3,7 +3,7 @@
 
 
 ##  Tabla Panel de Control (Index)
-- [ ] 📋 Programar BD: crear un script en sql para cambiar estado del evento
+- [x] 📋 Programar BD: crear un script en sql para cambiar estado del evento
 - [x] 📋 Control de versiones: Progrmar un controlador de versiones.
 - [x] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📈 Ampliación de Visualización: Incrementar límite de eventos mostrados de 10 a 50

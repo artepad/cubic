@@ -48,18 +48,22 @@ INSERT INTO giras (nombre, fecha_creacion)
 VALUES ('Gira Verano 2025', '2025-01-15 10:00:00');
 
 
--- Evento de ejemplo
-INSERT INTO eventos (cliente_id, gira_id, artista_id, nombre_evento, fecha_evento, hora_evento, ciudad_evento, lugar_evento, valor_evento, tipo_evento, encabezado_evento, estado_evento, hotel, traslados, viaticos) VALUES
-(1, 1, 1, 'Festival Verano Temuco', '2025-02-01', '21:00:00', 'Temuco', 'Estadio German Becker', 18500000, 'Festival', 'Gran Festival de Verano con Agrupación Marilyn', 'Confirmado', 'Si', 'Si', 'Si'),
-(2, 1, 2, 'Noche de Cumbia Valparaíso', '2025-02-03', '22:00:00', 'Valparaíso', 'Muelle Barón', 17850000, 'Show Privado', 'Flor Alvarez en Valparaíso', 'Confirmado', 'Si', 'Si', 'Si'),
-(3, 1, 1, 'Carnaval Arica', '2025-02-05', '20:00:00', 'Arica', 'Plaza Colón', 19500000, 'Festival', 'Carnaval con Agrupación Marilyn', 'Confirmado', 'Si', 'Si', 'Si'),
-(4, 1, 2, 'Festival del Norte', '2025-02-07', '21:30:00', 'Iquique', 'Estadio Tierra de Campeones', 22000000, 'Festival', 'Flor Alvarez en Festival del Norte', 'Confirmado', 'Si', 'Si', 'Si'),
-(5, 1, 1, 'Verano Antofagasta', '2025-02-09', '21:00:00', 'Antofagasta', 'Estadio Regional', 20500000, 'Festival', 'Agrupación Marilyn en Antofagasta', 'Confirmado', 'Si', 'Si', 'Si'),
-(6, 1, 2, 'Cumbia en La Serena', '2025-02-11', '22:00:00', 'La Serena', 'Parque Pedro de Valdivia', 16800000, 'Show Municipal', 'Flor Alvarez en La Serena', 'Confirmado', 'Si', 'Si', 'Si'),
-(7, 1, 1, 'Festival de Viña', '2025-02-14', '22:30:00', 'Viña del Mar', 'Quinta Vergara', 24500000, 'Festival', 'Agrupación Marilyn en Viña', 'Confirmado', 'Si', 'Si', 'Si'),
-(8, 1, 1, 'Verano Rancagua', '2025-02-18', '20:30:00', 'Rancagua', 'Medialuna Monumental', 17500000, 'Show Municipal', 'Agrupación Marilyn en Rancagua', 'Confirmado', 'Si', 'Si', 'Si'),
-(9, 1, 2, 'Festival Talca', '2025-02-20', '21:00:00', 'Talca', 'Estadio Fiscal', 15800000, 'Festival', 'Flor Alvarez en Festival Talca', 'Confirmado', 'Si', 'Si', 'Si'),
-(10, 1, 2, 'Verano Concepción', '2025-02-24', '22:00:00', 'Concepción', 'Estadio Ester Roa', 21500000, 'Festival', 'Flor Alvarez en Concepción', 'Confirmado', 'Si', 'Si', 'Si'),
-(11, 1, 1, 'Festival Temuco', '2025-02-26', '21:00:00', 'Temuco', 'Gimnasio Olímpico', 19800000, 'Festival', 'Agrupación Marilyn en Festival Temuco', 'Confirmado', 'Si', 'Si', 'Si'),
-(12, 1, 2, 'Noche de Cumbia Valdivia', '2025-02-28', '21:30:00', 'Valdivia', 'Coliseo Municipal', 18500000, 'Show Municipal', 'Flor Alvarez en Valdivia', 'Confirmado', 'Si', 'Si', 'Si'),
-(13, 1, 1, 'Gran Final Puerto Montt', '2025-02-28', '22:00:00', 'Puerto Montt', 'Arena Puerto Montt', 24000000, 'Festival', 'Agrupación Marilyn Cierre de Gira', 'Confirmado', 'Si', 'Si', 'Si');
+INSERT INTO eventos (
+    cliente_id, gira_id, artista_id, nombre_evento, fecha_evento, 
+    hora_evento, ciudad_evento, lugar_evento, valor_evento, 
+    tipo_evento, encabezado_evento, estado_evento, hotel, 
+    traslados, viaticos
+) VALUES 
+(1, 1, 1, 'Festival Verano Temuco', '2025-02-15', '21:00:00', 'Temuco', 'Estadio German Becker', 18500000, 'Municipal', 'Gran Festival de Verano con Agrupación Marilyn', 'Confirmado', 'Si', 'No', 'Si'),
+(2, 1, 2, 'Noche de Cumbia Valparaíso', '2025-02-15', '22:00:00', 'Valparaíso', 'Muelle Barón', 17850000, 'Privado', 'Flor Alvarez en Valparaíso', 'Confirmado', 'Si', 'Si', 'No'),
+(3, 1, 1, 'Carnaval Arica', '2025-02-16', '20:00:00', 'Arica', 'Plaza Colón', 19500000, 'Municipal', 'Carnaval con Agrupación Marilyn', 'Confirmado', 'No', 'Si', 'Si'),
+(4, 1, 2, 'Festival del Norte', '2025-02-22', '21:30:00', 'Iquique', 'Estadio Tierra de Campeones', 22000000, 'Municipal', 'Flor Alvarez en Festival del Norte', 'Confirmado', 'Si', 'Si', 'Si'),
+(5, 1, 1, 'Verano Antofagasta', '2025-02-22', '21:00:00', 'Antofagasta', 'Estadio Regional', 20500000, 'Municipal', 'Agrupación Marilyn en Antofagasta', 'Confirmado', 'Si', 'No', 'Si'),
+(6, 1, 2, 'Cumbia en La Serena', '2025-02-23', '22:00:00', 'La Serena', 'Parque Pedro de Valdivia', 16800000, 'Municipal', 'Flor Alvarez en La Serena', 'Confirmado', 'Si', 'Si', 'No'),
+(7, 1, 1, 'Festival de Viña', '2025-03-01', '22:30:00', 'Viña del Mar', 'Quinta Vergara', 24500000, 'Municipal', 'Agrupación Marilyn en Viña', 'Confirmado', 'No', 'Si', 'Si'),
+(8, 1, 1, 'Verano Rancagua', '2025-03-02', '20:30:00', 'Rancagua', 'Medialuna Monumental', 17500000, 'Municipal', 'Agrupación Marilyn en Rancagua', 'Confirmado', 'Si', 'Si', 'No'),
+(9, 1, 2, 'Festival Talca', '2025-03-08', '21:00:00', 'Talca', 'Estadio Fiscal', 15800000, 'Privado', 'Flor Alvarez en Festival Talca', 'Confirmado', 'Si', 'No', 'Si'),
+(10, 1, 2, 'Verano Concepción', '2025-03-08', '22:00:00', 'Concepción', 'Estadio Ester Roa', 21500000, 'Municipal', 'Flor Alvarez en Concepción', 'Confirmado', 'Si', 'Si', 'Si'),
+(11, 1, 1, 'Festival Temuco', '2025-03-09', '21:00:00', 'Temuco', 'Gimnasio Olímpico', 19800000, 'Privado', 'Agrupación Marilyn en Festival Temuco', 'Confirmado', 'No', 'Si', 'Si'),
+(12, 1, 2, 'Noche de Cumbia Valdivia', '2025-03-15', '21:30:00', 'Valdivia', 'Coliseo Municipal', 18500000, 'Municipal', 'Flor Alvarez en Valdivia', 'Confirmado', 'Si', 'Si', 'No'),
+(13, 1, 1, 'Gran Final Puerto Montt', '2025-03-15', '22:00:00', 'Puerto Montt', 'Arena Puerto Montt', 24000000, 'Municipal', 'Agrupación Marilyn Cierre de Gira', 'Confirmado', 'Si', 'No', 'Si');

@@ -155,3 +155,21 @@ CREATE TABLE evento_archivos (
     INDEX idx_evento_archivos (evento_id) COMMENT 'Índice para búsquedas por evento'
 ) ENGINE=InnoDB COMMENT='Tabla para almacenar referencias a archivos de eventos';
 
+
+
+SHOW VARIABLES LIKE 'event_scheduler';
+-- Si está OFF, activar con:
+SET GLOBAL event_scheduler = ON;
+
+DELIMITER //
+CREATE EVENT actualizar_estado_eventos
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP
+DO
+BEGIN
+   UPDATE eventos 
+   SET estado_evento = 'Finalizado'
+   WHERE estado_evento = 'Confirmado' 
+   AND fecha_evento < CURDATE();
+END //
+DELIMITER ;
