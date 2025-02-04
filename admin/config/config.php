@@ -1,16 +1,21 @@
 <?php
+// Configuración de versión
+define('APP_VERSION', '1.0.0');
+
 // Detectar el ambiente basado en el hostname del servidor
 $environment = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['HTTP_HOST'] === '127.0.0.1') ? 'local' : 'production';
 
 // Configuraciones para cada ambiente
 $config = [
     'local' => [
+        'version' => APP_VERSION,
         'host' => 'localhost',
         'user' => 'root',
         'pass' => '',
         'name' => 'schaaf_producciones'
     ],
     'production' => [
+        'version' => APP_VERSION,
         'host' => '162.241.61.65',
         'user' => 'schaafpr_admin',
         'pass' => 'entrar-03',
@@ -68,7 +73,7 @@ if (!file_exists(EVENTOS_UPLOAD_DIR)) {
 // Obtener la conexión
 $conn = getDbConnection();
 
-// Debug info (puedes comentar o eliminar esto en producción)
+// Debug info
 if ($environment === 'local') {
     error_log("Ambiente actual: " . $environment);
     error_log("Base de datos: " . DB_NAME);

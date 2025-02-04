@@ -1,7 +1,10 @@
 
-# 🎯 Tareas Pendientes en Cubic
+# 🎯 TAREAS PENDIENTE CUBIC
 
-##  Tabla Panel de Control
+
+##  Tabla Panel de Control (Index)
+- [ ] 📋 Programar BD: crear un script en sql para cambiar estado del evento
+- [x] 📋 Control de versiones: Progrmar un controlador de versiones.
 - [x] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📈 Ampliación de Visualización: Incrementar límite de eventos mostrados de 10 a 50
 - [x] 🔍 Mejora del Buscador: Implementación y corrección del filtro en tabla principal
@@ -11,21 +14,26 @@
 - [x] 👀 Visualización: Implementación del sistema de visualización de eventos
 - [x] 🔢 Contador de Eventos: Optimización del sistema de conteo
 
+## Visualización de Artista (Ver)
+- [ ] ✏️ Edición: crear la edición  de artistas
+- [ ] 🗑️ Eliminación: Sistema de eliminación artistas
+- [x] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
+
+## Tabla de Clientes
+- [ ] ⬆️ Importar Clientes: crear botón para importar cliente en un de un archivo csv
+- [x] 📋 Ampliación de Registros: Incrementar límite de clientes mostrados de 10 a 50
+
+
 ## Tabla Agenda
-- [ ] 🔍 Optimización de Tabla: Implementar búsqueda avanzada y paginación
+- [x] 🔍 Optimización de Tabla: Implementar búsqueda avanzada y paginación
 - [x] ✔️ Estado de Consulta: Implementar estado para consultas de fechas por clientes
 - [x] 📋 Ampliación de Registros: Incrementar límite de eventos mostrados de 10 a 50
 - [x] ⏱️ Gestión de Horarios: Implementar texto "Por definir" en campos vacíos
 - [x] 📋 Información de Artistas: Expandir datos mostrados en tabla
 - [x] 🔄 Estados del Sistema: Corrección del sistema de cambios de estado
 
-
-## Tabla de Clientes
-- [x] 📋 Ampliación de Registros: Incrementar límite de clientes mostrados de 10 a 50
-
 ## Ing/edi de Artistas (Formulario)
 - [x] ➕ Registro Rápido de Artistas: Implementar botón de creación junto al selector
-
 
 ## Ing/edi de Eventos (Formulario)
 - [x] ➕ Registro Rápido de Artistas: Implementar botón de creación junto al selector
@@ -49,11 +57,6 @@
 
 ## Ing/edi de Artistas (Formulario)
 - [x] 📝 Formulario: Desarrollo del formulario para creación de artistas
-
-## Visualización de Artista (Ver)
-- [ ] ✏️ Edición: crear la edición  de artistas
-- [ ] 🗑️ Eliminación: Sistema de eliminación artistas
-- [x] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
 
 ## Visualización de Clientes (Ver)
 - [x] 🐛 Eventos Activos: Solo contar los evento que están con estado Confirmado
