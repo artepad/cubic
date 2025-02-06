@@ -1,3 +1,4 @@
+// file-upload.js
 class FileUploadManager {
     constructor(options = {}) {
         this.options = {
@@ -44,11 +45,6 @@ class FileUploadManager {
                 this.handleFile(e.target.files[0]);
             }
         });
-        
-        const removeButton = this.container.querySelector('.btn-remove');
-        if (removeButton) {
-            removeButton.addEventListener('click', () => this.removeFile());
-        }
     }
     
     handleFile(file) {
@@ -123,8 +119,10 @@ class FileUploadManager {
         }));
     }
 }
+
+// Inicialización y manejo del formulario
 document.addEventListener('DOMContentLoaded', () => {
-    // Primero inicializamos los manejadores de archivos
+    // Inicializar manejadores de archivos
     const managers = [
         new FileUploadManager({
             inputSelector: '#imagen_presentacion',
@@ -142,59 +140,92 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     ];
 
-    // Luego configuramos el manejador del formulario
+    // Configurar manejador del formulario
     const form = document.getElementById('artistaForm');
-    
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Mostrar loader
-            Swal.fire({
-                title: 'Guardando artista...',
-                text: 'Por favor espere',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
+
+            // Validar campos requeridos antes de enviar
+            const requiredFields = ['nombre', 'genero_musical', 'descripcion', 'presentacion'];
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
                 }
             });
 
+            if (!isValid) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de validación',
+                    text: 'Por favor complete todos los campos requeridos'
+                });
+                return;
+            }
+
             try {
+                // Mostrar loader
+                await Swal.fire({
+                    title: 'Procesando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
                 const formData = new FormData(form);
 
                 const response = await fetch('functions/procesar_artista.php', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
 
                 const data = await response.json();
 
                 if (data.success) {
-                    // Éxito
                     await Swal.fire({
                         icon: 'success',
                         title: '¡Éxito!',
-                        text: data.message || 'Artista guardado correctamente',
+                        text: data.message,
                         confirmButtonText: 'Ok'
                     });
                     
-                    // Redireccionar a la lista de artistas
-                    window.location.href = 'listar_artistas.php';
+                    // Redirección con pequeño delay
+                    setTimeout(() => {
+                        window.location.href = 'listar_artistas.php';
+                    }, 500);
                 } else {
-                    // Error con mensaje del servidor
-                    throw new Error(data.error || 'Error al guardar el artista');
+                    throw new Error(data.error || 'Error al procesar el formulario');
                 }
             } catch (error) {
                 console.error('Error:', error);
                 
-                // Mostrar error
-                Swal.fire({
+                await Swal.fire({
                     icon: 'error',
                     title: 'Error',
                     text: error.message || 'Ocurrió un error al procesar la solicitud',
                     footer: 'Por favor, intente nuevamente'
                 });
             }
+        });
+
+        // Remover clases de validación al escribir
+        form.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('is-invalid');
+            });
         });
     }
 });

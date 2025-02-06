@@ -268,20 +268,21 @@ $pageTitle = $modo === 'editar' ? "Editar Artista: " . htmlspecialchars($artista
                                                     <div class="col-md-9">
                                                         <div id="container_imagen_presentacion" class="custom-file-upload">
                                                             <?php if ($modo === 'editar' && !empty($artista['imagen_presentacion'])): ?>
-                                                                <div class="existing-image-container text-center">
-                                                                    <div class="image-wrapper">
-                                                                        <img src="<?php echo htmlspecialchars($artista['imagen_presentacion']); ?>"
-                                                                            alt="Imagen de presentación"
-                                                                            class="existing-image">
-                                                                    </div>
-                                                                    <div class="text-muted mt-2">Imagen actual</div>
+                                                                <div class="existing-image-container">
+                                                                    <img src="<?php echo htmlspecialchars($artista['imagen_presentacion']); ?>"
+                                                                        alt="Imagen actual"
+                                                                        class="existing-image">
                                                                 </div>
                                                             <?php endif; ?>
                                                             <input type="file" id="imagen_presentacion" name="imagen_presentacion" class="file-input" accept="image/*">
-                                                            <div class="file-label">
+                                                            <label for="imagen_presentacion" class="file-label">
                                                                 <i class="fa fa-cloud-upload"></i>
                                                                 <span>Arrastra aquí tu imagen o haz clic para seleccionar</span>
                                                                 <small class="text-muted d-block">Tamaño máximo: 10MB</small>
+                                                            </label>
+                                                            <div class="preview-container">
+                                                                <img id="preview_imagen" src="#" alt="Vista previa">
+                                                                <button type="button" class="btn-remove">×</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -295,26 +296,26 @@ $pageTitle = $modo === 'editar' ? "Editar Artista: " . htmlspecialchars($artista
                                                     <div class="col-md-9">
                                                         <div id="container_logo_artista" class="custom-file-upload">
                                                             <?php if ($modo === 'editar' && !empty($artista['logo_artista'])): ?>
-                                                                <div class="existing-image-container text-center">
-                                                                    <div class="image-wrapper">
-                                                                        <img src="<?php echo htmlspecialchars($artista['logo_artista']); ?>"
-                                                                            alt="Logo"
-                                                                            class="existing-image">
-                                                                    </div>
-                                                                    <div class="text-muted mt-2">Logo actual</div>
+                                                                <div class="existing-image-container">
+                                                                    <img src="<?php echo htmlspecialchars($artista['logo_artista']); ?>"
+                                                                        alt="Logo actual"
+                                                                        class="existing-image">
                                                                 </div>
                                                             <?php endif; ?>
                                                             <input type="file" id="logo_artista" name="logo_artista" class="file-input" accept="image/*">
-                                                            <div class="file-label">
+                                                            <label for="logo_artista" class="file-label">
                                                                 <i class="fa fa-cloud-upload"></i>
                                                                 <span>Arrastra aquí el logo o haz clic para seleccionar</span>
                                                                 <small class="text-muted d-block">Tamaño máximo: 10MB</small>
+                                                            </label>
+                                                            <div class="preview-container">
+                                                                <img id="preview_logo" src="#" alt="Vista previa">
+                                                                <button type="button" class="btn-remove">×</button>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <style>
                                                 .existing-image-container {
                                                     margin-bottom: 20px;

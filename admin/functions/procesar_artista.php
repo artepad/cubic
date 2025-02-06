@@ -1,5 +1,5 @@
 <?php
-// Control de buffer y errores
+// procesar_artista.php
 ob_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -41,11 +41,11 @@ function procesarImagen($file, $artista_folder, $prefix, $old_image = null) {
     }
 
     // Si no hay nuevo archivo y no hay imagen existente, retornar vacío
-    if (empty($file['tmp_name'])) {
+    if (empty($file['tmp_name']) && !$old_image) {
         return '';
     }
 
-    // Validar archivo
+    // Validaciones de archivo
     if ($file['error'] !== UPLOAD_ERR_OK) {
         throw new Exception("Error al subir el archivo: " . $file['error']);
     }
@@ -62,7 +62,7 @@ function procesarImagen($file, $artista_folder, $prefix, $old_image = null) {
         throw new Exception("Tipo de archivo no permitido");
     }
 
-    // Eliminar imagen anterior si existe
+    // Eliminar imagen anterior si existe y se está subiendo una nueva
     if ($old_image && file_exists('../' . $old_image)) {
         unlink('../' . $old_image);
     }
@@ -70,10 +70,8 @@ function procesarImagen($file, $artista_folder, $prefix, $old_image = null) {
     // Crear nombre de archivo único
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $filename = $prefix . '_' . uniqid() . '.' . $extension;
-    
-    // Ruta completa del archivo
     $filepath = $artista_folder . '/' . $filename;
-    
+
     // Mover archivo
     if (!move_uploaded_file($file['tmp_name'], $filepath)) {
         throw new Exception("Error al guardar el archivo");
@@ -89,148 +87,156 @@ try {
         throw new Exception('Método no permitido');
     }
 
-    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || 
-        $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
         throw new Exception('Token CSRF inválido');
     }
 
-    // Validar campos requeridos
+    // Validar y sanitizar campos
     $required_fields = ['nombre', 'genero_musical', 'descripcion', 'presentacion'];
+    $sanitized_data = [];
+    
     foreach ($required_fields as $field) {
-        if (empty($_POST[$field])) {
+        if (!isset($_POST[$field]) || trim($_POST[$field]) === '') {
             throw new Exception("El campo {$field} es requerido");
         }
+        $sanitized_data[$field] = htmlspecialchars(trim($_POST[$field]), ENT_QUOTES, 'UTF-8');
     }
 
-    // Determinar si es edición o creación
+    // Determinar modo de operación
     $modo_edicion = isset($_POST['artista_id']) && !empty($_POST['artista_id']);
+    $artista_id = $modo_edicion ? filter_var($_POST['artista_id'], FILTER_VALIDATE_INT) : null;
+
+    if ($modo_edicion && $artista_id === false) {
+        throw new Exception('ID de artista inválido');
+    }
+
     $conn->begin_transaction();
 
-    if ($modo_edicion) {
-        // Obtener información actual del artista
-        $stmt = $conn->prepare("SELECT * FROM artistas WHERE id = ?");
-        $stmt->bind_param("i", $_POST['artista_id']);
-        $stmt->execute();
-        $artista_actual = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
+    try {
+        if ($modo_edicion) {
+            // Verificar que el artista existe
+            $stmt = $conn->prepare("SELECT * FROM artistas WHERE id = ?");
+            $stmt->bind_param("i", $artista_id);
+            $stmt->execute();
+            $artista_actual = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
 
-        if (!$artista_actual) {
-            throw new Exception("Artista no encontrado");
-        }
+            if (!$artista_actual) {
+                throw new Exception("Artista no encontrado");
+            }
 
-        // Usar el directorio existente o crear uno nuevo si es necesario
-        $artista_folder = !empty($artista_actual['imagen_presentacion']) ? 
-            dirname('../' . $artista_actual['imagen_presentacion']) : 
-            ARTISTS_UPLOAD_PATH . '/' . strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $_POST['nombre'])) . '_' . time();
-        if (!is_dir($artista_folder)) {
-            $artista_slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $_POST['nombre'])) . '_' . time();
+            // Determinar el directorio del artista
+            $artista_folder = dirname('../' . $artista_actual['imagen_presentacion']);
+            if (!is_dir($artista_folder)) {
+                $artista_slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $sanitized_data['nombre'])) . '_' . time();
+                $artista_folder = ARTISTS_UPLOAD_PATH . '/' . $artista_slug;
+                createDirectory($artista_folder);
+            }
+
+            // Procesar imágenes
+            $imagen_presentacion = procesarImagen(
+                $_FILES['imagen_presentacion'], 
+                $artista_folder, 
+                'presentacion', 
+                $artista_actual['imagen_presentacion']
+            );
+            
+            $logo_artista = procesarImagen(
+                $_FILES['logo_artista'], 
+                $artista_folder, 
+                'logo', 
+                $artista_actual['logo_artista']
+            );
+
+            // Actualizar en la base de datos
+            $stmt = $conn->prepare("UPDATE artistas SET 
+                nombre = ?, 
+                genero_musical = ?, 
+                descripcion = ?, 
+                presentacion = ?, 
+                imagen_presentacion = ?, 
+                logo_artista = ? 
+                WHERE id = ?");
+
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $conn->error);
+            }
+
+            $stmt->bind_param("ssssssi", 
+                $sanitized_data['nombre'],
+                $sanitized_data['genero_musical'],
+                $sanitized_data['descripcion'],
+                $sanitized_data['presentacion'],
+                $imagen_presentacion,
+                $logo_artista,
+                $artista_id
+            );
+
+        } else {
+            // Crear directorio para nuevo artista
+            createDirectory(ARTISTS_UPLOAD_PATH);
+            $artista_slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $sanitized_data['nombre'])) . '_' . time();
             $artista_folder = ARTISTS_UPLOAD_PATH . '/' . $artista_slug;
             createDirectory($artista_folder);
+
+            // Procesar imágenes para nuevo artista
+            $imagen_presentacion = procesarImagen($_FILES['imagen_presentacion'], $artista_folder, 'presentacion');
+            $logo_artista = procesarImagen($_FILES['logo_artista'], $artista_folder, 'logo');
+
+            // Insertar en la base de datos
+            $stmt = $conn->prepare("INSERT INTO artistas 
+                (nombre, genero_musical, descripcion, presentacion, imagen_presentacion, logo_artista) 
+                VALUES (?, ?, ?, ?, ?, ?)");
+            
+            if (!$stmt) {
+                throw new Exception("Error al preparar la consulta: " . $conn->error);
+            }
+
+            $stmt->bind_param("ssssss", 
+                $sanitized_data['nombre'],
+                $sanitized_data['genero_musical'],
+                $sanitized_data['descripcion'],
+                $sanitized_data['presentacion'],
+                $imagen_presentacion,
+                $logo_artista
+            );
         }
 
-        // Procesar imágenes
-        $imagen_presentacion = procesarImagen(
-            $_FILES['imagen_presentacion'], 
-            $artista_folder, 
-            'presentacion', 
-            $artista_actual['imagen_presentacion']
-        );
+        if (!$stmt->execute()) {
+            throw new Exception("Error al " . ($modo_edicion ? "actualizar" : "guardar") . " el artista: " . $stmt->error);
+        }
+
+        $artista_id = $modo_edicion ? $artista_id : $stmt->insert_id;
+        $stmt->close();
         
-        $logo_artista = procesarImagen(
-            $_FILES['logo_artista'], 
-            $artista_folder, 
-            'logo', 
-            $artista_actual['logo_artista']
-        );
+        $conn->commit();
 
-        // Actualizar en la base de datos
-        $stmt = $conn->prepare("UPDATE artistas SET 
-            nombre = ?, 
-            genero_musical = ?, 
-            descripcion = ?, 
-            presentacion = ?, 
-            imagen_presentacion = ?, 
-            logo_artista = ? 
-            WHERE id = ?");
+        // Respuesta exitosa
+        echo json_encode([
+            'success' => true,
+            'message' => 'Artista ' . ($modo_edicion ? 'actualizado' : 'guardado') . ' exitosamente',
+            'data' => [
+                'id' => $artista_id,
+                'nombre' => $sanitized_data['nombre'],
+                'imagen_presentacion' => $imagen_presentacion,
+                'logo_artista' => $logo_artista
+            ]
+        ]);
 
-        if (!$stmt) {
-            throw new Exception("Error al preparar la consulta: " . $conn->error);
-        }
-
-        $stmt->bind_param("ssssssi", 
-            $_POST['nombre'],
-            $_POST['genero_musical'],
-            $_POST['descripcion'],
-            $_POST['presentacion'],
-            $imagen_presentacion,
-            $logo_artista,
-            $_POST['artista_id']
-        );
-
-    } else {
-        // Crear directorio base si no existe
-        createDirectory(ARTISTS_UPLOAD_PATH);
-
-        // Crear carpeta específica para el artista
-        $artista_slug = strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $_POST['nombre'])) . '_' . time();
-        $artista_folder = ARTISTS_UPLOAD_PATH . '/' . $artista_slug;
-        createDirectory($artista_folder);
-
-        // Procesar imágenes
-        $imagen_presentacion = procesarImagen($_FILES['imagen_presentacion'], $artista_folder, 'presentacion');
-        $logo_artista = procesarImagen($_FILES['logo_artista'], $artista_folder, 'logo');
-
-        // Insertar en la base de datos
-        $stmt = $conn->prepare("INSERT INTO artistas 
-            (nombre, genero_musical, descripcion, presentacion, imagen_presentacion, logo_artista) 
-            VALUES (?, ?, ?, ?, ?, ?)");
-        
-        if (!$stmt) {
-            throw new Exception("Error al preparar la consulta: " . $conn->error);
-        }
-
-        $stmt->bind_param("ssssss", 
-            $_POST['nombre'],
-            $_POST['genero_musical'],
-            $_POST['descripcion'],
-            $_POST['presentacion'],
-            $imagen_presentacion,
-            $logo_artista
-        );
+    } catch (Exception $e) {
+        $conn->rollback();
+        throw $e;
     }
-
-    if (!$stmt->execute()) {
-        throw new Exception("Error al " . ($modo_edicion ? "actualizar" : "guardar") . " el artista: " . $stmt->error);
-    }
-
-    $artista_id = $modo_edicion ? $_POST['artista_id'] : $stmt->insert_id;
-    $stmt->close();
-    
-    $conn->commit();
-
-    // Respuesta exitosa
-    echo json_encode([
-        'success' => true,
-        'message' => 'Artista ' . ($modo_edicion ? 'actualizado' : 'guardado') . ' exitosamente',
-        'data' => [
-            'id' => $artista_id,
-            'nombre' => $_POST['nombre'],
-            'imagen_presentacion' => $imagen_presentacion,
-            'logo_artista' => $logo_artista
-        ]
-    ]);
 
 } catch (Exception $e) {
-    if (isset($conn)) {
-        $conn->rollback();
-    }
-
-    // Limpiar directorio en caso de error en modo creación
+    // Si hay un error en el modo de creación, limpiar el directorio creado
     if (!$modo_edicion && isset($artista_folder) && is_dir($artista_folder)) {
         array_map('unlink', glob("$artista_folder/*.*"));
         rmdir($artista_folder);
     }
 
+    error_log("Error en procesar_artista.php: " . $e->getMessage());
+    
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()

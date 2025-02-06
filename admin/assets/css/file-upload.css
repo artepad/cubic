@@ -1,68 +1,101 @@
+/* file-upload.css */
+
+/* Contenedor principal de carga de archivos */
 .custom-file-upload {
     position: relative;
     width: 100%;
-    min-height: 150px;
+    min-height: 200px;
     border: 2px dashed #ddd;
     border-radius: 8px;
     padding: 20px;
     text-align: center;
-    transition: all 0.3s ease;
     background: #f8f9fa;
-    margin-bottom: 1rem;
-}
-
-.custom-file-upload.dragover {
-    border-color: #2196F3;
-    background: rgba(33, 150, 243, 0.1);
-}
-
-.custom-file-upload .file-input {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    opacity: 0;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
     cursor: pointer;
 }
 
+/* Estado hover y activo */
+.custom-file-upload:hover {
+    border-color: #adb5bd;
+    background: #f1f3f5;
+}
+
+/* Estado cuando se arrastra un archivo sobre el área */
+.custom-file-upload.dragover {
+    border-color: #2196F3;
+    background: rgba(33, 150, 243, 0.1);
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.2);
+}
+
+/* Input de archivo oculto */
+.custom-file-upload .file-input {
+    display: none;
+}
+
+/* Etiqueta para el área de carga */
 .custom-file-upload .file-label {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    color: #666;
+    min-height: 160px;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
+/* Ícono en la etiqueta */
 .custom-file-upload .file-label i {
     font-size: 2.5em;
-    margin-bottom: 10px;
-    color: #999;
+    margin-bottom: 15px;
+    color: #6c757d;
+    transition: all 0.3s ease;
 }
 
+/* Texto de ayuda */
+.custom-file-upload .file-label small {
+    display: block;
+    margin-top: 10px;
+    color: #6c757d;
+    font-size: 0.875em;
+}
+
+/* Estado cuando hay un archivo seleccionado */
 .custom-file-upload.has-file {
     border-style: solid;
+    border-color: #28a745;
     background: #fff;
 }
 
-.preview-container {
-    position: relative;
+.custom-file-upload.has-file .file-label {
     display: none;
-    margin-top: 15px;
 }
 
+/* Contenedor de vista previa */
+.preview-container {
+    display: none;
+    position: relative;
+    margin: 10px auto;
+    max-width: 300px;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Mostrar contenedor de vista previa cuando hay archivo */
 .custom-file-upload.has-file .preview-container {
     display: block;
 }
 
+/* Imagen de vista previa */
 .preview-container img {
     max-width: 100%;
     max-height: 200px;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    object-fit: contain;
 }
 
+/* Botón para remover archivo */
 .btn-remove {
     position: absolute;
     top: -10px;
@@ -79,6 +112,9 @@
     justify-content: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     transition: all 0.2s ease;
+    z-index: 10;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .btn-remove:hover {
@@ -86,16 +122,60 @@
     transform: scale(1.1);
 }
 
-.invalid-feedback {
-    display: block;
-    width: 100%;
-    margin-top: 0.25rem;
-    font-size: 80%;
-    color: #dc3545;
+/* Contenedor de imagen existente */
+.existing-image-container {
+    margin-bottom: 20px;
+    text-align: center;
 }
 
+.existing-image-container img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    object-fit: contain;
+}
+
+/* Barra de progreso */
+.upload-progress {
+    margin-top: 15px;
+    display: none;
+}
+
+.custom-file-upload.loading .upload-progress {
+    display: block;
+}
+
+.progress {
+    height: 4px;
+    margin-bottom: 5px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+.upload-status {
+    color: #6c757d;
+    font-size: 0.875em;
+    margin-top: 5px;
+}
+
+/* Estilos de validación */
 .is-invalid {
     border-color: #dc3545 !important;
+}
+
+.invalid-feedback {
+    display: none;
+    color: #dc3545;
+    font-size: 0.875em;
+    margin-top: 5px;
 }
 
 .is-invalid + .invalid-feedback {
@@ -104,35 +184,84 @@
 
 /* Animaciones */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { 
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.preview-container {
-    animation: fadeIn 0.3s ease;
-}
-.upload-progress {
-    margin-top: 10px;
-}
-
-.progress {
-    height: 6px;
-    margin-bottom: 5px;
-    background-color: #f5f5f5;
-    border-radius: 3px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,.1);
+/* Estilos de carga */
+.custom-file-upload.loading {
+    pointer-events: none;
+    opacity: 0.7;
 }
 
-.progress-bar {
-    float: left;
-    width: 0;
-    height: 100%;
-    background-color: #337ab7;
-    border-radius: 3px;
-    transition: width .6s ease;
+.custom-file-upload.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-.upload-status {
-    color: #666;
-    font-size: 12px;
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .custom-file-upload {
+        min-height: 160px;
+        padding: 15px;
+    }
+
+    .preview-container img,
+    .existing-image-container img {
+        max-height: 150px;
+    }
+
+    .custom-file-upload .file-label {
+        min-height: 120px;
+    }
+
+    .custom-file-upload .file-label i {
+        font-size: 2em;
+    }
+}
+
+/* Soporte para modo oscuro */
+@media (prefers-color-scheme: dark) {
+    .custom-file-upload {
+        background: #2d3238;
+        border-color: #495057;
+    }
+
+    .custom-file-upload:hover {
+        background: #343a40;
+        border-color: #6c757d;
+    }
+
+    .custom-file-upload .file-label {
+        color: #e9ecef;
+    }
+
+    .custom-file-upload .file-label i,
+    .custom-file-upload .file-label small {
+        color: #adb5bd;
+    }
+
+    .upload-status {
+        color: #adb5bd;
+    }
 }
