@@ -4,7 +4,7 @@
 
 ##  Tabla Panel de Control (Index)
 - [x] 📋 Programar BD: crear un script en sql para cambiar estado del evento
-- [x] 📋 Control de versiones: Progrmar un controlador de versiones.
+- [x] 📋 Control de versiones: Programar un controlador de versiones.
 - [x] 📋 Itinerarios: Implementar sistema de generación (opcional)
 - [x] 📈 Ampliación de Visualización: Incrementar límite de eventos mostrados de 10 a 50
 - [x] 🔍 Mejora del Buscador: Implementación y corrección del filtro en tabla principal
@@ -15,8 +15,8 @@
 - [x] 🔢 Contador de Eventos: Optimización del sistema de conteo
 
 ## Visualización de Artista (Ver)
-- [ ] ✏️ Edición: crear la edición  de artistas
 - [ ] 🗑️ Eliminación: Sistema de eliminación artistas
+- [x] ✏️ Edición: crear la edición  de artistas
 - [x] 🖼️ Visualización de Imagen: Arreglar la visualización de imagen en la pagina
 
 ## Tabla de Clientes
