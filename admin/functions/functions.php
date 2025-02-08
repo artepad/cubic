@@ -393,7 +393,7 @@ function getEventColor($estado) {
  */
 
  function getTotalArtistas($conn) {
-    $sql = "SELECT COUNT(*) as total FROM artistas";
+    $sql = "SELECT COUNT(*) as total FROM artistas WHERE estado = 'Activo'";
     $result = executeQuery($conn, $sql);
     return $result->fetch_assoc()['total'];
 }
@@ -410,7 +410,7 @@ function getAllArtistas($conn) {
  * @return array|null
  */
 function getArtistaById($conn, $id) {
-    $stmt = $conn->prepare("SELECT * FROM artistas WHERE id = ?");
+    $stmt = $conn->prepare("SELECT * FROM artistas WHERE id = ? AND estado = 'Activo'");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -418,7 +418,7 @@ function getArtistaById($conn, $id) {
     $stmt->close();
     
     if ($artista) {
-        // Asegurarse de que las rutas de las imágenes sean correctas
+        // Formatear rutas de imágenes
         if (!empty($artista['imagen_presentacion'])) {
             $artista['imagen_presentacion'] = formatImagePath($artista['imagen_presentacion']);
         }

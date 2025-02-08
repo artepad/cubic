@@ -55,9 +55,8 @@ function obtenerGirasRecientes($conn)
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
-function obtenerArtistas($conn)
-{
-    $sql = "SELECT id, nombre, genero_musical FROM artistas ORDER BY nombre";
+function obtenerArtistas($conn) {
+    $sql = "SELECT id, nombre, genero_musical FROM artistas WHERE estado = 'Activo' ORDER BY nombre";
     $result = $conn->query($sql);
     if ($result === false) {
         throw new Exception("Error al obtener la lista de artistas: " . $conn->error);

@@ -19,7 +19,7 @@ $paginaActual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $offset = ($paginaActual - 1) * $registrosPorPagina;
 
 // Obtener el total de registros
-$sqlTotal = "SELECT COUNT(*) as total FROM artistas";
+$sqlTotal = "SELECT COUNT(*) as total FROM artistas WHERE estado = 'Activo'";
 $resultTotal = $conn->query($sqlTotal);
 $fila = $resultTotal->fetch_assoc();
 $totalRegistros = $fila['total'];
@@ -28,7 +28,7 @@ $totalRegistros = $fila['total'];
 $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
 
 // Modificar la consulta para incluir LIMIT y OFFSET
-$sql = "SELECT * FROM artistas ORDER BY id DESC LIMIT $registrosPorPagina OFFSET $offset";
+$sql = "SELECT * FROM artistas WHERE estado = 'Activo' ORDER BY id DESC LIMIT $registrosPorPagina OFFSET $offset";
 $result_artistas = $conn->query($sql);
 
 // Cerrar la conexión después de obtener los datos necesarios

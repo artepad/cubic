@@ -235,19 +235,19 @@ $pageTitle = "Detalles del Artista";
                                                             <ul role="menu" class="dropdown-menu">
                                                                 <li>
                                                                     <a href="ingreso_artista.php?id=<?php echo $artista_id; ?>">
-                                                                        <i class="fa fa-pencil m-r-5"></i> Editar
+                                                                       Editar
                                                                     </a>
                                                                 </li>
                                                                 <li>
                                                                     <a href="javascript:void(0)" class="eliminar-artista"
                                                                         data-id="<?php echo $artista_id; ?>">
-                                                                        <i class="fa fa-trash m-r-5"></i> Eliminar
+                                                                        Eliminar
                                                                     </a>
                                                                 </li>
                                                                 <li class="divider"></li>
                                                                 <li>
                                                                     <a href="listar_artistas.php">
-                                                                        <i class="fa fa-arrow-left m-r-5"></i> Volver
+                                                                        Volver
                                                                     </a>
                                                                 </li>
                                                             </ul>
