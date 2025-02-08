@@ -6,7 +6,6 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci;
 
 USE schaaf_producciones;
-
 -- Eliminar tablas existentes si es necesario (en orden inverso a las dependencias)
 DROP TABLE IF EXISTS evento_archivos;
 DROP TABLE IF EXISTS eventos;
@@ -15,7 +14,6 @@ DROP TABLE IF EXISTS empresas;
 DROP TABLE IF EXISTS clientes;
 DROP TABLE IF EXISTS giras;
 DROP TABLE IF EXISTS usuarios;
-
 -- ========================================
 -- Tabla: usuarios
 -- Descripción: Almacena los usuarios del sistema con sus credenciales
@@ -29,7 +27,6 @@ CREATE TABLE usuarios (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de creación del usuario',
     PRIMARY KEY (id)
 ) ENGINE=InnoDB COMMENT='Tabla de usuarios del sistema';
-
 -- ========================================
 -- Tabla: clientes
 -- Descripción: Almacena la información de los clientes
@@ -46,7 +43,6 @@ CREATE TABLE clientes (
     PRIMARY KEY (id),
     INDEX idx_cliente_rut (rut) COMMENT 'Índice para búsquedas por RUT'
 ) ENGINE=InnoDB COMMENT='Tabla de información de clientes';
-
 -- ========================================
 -- Tabla: empresas
 -- Descripción: Almacena la información de las empresas asociadas a los clientes
@@ -65,7 +61,6 @@ CREATE TABLE empresas (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Tabla de empresas asociadas a clientes';
-
 -- ========================================
 -- Tabla: giras
 -- Descripción: Almacena información de las giras artísticas
@@ -77,24 +72,23 @@ CREATE TABLE giras (
     PRIMARY KEY (id),
     INDEX idx_gira_nombre (nombre) COMMENT 'Índice para búsquedas por nombre de gira'
 ) ENGINE=InnoDB COMMENT='Tabla de giras artísticas';
-
 -- ========================================
 -- Tabla: artistas
 -- Descripción: Almacena información de los artistas
 -- ========================================
 CREATE TABLE artistas (
-    id INT AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL COMMENT 'Nombre del artista',
-    descripcion TEXT COMMENT 'Descripción detallada del artista',
-    presentacion TEXT COMMENT 'Presentación para cotizaciones',
-    genero_musical VARCHAR(50) NOT NULL COMMENT 'Género musical principal del artista',
-    imagen_presentacion VARCHAR(255) COMMENT 'Ruta de la imagen de presentación',
-    logo_artista VARCHAR(255) COMMENT 'Ruta del logo del artista',
-    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del artista',
-    PRIMARY KEY (id),
-    INDEX idx_artista_nombre (nombre) COMMENT 'Índice para búsquedas por nombre de artista'
+   id INT AUTO_INCREMENT,
+   nombre VARCHAR(100) NOT NULL COMMENT 'Nombre del artista',
+   descripcion TEXT COMMENT 'Descripción detallada del artista',
+   presentacion TEXT COMMENT 'Presentación para cotizaciones',
+   genero_musical VARCHAR(50) NOT NULL COMMENT 'Género musical principal del artista',
+   imagen_presentacion VARCHAR(255) COMMENT 'Ruta de la imagen de presentación',
+   logo_artista VARCHAR(255) COMMENT 'Ruta del logo del artista',
+   estado ENUM('Activo', 'Inactivo') NOT NULL DEFAULT 'Activo' COMMENT 'Estado del artista',
+   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de registro del artista',
+   PRIMARY KEY (id),
+   INDEX idx_artista_nombre (nombre) COMMENT 'Índice para búsquedas por nombre de artista'
 ) ENGINE=InnoDB COMMENT='Tabla de información de artistas';
-
 -- ========================================
 -- Tabla: eventos
 -- Descripción: Almacena la información de los eventos
@@ -137,7 +131,6 @@ CREATE TABLE eventos (
         ON DELETE SET NULL
         ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT='Tabla principal de eventos';
-
 -- ========================================
 -- Tabla: evento_archivos
 -- Descripción: Almacena referencias a archivos asociados a eventos
@@ -154,8 +147,6 @@ CREATE TABLE evento_archivos (
     FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE,
     INDEX idx_evento_archivos (evento_id) COMMENT 'Índice para búsquedas por evento'
 ) ENGINE=InnoDB COMMENT='Tabla para almacenar referencias a archivos de eventos';
-
-
 
 SHOW VARIABLES LIKE 'event_scheduler';
 -- Si está OFF, activar con:
